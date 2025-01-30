@@ -1,8 +1,0 @@
-name: quantum-local-server
-channels: 
-        - conda-forge
-dependencies:
-        - pip
-        - python=3.10
-        - pip:
-          - Flask
