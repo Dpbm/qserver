@@ -1,0 +1,25 @@
+services:
+  db:
+    container_name: postgres-db
+    build: 
+      context: ./server/database/
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: test
+      POSTGRES_USER: test
+    ports:
+      - "5432:5432"
+    volumes:
+      # https://stackoverflow.com/questions/41637505/how-to-persist-data-in-a-dockerized-postgres-database-using-volumes
+      - data:/var/lib/postgresql/data
+      - postgres:/var/run/postgresql
+      - qasm:/qasm
+
+volumes:
+  data:
+    external: false
+  postgres:
+    external: false
+  qasm:
+    external: false
