@@ -1,11 +1,19 @@
 {
     "cSpell.words": [
         "cirq",
+        "ENDC",
         "expval",
+        "genproto",
+        "github",
         "pennylane",
+        "postgres",
+        "postgresql",
         "protobuf",
+        "protoc",
         "qasm",
         "qiskit",
-        "rabbitmq"
+        "qnet",
+        "rabbitmq",
+        "uuid"
     ]
 }

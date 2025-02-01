@@ -17,6 +17,7 @@ services:
       - qasm:/qasm
     networks: 
       - qnet
+
   queue-handler:
     container_name: rabbitmq
     image: rabbitmq:4.0.5-alpine

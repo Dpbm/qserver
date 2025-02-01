@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option go_package = "github.com/Dpbm/jobs_server";
+
+service Jobs{
+	rpc AddJob (stream JobData) returns (PendingJob) {}
+}
+
+message JobData{
+	int32 nQubits = 1;
+	string framework = 2;
+	string qasm = 3;
+	int32 depth = 4;
+	string resultsTypes = 5;
+	string targetSimulator = 6;
+	optional string metadata = 7;
+}
+
+message PendingJob{
+	string id = 1;
+}
