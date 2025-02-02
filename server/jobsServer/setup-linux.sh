@@ -17,7 +17,7 @@ if [ ! $(which protoc) &>/dev/null ]; then
 	TARGET_PATH="/tmp/protobuf"
 	ZIP_FILE="$TARGET_PATH/proto.zip"
 
-	echo -e "${GREEN}Creating taget path..${ENDC}"
+	echo -e "${GREEN}Creating target path..${ENDC}"
 	mkdir -p $TARGET_PATH
 
 	echo -e "${GREEN}Installing protoc...${ENDC}"
@@ -28,7 +28,7 @@ if [ ! $(which protoc) &>/dev/null ]; then
 	sudo mv "$TARGET_PATH/include/google" /usr/local/include
 
 
-	echo -e "${GREEN}Moving bintary into /usr/local/bin...${ENDC}"
+	echo -e "${GREEN}Moving binary into /usr/local/bin...${ENDC}"
 	sudo mv "$TARGET_PATH/bin/protoc" /usr/local/bin
 fi
 

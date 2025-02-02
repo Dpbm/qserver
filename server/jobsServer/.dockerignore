@@ -1,0 +1,4 @@
+run-server-for-local-tests.sh
+setup-linux.sh
+proto/jobs.proto
+proto/generate-proto-code.sh

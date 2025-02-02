@@ -8,8 +8,9 @@ ENDC='\033[0m'
 
 DB_CONTAINER_ID=$(docker container ls -a | grep local-quantum-server-db | awk '{printf $1}')
 RABBITMQ_CONTAINER_ID=$(docker container ls -a | grep rabbitmq | awk '{printf $1}')
+JOBS_SERVER_CONTAINER_ID=$(docker container ls -a | grep jobs-server | awk '{printf $1}')
 
-for id in $DB_CONTAINER_ID $RABBITMQ_CONTAINER_ID; do
+for id in $DB_CONTAINER_ID $RABBITMQ_CONTAINER_ID $JOBS_SERVER_CONTAINER_ID; do
 	echo -e "\n${BLUE}Stopping container $id ... ${ENDC}"
 	docker stop $id
 done

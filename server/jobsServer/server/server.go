@@ -108,7 +108,7 @@ func createQASMFile(qasmData string, jobId string) (string, error) {
 
 func addToQueue(rabbitmqChannel *amqp.Channel, jobId string) error {
 	queue, error := rabbitmqChannel.QueueDeclare(
-		"hello", // name
+		"qexec", // name
 		false,   // durable
 		false,   // delete when unused
 		false,   // exclusive
@@ -167,11 +167,6 @@ func (server *jobsServer) AddJob(request jobsServerProto.Jobs_AddJobServer) erro
 	if error != nil {
 		return error
 	}
-
-	// test volume files sharing accross multiple containers
-	// submit job to rabbitmq (pass only jobId)
-
-	log.Println(jobData)
 
 	qasmData := jobData.Qasm
 	jobId := uuid.New().String()

@@ -1,6 +1,7 @@
 services:
     db:
         container_name: postgres-db
+        hostname: postgresInstance #https://stackoverflow.com/questions/29924843/how-do-i-set-hostname-in-docker-compose
         build:
             context: ./server/database/
             dockerfile: Dockerfile
@@ -16,17 +17,44 @@ services:
             - postgres:/var/run/postgresql
             - qasm:/qasm
         networks:
-            - qnet
+            qnet:
+                ipv4_address: 172.18.0.2
 
     queue-handler:
         container_name: rabbitmq
+        hostname: rabbitmqInstance
         image: rabbitmq:4.0.5-alpine
         restart: always
         ports:
             - '5672:5672'
             - '15672:15672'
         networks:
-            - qnet
+            qnet:
+                ipv4_address: 172.18.0.3
+
+    jobs-server:
+        container_name: jobs-server
+        build:
+            context: ./server/jobsServer/
+            dockerfile: Dockerfile
+        ports:
+            - '50051:50051'
+        environment:
+            JOBS_SERVER_HOST: 0.0.0.0
+            JOBS_SERVER_PORT: 50051
+            JOBS_SERVER_RABBITMQ_HOST: 172.18.0.3
+            JOBS_SERVER_RABBITMQ_PORT: 5672
+            JOBS_SERVER_POSTGRES_HOST: 172.18.0.2
+            JOBS_SERVER_POSTGRES_PORT: 5432
+            JOBS_SERVER_POSTGRES_USERNAME: test
+            JOBS_SERVER_POSTGRES_PASSWORD: test
+            JOBS_SERVER_QASM_PATH: /qasm
+        restart: always
+        networks:
+            qnet:
+                ipv4_address: 172.18.0.4
+        volumes:
+            - qasm:/qasm
 
 volumes:
     data:
@@ -39,3 +67,10 @@ volumes:
 networks:
     qnet:
         external: false
+        #https://stackoverflow.com/questions/27937185/assign-static-ip-to-docker-container
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.18.0.0/27 # 30 usable IPs
+                  ip_range: 172.18.0.0/27
+                  gateway: 172.18.0.1
