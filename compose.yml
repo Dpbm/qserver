@@ -1,41 +1,41 @@
 services:
-  db:
-    container_name: postgres-db
-    build: 
-      context: ./server/database/
-      dockerfile: Dockerfile
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: test
-      POSTGRES_USER: test
-    ports:
-      - "5432:5432"
-    volumes:
-      # https://stackoverflow.com/questions/41637505/how-to-persist-data-in-a-dockerized-postgres-database-using-volumes
-      - data:/var/lib/postgresql/data
-      - postgres:/var/run/postgresql
-      - qasm:/qasm
-    networks: 
-      - qnet
+    db:
+        container_name: postgres-db
+        build:
+            context: ./server/database/
+            dockerfile: Dockerfile
+        restart: always
+        environment:
+            POSTGRES_PASSWORD: test
+            POSTGRES_USER: test
+        ports:
+            - '5432:5432'
+        volumes:
+            # https://stackoverflow.com/questions/41637505/how-to-persist-data-in-a-dockerized-postgres-database-using-volumes
+            - data:/var/lib/postgresql/data
+            - postgres:/var/run/postgresql
+            - qasm:/qasm
+        networks:
+            - qnet
 
-  queue-handler:
-    container_name: rabbitmq
-    image: rabbitmq:4.0.5-alpine
-    restart: always
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    networks:
-      - qnet
+    queue-handler:
+        container_name: rabbitmq
+        image: rabbitmq:4.0.5-alpine
+        restart: always
+        ports:
+            - '5672:5672'
+            - '15672:15672'
+        networks:
+            - qnet
 
 volumes:
-  data:
-    external: false
-  postgres:
-    external: false
-  qasm:
-    external: false
+    data:
+        external: false
+    postgres:
+        external: false
+    qasm:
+        external: false
 
 networks:
-  qnet:
-    external: false
+    qnet:
+        external: false

@@ -176,3 +176,5 @@ pyrightconfig.json
 *.pyc
 
 server/plugins*
+
+server/jobsServer/qasm

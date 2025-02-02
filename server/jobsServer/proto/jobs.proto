@@ -11,9 +11,11 @@ message JobData{
 	string framework = 2;
 	string qasm = 3;
 	int32 depth = 4;
-	string resultsTypes = 5;
-	string targetSimulator = 6;
-	optional string metadata = 7;
+	bool resultTypeCounts = 5;
+	bool resultTypeQuasiDist = 6;
+	bool resultTypeExpVal = 7;
+	string targetSimulator = 8;
+	optional string metadata = 9;
 }
 
 message PendingJob{

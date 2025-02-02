@@ -4,7 +4,7 @@
 // - protoc             v5.29.3
 // source: jobs.proto
 
-package jobsServer
+package jobs_server
 
 import (
 	context "context"
