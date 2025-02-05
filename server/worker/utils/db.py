@@ -32,6 +32,10 @@ class DB:
         """, (job_id,)) # get all data from job and create a json with the result types the user selected
         return self._cursor.fetchone()
 
+    def update_status(self, status:str, job_id:str):
+        self._cursor.execute("UPDATE jobs SET status=%s WHERE id=%s", (status, job_id,))
+        self._commit()
+
 
     def _commit(self):
         """
@@ -39,7 +43,7 @@ class DB:
         """
         self._connection.commit()
 
-    def _close(self):
+    def close(self):
         """
             Finish database connection.
         """

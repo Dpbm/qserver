@@ -8,8 +8,9 @@ def callback(ch, method, body,db):
 
     data = db.get_job_data(job_id)
     print(data)
+
+    db.update_status('running', job_id)
     # get qasm (maybe)
-    # update status to running
     # update start_time
     # get all results types the user wants
     # get the requested plugin
@@ -20,6 +21,7 @@ def callback(ch, method, body,db):
     # update finish_time
     # note: catch errors, if an error is raised, update the status as well
 
+    db.close()
 
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
