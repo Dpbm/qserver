@@ -49,6 +49,7 @@ services:
             JOBS_SERVER_POSTGRES_USERNAME: test
             JOBS_SERVER_POSTGRES_PASSWORD: test
             JOBS_SERVER_QASM_PATH: /qasm
+            QUEUE_NAME: qexec
         restart: always
         networks:
             qnet:

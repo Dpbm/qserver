@@ -107,30 +107,33 @@ func createQASMFile(qasmData string, jobId string) (string, error) {
 }
 
 func addToQueue(rabbitmqChannel *amqp.Channel, jobId string) error {
-	queue, error := rabbitmqChannel.QueueDeclare(
-		"qexec", // name
-		false,   // durable
-		false,   // delete when unused
-		false,   // exclusive
-		false,   // no-wait
-		nil,     // arguments
+	queueName := os.Getenv("QUEUE_NAME")
+	_, error := rabbitmqChannel.QueueDeclare(
+		queueName, // name
+		true,      // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
 	)
 	if error != nil {
 		return error
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	timeoutAfter := 5 * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutAfter)
 	defer cancel()
 
 	error = rabbitmqChannel.PublishWithContext(
 		ctx,
-		"",         // exchange
-		queue.Name, // routing key
-		false,      // mandatory
-		false,      // immediate
+		"",        // exchange
+		queueName, // routing key
+		false,     // mandatory
+		false,     // immediate
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(jobId),
+			DeliveryMode: amqp.Persistent,
+			ContentType:  "text/plain",
+			Body:         []byte(jobId),
 		})
 
 	if error != nil {
@@ -170,20 +173,26 @@ func (server *jobsServer) AddJob(request jobsServerProto.Jobs_AddJobServer) erro
 
 	qasmData := jobData.Qasm
 	jobId := uuid.New().String()
+
+	log.Printf("Handling job %s\n", jobId)
+
 	qasmFilePath, error := createQASMFile(qasmData, jobId)
 	if error != nil {
 		return error
 	}
+	log.Println("Created qasm file")
 
 	error = addJobToDB(server.database, jobData, qasmFilePath, jobId)
 	if error != nil {
 		return error
 	}
+	log.Println("Added to db")
 
 	error = addToQueue(server.rabbitmqChannel, jobId)
 	if error != nil {
 		return error
 	}
+	log.Println("Added to queue")
 
 	return request.SendAndClose(&jobsServerProto.PendingJob{Id: jobId})
 }

@@ -1,0 +1,9 @@
+name: worker
+channels:
+    - conda-forge
+dependencies:
+    - pip
+    - python=3.12
+    - pip:
+          - pika
+          - psycopg2-binary

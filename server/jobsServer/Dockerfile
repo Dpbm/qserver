@@ -15,4 +15,3 @@ COPY --from=build /qasm /qasm
 EXPOSE 50051
 
 CMD ["/bin/server"]
-
