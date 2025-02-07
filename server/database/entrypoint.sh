@@ -25,11 +25,8 @@ echo -e "${GREEN}Setting up tables...${ENDC}\n"
 psql -U $POSTGRES_USER -d $DATABASE_NAME -c "
 CREATE TABLE IF NOT EXISTS jobs (
 	id uuid NOT NULL PRIMARY KEY,
-	n_qubits int NOT NULL CHECK(n_qubits > 0),
-	framework VARCHAR(8) NOT NULL,
 	qasm VARCHAR(80) NOT NULL,
 	status VARCHAR(8) NOT NULL DEFAULT 'pending',
-	depth int NOT NULL CHECK(depth > 0),
 	submission_date timestamptz NOT NULL,
 	start_time timestamptz,
 	finish_time timestamptz,

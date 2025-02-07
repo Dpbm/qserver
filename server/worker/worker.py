@@ -1,34 +1,61 @@
 import pika, os
 from utils.db import DB
+from utils.plugin import Plugin
 
 
 def callback(ch, method, body,db):
-    job_id = body.decode()
-    print(f"Processing job {job_id}")
+    try:
+        
+        results_handler = ResultsHandler()
 
-    data = db.get_job_data(job_id)
-    print(data)
+        job_id = body.decode()
+        print(f"Processing job {job_id}")
 
-    db.update_status('running', job_id)
-    # get qasm (maybe)
-    # update start_time
-    # get all results types the user wants
-    # get the requested plugin
-    # execute the job for each result type
-    # store the results in memory (or disk)
-    # save results on db
-    # update status
-    # update finish_time
-    # note: catch errors, if an error is raised, update the status as well
+        data = db.get_job_data(job_id)
+        
+        result_types = data["selected_result_types"]
+        qasm_file = data["qasm"]
 
-    db.close()
+        db.update_job_status('running', job_id)
+        db.update_job_start_time_to_now(job_id)
 
-    ch.basic_ack(delivery_tag=method.delivery_tag)
+        # get plugin (be aware that once the plugin name can be passed by the user, he may try to bypass and run arbitrary code)
+        plugin = Plugin()
+
+        for result_type, active in result_types.items():
+            if(not active):
+                continue
+
+            print(f"executing for {result_type} results")
+            results = plugin.run(qasm_file, result_type)
+
+            print("Saving results...")
+            db.save_results(result_type, results, job_id)
+
+        db.update_job_status('finished', job_id)
+
+
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+
+    except Exception as error:
+        db.update_job_status('failed', job_id)
+        logging.error(f"Faield on worker callback: {str(error)}")
+
+    finally:
+        db.update_job_finish_time_to_now(job_id)
+        db.close()
+
 
 
 if __name__ == '__main__':
     host = os.getenv("RABBITMQ_HOST")
     queue_name = os.getenv("RABBITMQ_QUEUE_NAME")
+
+    db_host = os.getenv("DB_HOST")
+    db_port = os.getenv("DB_PORT")
+    db_name = os.getenv("DB_NAME")
+    db_user = os.getenv("DB_USER")
+    db_password = os.getenv("DB_PASSWORD")
 
     connection = pika.BlockingConnection(pika.ConnectionParameters(host=host))
     channel = connection.channel()
@@ -36,7 +63,12 @@ if __name__ == '__main__':
     channel.queue_declare(queue=queue_name, durable=True)
     print("Waiting for jobs...")
 
-    db = DB(host="0.0.0.0", port="5432", db_name="quantum", user="test", password="test")
+    db = DB(
+        host=db_host, 
+        port=db_port, 
+        db_name=db_name, 
+        user=db_user, 
+        password=db_password)
 
     channel.basic_qos(prefetch_count=1) # ensure that a single message is passed to each idle worker
     channel.basic_consume(
