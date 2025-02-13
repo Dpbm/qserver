@@ -1,3 +1,7 @@
-from typing import Dict
+from typing import Dict, Any
 
-Results = Dict|float
+Backend = str
+Results = Dict[int | str, float] | float
+Metadata = Dict[Any, Any]
+ResultType = str
+QasmFilePath = str

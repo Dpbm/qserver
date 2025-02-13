@@ -5,7 +5,7 @@ from utils.plugin import Plugin
 
 def callback(ch, method, body,db):
     try:
-        
+
         results_handler = ResultsHandler()
 
         job_id = body.decode()
@@ -15,12 +15,15 @@ def callback(ch, method, body,db):
         
         result_types = data["selected_result_types"]
         qasm_file = data["qasm"]
+        target_backend = data["target_simulator"]
 
         db.update_job_status('running', job_id)
         db.update_job_start_time_to_now(job_id)
 
+
+        plugin_name = db.get_plugin(target_backend)
         # get plugin (be aware that once the plugin name can be passed by the user, he may try to bypass and run arbitrary code)
-        plugin = Plugin()
+        plugin = Plugin(plugin_name)
 
         for result_type, active in result_types.items():
             if(not active):

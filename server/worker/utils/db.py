@@ -81,3 +81,7 @@ class DB:
         """
         self._cursor.close()
         self._connection.close()
+
+    def get_plugin(self, backend:str) -> str:
+        self._cursor.execute("SELECT plugin FROM backends WHERE backend=%s", (backend,))
+        return self._cursor.fetchone()
