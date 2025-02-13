@@ -16,10 +16,6 @@ services:
             - data:/var/lib/postgresql/data
             - postgres:/var/run/postgresql
             - qasm:/qasm
-        networks:
-            qnet:
-                ipv4_address: 172.18.0.2
-
     queue-handler:
         container_name: rabbitmq
         hostname: rabbitmqInstance
@@ -28,9 +24,6 @@ services:
         ports:
             - '5672:5672'
             - '15672:15672'
-        networks:
-            qnet:
-                ipv4_address: 172.18.0.3
 
     jobs-server:
         container_name: jobs-server
@@ -45,18 +38,15 @@ services:
         environment:
             JOBS_SERVER_HOST: 0.0.0.0
             JOBS_SERVER_PORT: 50051
-            JOBS_SERVER_RABBITMQ_HOST: 172.18.0.3
+            JOBS_SERVER_RABBITMQ_HOST: rabbitmqInstance
             JOBS_SERVER_RABBITMQ_PORT: 5672
-            JOBS_SERVER_POSTGRES_HOST: 172.18.0.2
+            JOBS_SERVER_POSTGRES_HOST: postgresInstance
             JOBS_SERVER_POSTGRES_PORT: 5432
             JOBS_SERVER_POSTGRES_USERNAME: test
             JOBS_SERVER_POSTGRES_PASSWORD: test
             JOBS_SERVER_QASM_PATH: /qasm
             QUEUE_NAME: qexec
         restart: always
-        networks:
-            qnet:
-                ipv4_address: 172.18.0.4
         volumes:
             - qasm:/qasm
 
@@ -68,18 +58,18 @@ services:
             - db
             - queue-handler
             - jobs-server
+        deploy:
+            mode: replicated
+            replicas: 4
         environment:
             RABBITMQ_HOST: rabbitmqInstance
             RABBITMQ_PORT: 5672
             RABBITMQ_QUEUE_NAME: qexec
-            DB_HOST: 172.18.0.2
+            DB_HOST: postgresInstance
             DB_PORT: 5432
             DB_NAME: quantum
             DB_USER: test
             DB_PASSWORD: test
-        networks:
-            qnet:
-                ipv4_address: 172.18.0.5
         volumes:
             - qasm:/qasm
 
@@ -90,14 +80,3 @@ volumes:
         external: false
     qasm:
         external: false
-
-networks:
-    qnet:
-        external: false
-        #https://stackoverflow.com/questions/27937185/assign-static-ip-to-docker-container
-        ipam:
-            driver: default
-            config:
-                - subnet: 172.18.0.0/27 # 30 usable IPs
-                  ip_range: 172.18.0.0/27
-                  gateway: 172.18.0.1
