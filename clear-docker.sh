@@ -15,7 +15,7 @@ TOTAL_WORKERS=$(docker ps | grep local-quantum-server-workers | wc | awk '{print
 
 for worker_i in $(seq 1 $TOTAL_WORKERS); do
 	echo -e "\n${BLUE}Stopping worker $worker_i ... ${ENDC}"
-	docker stop local-quantum-server-workers-$worker_i
+	docker stop "local-quantum-server-workers-$worker_i"
 done
 
 echo -e "\n${BLUE}Cleaning containers ... ${ENDC}"

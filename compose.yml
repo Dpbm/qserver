@@ -61,6 +61,7 @@ services:
         deploy:
             mode: replicated
             replicas: 4
+        restart: always
         environment:
             RABBITMQ_HOST: rabbitmqInstance
             RABBITMQ_PORT: 5672
