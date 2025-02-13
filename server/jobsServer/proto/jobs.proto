@@ -7,15 +7,12 @@ service Jobs{
 }
 
 message JobData{
-	int32 nQubits = 1;
-	string framework = 2;
-	string qasm = 3;
-	int32 depth = 4;
-	bool resultTypeCounts = 5;
-	bool resultTypeQuasiDist = 6;
-	bool resultTypeExpVal = 7;
-	string targetSimulator = 8;
-	optional string metadata = 9;
+	string qasm = 1;
+	bool resultTypeCounts = 2;
+	bool resultTypeQuasiDist = 3;
+	bool resultTypeExpVal = 4;
+	string targetSimulator = 5;
+	optional string metadata = 6;
 }
 
 message PendingJob{

@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS results (
 psql -U $POSTGRES_USER -d $DATABASE_NAME -c "
 CREATE TABLE IF NOT EXISTS backends (
 	id uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
-	backends VARCHAR(30) NOT NULL ,
+	backends VARCHAR(30) NOT NULL,
 	plugin VARCHAR(20) NOT NULL
 );
 "

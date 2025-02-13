@@ -28,21 +28,14 @@ type jobsServer struct {
 	database        *sql.DB
 }
 
+type Message struct {
+	Type string `json:"type"`
+	Data string `json:"data"`
+}
+
 func checkData(data *jobsServerProto.JobData) error {
-	if data.NQubits <= 0 {
-		return errors.New("nQubits must be greater than 0")
-	}
-
-	if len(data.Framework) <= 0 {
-		return errors.New("you must provide the name of your framework/tool")
-	}
-
 	if len(data.Qasm) <= 0 {
 		return errors.New("you must provide your code in qasm format")
-	}
-
-	if data.Depth <= 0 {
-		return errors.New("invalid detph")
 	}
 
 	if len(data.TargetSimulator) <= 0 {
@@ -65,9 +58,9 @@ func checkData(data *jobsServerProto.JobData) error {
 
 func addJobToDB(db *sql.DB, job *jobsServerProto.JobData, qasmFilePath string, id string) error {
 	_, error := db.Exec(`
-	INSERT INTO jobs(id, n_qubits, framework, qasm, depth, submission_date, target_simulator, metadata)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-	`, id, job.NQubits, job.Framework, qasmFilePath, job.Depth, time.Now(), job.TargetSimulator, job.Metadata)
+	INSERT INTO jobs(id, qasm, submission_date, target_simulator, metadata)
+	VALUES ($1, $2, $3, $4, $5)
+	`, id, qasmFilePath, time.Now(), job.TargetSimulator, job.Metadata)
 
 	if error != nil {
 		return error
@@ -124,6 +117,16 @@ func addToQueue(rabbitmqChannel *amqp.Channel, jobId string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeoutAfter)
 	defer cancel()
 
+	message := Message{
+		Type: "job",
+		Data: jobId,
+	}
+
+	jsonData, error := json.Marshal(message)
+	if error != nil {
+		return error
+	}
+
 	error = rabbitmqChannel.PublishWithContext(
 		ctx,
 		"",        // exchange
@@ -132,8 +135,8 @@ func addToQueue(rabbitmqChannel *amqp.Channel, jobId string) error {
 		false,     // immediate
 		amqp.Publishing{
 			DeliveryMode: amqp.Persistent,
-			ContentType:  "text/plain",
-			Body:         []byte(jobId),
+			ContentType:  "application/json",
+			Body:         jsonData,
 		})
 
 	if error != nil {
