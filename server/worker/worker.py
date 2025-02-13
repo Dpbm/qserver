@@ -1,4 +1,4 @@
-import pika, os
+import pika, os, json, logging
 from utils.db import DB
 from utils.plugin import Plugin
 
@@ -6,9 +6,14 @@ from utils.plugin import Plugin
 def callback(ch, method, body,db):
     try:
 
-        results_handler = ResultsHandler()
+        data = json.loads(body.decode())
 
-        job_id = body.decode()
+        if(data['type'] != 'job'):
+            # TODO: Handle plugin add
+            return
+
+        job_id = data['data']
+
         print(f"Processing job {job_id}")
 
         data = db.get_job_data(job_id)
@@ -37,22 +42,18 @@ def callback(ch, method, body,db):
 
         db.update_job_status('finished', job_id)
 
-
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-
     except Exception as error:
         db.update_job_status('failed', job_id)
-        logging.error(f"Faield on worker callback: {str(error)}")
+        print(f"failed on worker callback: {str(error)}")
 
     finally:
         db.update_job_finish_time_to_now(job_id)
-        db.close()
-
-
+        ch.basic_ack(delivery_tag=method.delivery_tag)
 
 if __name__ == '__main__':
-    host = os.getenv("RABBITMQ_HOST")
-    queue_name = os.getenv("RABBITMQ_QUEUE_NAME")
+    rabbitmq_host = os.getenv("RABBITMQ_HOST")
+    rabbitmq_port = os.getenv("RABBITMQ_PORT")
+    rabbitmq_queue_name = os.getenv("RABBITMQ_QUEUE_NAME")
 
     db_host = os.getenv("DB_HOST")
     db_port = os.getenv("DB_PORT")
@@ -60,10 +61,20 @@ if __name__ == '__main__':
     db_user = os.getenv("DB_USER")
     db_password = os.getenv("DB_PASSWORD")
 
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host=host))
+    credentials = pika.PlainCredentials('guest', 'guest')
+    connection = None
+
+    print("Waiting for connection...")
+    while(connection is None):
+        try:
+            connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))
+        except Exception:
+            pass
+    print("Connection Stablished!")
+
     channel = connection.channel()
 
-    channel.queue_declare(queue=queue_name, durable=True)
+    channel.queue_declare(queue=rabbitmq_queue_name, durable=True)
     print("Waiting for jobs...")
 
     db = DB(
@@ -75,8 +86,9 @@ if __name__ == '__main__':
 
     channel.basic_qos(prefetch_count=1) # ensure that a single message is passed to each idle worker
     channel.basic_consume(
-        queue=queue_name, 
+        queue=rabbitmq_queue_name, 
         on_message_callback=lambda ch, method, properties, body: callback(ch, method, body, db)
         )
 
     channel.start_consuming()
+    db.close()

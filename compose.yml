@@ -39,6 +39,9 @@ services:
             dockerfile: Dockerfile
         ports:
             - '50051:50051'
+        depends_on:
+            - db
+            - queue-handler
         environment:
             JOBS_SERVER_HOST: 0.0.0.0
             JOBS_SERVER_PORT: 50051
@@ -54,6 +57,29 @@ services:
         networks:
             qnet:
                 ipv4_address: 172.18.0.4
+        volumes:
+            - qasm:/qasm
+
+    workers:
+        build:
+            context: ./server/worker
+            dockerfile: Dockerfile
+        depends_on:
+            - db
+            - queue-handler
+            - jobs-server
+        environment:
+            RABBITMQ_HOST: rabbitmqInstance
+            RABBITMQ_PORT: 5672
+            RABBITMQ_QUEUE_NAME: qexec
+            DB_HOST: 172.18.0.2
+            DB_PORT: 5432
+            DB_NAME: quantum
+            DB_USER: test
+            DB_PASSWORD: test
+        networks:
+            qnet:
+                ipv4_address: 172.18.0.5
         volumes:
             - qasm:/qasm
 

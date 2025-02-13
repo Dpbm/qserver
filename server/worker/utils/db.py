@@ -1,9 +1,8 @@
 from typing import Tuple, Any
 import psycopg2 as pg
 import psycopg2.extras as pgextras
-import logging
 from datetime import datetime
-from .types import Results
+from .types import Results,ResultType,Backend
 
 
 class DB:
@@ -11,7 +10,7 @@ class DB:
         self._connection = pg.connect(f"postgres://{user}:{password}@{host}:{port}/{db_name}")
         # cursor_factory: https://www.geeksforgeeks.org/psycopg2-return-dictionary-like-values/
         self._cursor = self._connection.cursor(cursor_factory = pgextras.RealDictCursor)
-        logging.info("Initialized DB")
+        print("Initialized DB")
 
     def get_job_data(self, job_id:str) -> Tuple[Any]:
         self._cursor.execute("""
@@ -36,15 +35,13 @@ class DB:
         self._cursor.execute("UPDATE jobs SET status=%s WHERE id=%s", (status, job_id,))
         self._commit()
 
-    def _update_time_column(self, column:str, job_id:str):
-        self._cursor.execute("UPDATE jobs SET %s=%s WHERE id=%s", (column, datetime.now(), job_id,))
+    def update_job_start_time_to_now(self, job_id:str):
+        self._cursor.execute("UPDATE jobs SET start_time=%s WHERE id=%s", (datetime.now(), job_id,))
         self._commit()
 
-    def update_job_start_time_to_now(self, job_id:str):
-        self._update_time_column('start_time', job_id)
-
     def update_job_finish_time_to_now(self, job_id:str):
-        self._update_time_column('finish_time', job_id)
+        self._cursor.execute("UPDATE jobs SET finish_time=%s WHERE id=%s", (datetime.now(), job_id,))
+        self._commit()
 
     def _was_results_table_initialized_by_the_job(self, job_id:str) -> bool:
         self._cursor.execute("SELECT 1 FROM results WHERE job_id=%s", (job_id,))
@@ -56,7 +53,7 @@ class DB:
         self._cursor.execute("INSERT INTO results(job_id) VALUES(%s)", (job_id,))
         self._commit()
 
-    def save_results(self, result_type:str, results:Resul, job_id:str):
+    def save_results(self, result_type:ResultType, results:Results, job_id:str):
         # It may be seen as a SQL Injection vulnerable code.
         # But theorectically, it's safe. Once we retrieved the data directly from database 
         # and the user had no access of what result_type name actually is
@@ -82,6 +79,6 @@ class DB:
         self._cursor.close()
         self._connection.close()
 
-    def get_plugin(self, backend:str) -> str:
-        self._cursor.execute("SELECT plugin FROM backends WHERE backend=%s", (backend,))
+    def get_plugin(self, backend:Backend) -> str:
+        self._cursor.execute("SELECT plugin FROM backends WHERE backend_name=%s", (backend,))
         return self._cursor.fetchone()
