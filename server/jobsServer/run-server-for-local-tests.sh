@@ -3,10 +3,11 @@
 export HOST=localhost
 export PORT=50051
 
-export RABBITMQ_HOST=rabbitmqInstance
+export RABBITMQ_HOST=0.0.0.0
 export RABBITMQ_PORT=5672
+export RABBITMQ_QUEUE_NAME=qexec
 
-export DB_HOST=postgresInstance
+export DB_HOST=0.0.0.0
 export DB_PORT=5432
 export DB_USERNAME=test
 export DB_PASSWORD=test

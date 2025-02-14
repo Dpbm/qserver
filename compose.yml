@@ -40,13 +40,13 @@ services:
             PORT: 50051
             RABBITMQ_HOST: rabbitmqInstance
             RABBITMQ_PORT: 5672
+            RABBITMQ_QUEUE_NAME: qexec
             DB_HOST: postgresInstance
             DB_PORT: 5432
             DB_USERNAME: test
             DB_PASSWORD: test
             DB_NAME: quantum
             QASM_PATH: /qasm
-            QUEUE_NAME: qexec
         restart: always
         volumes:
             - qasm:/qasm

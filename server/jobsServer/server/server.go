@@ -46,9 +46,9 @@ func checkData(data *jobsServerProto.JobData) error {
 	// and: https://stackoverflow.com/questions/42152750/golang-is-there-an-easy-way-to-unmarshal-arbitrary-complex-json
 	var metadata map[string]interface{}
 	if data.Metadata != nil {
-		error := json.Unmarshal([]byte(*data.Metadata), &metadata)
+		err := json.Unmarshal([]byte(*data.Metadata), &metadata)
 
-		if len(*data.Metadata) <= 0 || error != nil {
+		if len(*data.Metadata) <= 0 || err != nil {
 			return errors.New("invalid metadata")
 		}
 	}
@@ -57,21 +57,21 @@ func checkData(data *jobsServerProto.JobData) error {
 }
 
 func addJobToDB(db *sql.DB, job *jobsServerProto.JobData, qasmFilePath string, id string) error {
-	_, error := db.Exec(`
+	_, err := db.Exec(`
 	INSERT INTO jobs(id, qasm, submission_date, target_simulator, metadata)
 	VALUES ($1, $2, $3, $4, $5)
 	`, id, qasmFilePath, time.Now(), job.TargetSimulator, job.Metadata)
 
-	if error != nil {
-		return error
+	if err != nil {
+		return err
 	}
 
-	_, error = db.Exec(`
+	_, err = db.Exec(`
 	INSERT INTO result_types(job_id, counts, quasi_dist, expval)
 	VALUES ($1, $2, $3, $4)
 	`, id, job.ResultTypeCounts, job.ResultTypeQuasiDist, job.ResultTypeExpVal)
 
-	return error
+	return err
 }
 
 func createQASMFile(qasmData string, jobId string) (string, error) {
@@ -80,17 +80,17 @@ func createQASMFile(qasmData string, jobId string) (string, error) {
 	filename := jobId + ".qasm"
 	qasmFilePath := filepath.Join(path, filename)
 
-	file, error := os.Create(qasmFilePath)
+	file, err := os.Create(qasmFilePath)
 
-	if error != nil {
-		return "", error
+	if err != nil {
+		return "", err
 	}
 
 	writer := bufio.NewWriter(file)
-	qasmWritting, error := writer.WriteString(qasmData)
+	qasmWritting, err := writer.WriteString(qasmData)
 
-	if error != nil || qasmWritting <= 0 {
-		return "", error
+	if err != nil || qasmWritting <= 0 {
+		return "", err
 	}
 
 	writer.Flush()
@@ -100,8 +100,8 @@ func createQASMFile(qasmData string, jobId string) (string, error) {
 }
 
 func addToQueue(rabbitmqChannel *amqp.Channel, jobId string) error {
-	queueName := os.Getenv("QUEUE_NAME")
-	_, error := rabbitmqChannel.QueueDeclare(
+	queueName := os.Getenv("RABBITMQ_QUEUE_NAME")
+	_, err := rabbitmqChannel.QueueDeclare(
 		queueName, // name
 		true,      // durable
 		false,     // delete when unused
@@ -109,8 +109,8 @@ func addToQueue(rabbitmqChannel *amqp.Channel, jobId string) error {
 		false,     // no-wait
 		nil,       // arguments
 	)
-	if error != nil {
-		return error
+	if err != nil {
+		return err
 	}
 
 	timeoutAfter := 5 * time.Second
@@ -122,12 +122,12 @@ func addToQueue(rabbitmqChannel *amqp.Channel, jobId string) error {
 		Data: jobId,
 	}
 
-	jsonData, error := json.Marshal(message)
-	if error != nil {
-		return error
+	jsonData, err := json.Marshal(message)
+	if err != nil {
+		return err
 	}
 
-	error = rabbitmqChannel.PublishWithContext(
+	err = rabbitmqChannel.PublishWithContext(
 		ctx,
 		"",        // exchange
 		queueName, // routing key
@@ -139,8 +139,8 @@ func addToQueue(rabbitmqChannel *amqp.Channel, jobId string) error {
 			Body:         jsonData,
 		})
 
-	if error != nil {
-		return error
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -150,15 +150,15 @@ func (server *jobsServer) AddJob(request jobsServerProto.Jobs_AddJobServer) erro
 	var jobStreamingData []*jobsServerProto.JobData
 
 	for {
-		data, error := request.Recv()
+		data, err := request.Recv()
 
-		if error == io.EOF {
+		if err == io.EOF {
 			// when streaming reach the end of the data, it send EOF
 			break
 		}
 
-		if error != nil {
-			return error
+		if err != nil {
+			return err
 		}
 
 		jobStreamingData = append(jobStreamingData, data)
@@ -169,9 +169,9 @@ func (server *jobsServer) AddJob(request jobsServerProto.Jobs_AddJobServer) erro
 	}
 
 	jobData := jobStreamingData[0]
-	error := checkData(jobData)
-	if error != nil {
-		return error
+	err := checkData(jobData)
+	if err != nil {
+		return err
 	}
 
 	qasmData := jobData.Qasm
@@ -179,21 +179,21 @@ func (server *jobsServer) AddJob(request jobsServerProto.Jobs_AddJobServer) erro
 
 	log.Printf("Handling job %s\n", jobId)
 
-	qasmFilePath, error := createQASMFile(qasmData, jobId)
-	if error != nil {
-		return error
+	qasmFilePath, err := createQASMFile(qasmData, jobId)
+	if err != nil {
+		return err
 	}
 	log.Println("Created qasm file")
 
-	error = addJobToDB(server.database, jobData, qasmFilePath, jobId)
-	if error != nil {
-		return error
+	err = addJobToDB(server.database, jobData, qasmFilePath, jobId)
+	if err != nil {
+		return err
 	}
 	log.Println("Added to db")
 
-	error = addToQueue(server.rabbitmqChannel, jobId)
-	if error != nil {
-		return error
+	err = addToQueue(server.rabbitmqChannel, jobId)
+	if err != nil {
+		return err
 	}
 	log.Println("Added to queue")
 
@@ -203,55 +203,55 @@ func (server *jobsServer) AddJob(request jobsServerProto.Jobs_AddJobServer) erro
 func main() {
 	serverHost := os.Getenv("HOST")
 	serverPort := os.Getenv("PORT")
-	_, error := strconv.Atoi(serverPort)
-	if error != nil {
-		log.Fatalf("Invalid Port Value error : %v", error)
+	_, err := strconv.Atoi(serverPort)
+	if err != nil {
+		log.Fatalf("Invalid Port Value error : %v", err)
 		panic("Invalid Port Value!")
 	}
 
 	serverUrl := fmt.Sprintf("%s:%s", serverHost, serverPort)
-	listen, error := net.Listen("tcp", serverUrl)
-	if error != nil {
-		log.Fatalf("failed to listen: %v", error)
+	listen, err := net.Listen("tcp", serverUrl)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
 		panic("Failed on listen!")
 	}
 
 	rabbitmqHost := os.Getenv("RABBITMQ_HOST")
 	rabbitmqPort := os.Getenv("RABBITMQ_PORT")
-	_, error = strconv.Atoi(rabbitmqPort)
-	if error != nil {
-		log.Fatalf("Invalid Port Value For RabbitMQ : %v", error)
+	_, err = strconv.Atoi(rabbitmqPort)
+	if err != nil {
+		log.Fatalf("Invalid Port Value For RabbitMQ : %v", err)
 		panic("Invalid Port Value For RabbitMQ!")
 	}
 	rabbitmqServerUrl := fmt.Sprintf("amqp://guest:guest@%s:%s", rabbitmqHost, rabbitmqPort)
-	rabbitmqConnection, error := amqp.Dial(rabbitmqServerUrl)
-	if error != nil {
-		log.Fatalf("Failed on connect to rabbitmq : %v", error)
+	rabbitmqConnection, err := amqp.Dial(rabbitmqServerUrl)
+	if err != nil {
+		log.Fatalf("Failed on connect to rabbitmq : %v", err)
 		panic("Failed rabbitmq connect")
 	}
 	defer rabbitmqConnection.Close()
 
-	rabbitmqChannel, error := rabbitmqConnection.Channel()
-	if error != nil {
-		log.Fatalf("Failed on connect to rabbitmq channel : %v", error)
+	rabbitmqChannel, err := rabbitmqConnection.Channel()
+	if err != nil {
+		log.Fatalf("Failed on connect to rabbitmq channel : %v", err)
 		panic("Failed rabbitmq channel")
 	}
 	defer rabbitmqChannel.Close()
 
 	postgresHost := os.Getenv("DB_HOST")
 	postgresPort := os.Getenv("DB_PORT")
-	_, error = strconv.Atoi(postgresPort)
-	if error != nil {
-		log.Fatalf("Invalid Port Value For DB : %v", error)
+	_, err = strconv.Atoi(postgresPort)
+	if err != nil {
+		log.Fatalf("Invalid Port Value For DB : %v", err)
 		panic("Invalid Port Value For DB!")
 	}
 	postgresUsername := os.Getenv("DB_USERNAME")
 	postgresPassword := os.Getenv("DB_PASSWORD")
 	dbname := os.Getenv("DB_NAME")
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", postgresUsername, postgresPassword, postgresHost, postgresPort, dbname)
-	db, error := sql.Open("postgres", connStr)
-	if error != nil {
-		log.Fatalf("Failed on connect to postgres : %v", error)
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatalf("Failed on connect to postgres : %v", err)
 		panic("Failed connect postgres!")
 	}
 
