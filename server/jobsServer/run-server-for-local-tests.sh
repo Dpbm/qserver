@@ -1,19 +1,20 @@
 #!/bin/bash
 
-export JOBS_SERVER_HOST=localhost
-export JOBS_SERVER_PORT=50051
+export HOST=localhost
+export PORT=50051
 
-export JOBS_SERVER_RABBITMQ_HOST=rabbitmqInstance
-export JOBS_SERVER_RABBITMQ_PORT=5672
+export RABBITMQ_HOST=rabbitmqInstance
+export RABBITMQ_PORT=5672
 
-export JOBS_SERVER_POSTGRES_HOST=postgresInstance
-export JOBS_SERVER_POSTGRES_PORT=5432
-export JOBS_SERVER_POSTGRES_USERNAME=test
-export JOBS_SERVER_POSTGRES_PASSWORD=test
+export DB_HOST=postgresInstance
+export DB_PORT=5432
+export DB_USERNAME=test
+export DB_PASSWORD=test
+export DB_NAME=quantum
 
 
 QASM_PATH=./qasm
-export JOBS_SERVER_QASM_PATH=$QASM_PATH
+export QASM_PATH=$QASM_PATH
 
 mkdir -p $QASM_PATH
 

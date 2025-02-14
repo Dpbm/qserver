@@ -36,15 +36,16 @@ services:
             - db
             - queue-handler
         environment:
-            JOBS_SERVER_HOST: 0.0.0.0
-            JOBS_SERVER_PORT: 50051
-            JOBS_SERVER_RABBITMQ_HOST: rabbitmqInstance
-            JOBS_SERVER_RABBITMQ_PORT: 5672
-            JOBS_SERVER_POSTGRES_HOST: postgresInstance
-            JOBS_SERVER_POSTGRES_PORT: 5432
-            JOBS_SERVER_POSTGRES_USERNAME: test
-            JOBS_SERVER_POSTGRES_PASSWORD: test
-            JOBS_SERVER_QASM_PATH: /qasm
+            HOST: 0.0.0.0
+            PORT: 50051
+            RABBITMQ_HOST: rabbitmqInstance
+            RABBITMQ_PORT: 5672
+            DB_HOST: postgresInstance
+            DB_PORT: 5432
+            DB_USERNAME: test
+            DB_PASSWORD: test
+            DB_NAME: quantum
+            QASM_PATH: /qasm
             QUEUE_NAME: qexec
         restart: always
         volumes:

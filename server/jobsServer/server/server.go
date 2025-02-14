@@ -75,7 +75,7 @@ func addJobToDB(db *sql.DB, job *jobsServerProto.JobData, qasmFilePath string, i
 }
 
 func createQASMFile(qasmData string, jobId string) (string, error) {
-	path := os.Getenv("JOBS_SERVER_QASM_PATH")
+	path := os.Getenv("QASM_PATH")
 
 	filename := jobId + ".qasm"
 	qasmFilePath := filepath.Join(path, filename)
@@ -201,8 +201,8 @@ func (server *jobsServer) AddJob(request jobsServerProto.Jobs_AddJobServer) erro
 }
 
 func main() {
-	serverHost := os.Getenv("JOBS_SERVER_HOST")
-	serverPort := os.Getenv("JOBS_SERVER_PORT")
+	serverHost := os.Getenv("HOST")
+	serverPort := os.Getenv("PORT")
 	_, error := strconv.Atoi(serverPort)
 	if error != nil {
 		log.Fatalf("Invalid Port Value error : %v", error)
@@ -216,8 +216,8 @@ func main() {
 		panic("Failed on listen!")
 	}
 
-	rabbitmqHost := os.Getenv("JOBS_SERVER_RABBITMQ_HOST")
-	rabbitmqPort := os.Getenv("JOBS_SERVER_RABBITMQ_PORT")
+	rabbitmqHost := os.Getenv("RABBITMQ_HOST")
+	rabbitmqPort := os.Getenv("RABBITMQ_PORT")
 	_, error = strconv.Atoi(rabbitmqPort)
 	if error != nil {
 		log.Fatalf("Invalid Port Value For RabbitMQ : %v", error)
@@ -238,11 +238,16 @@ func main() {
 	}
 	defer rabbitmqChannel.Close()
 
-	postgresHost := os.Getenv("JOBS_SERVER_POSTGRES_HOST")
-	postgresPort := os.Getenv("JOBS_SERVER_POSTGRES_PORT")
-	postgresUsername := os.Getenv("JOBS_SERVER_POSTGRES_USERNAME")
-	postgresPassword := os.Getenv("JOBS_SERVER_POSTGRES_PASSWORD")
-	dbname := "quantum"
+	postgresHost := os.Getenv("DB_HOST")
+	postgresPort := os.Getenv("DB_PORT")
+	_, error = strconv.Atoi(postgresPort)
+	if error != nil {
+		log.Fatalf("Invalid Port Value For DB : %v", error)
+		panic("Invalid Port Value For DB!")
+	}
+	postgresUsername := os.Getenv("DB_USERNAME")
+	postgresPassword := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", postgresUsername, postgresPassword, postgresHost, postgresPort, dbname)
 	db, error := sql.Open("postgres", connStr)
 	if error != nil {
