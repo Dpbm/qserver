@@ -70,7 +70,6 @@ func addPlugin(context *gin.Context) {
 
 	// get all backends names with python script
 	// go to the community official plugins, and get using curl, or whatever, the list
-	// uninstall plugin
 	// add to queue to install
 
 }
