@@ -1,6 +1,5 @@
 import pika, os
-from utils.db import DB
-from utils.plugin import Plugin
+from utils import DB, Plugin
 
 
 def callback(ch, method, body,db):
@@ -18,10 +17,10 @@ def callback(ch, method, body,db):
         db.update_job_status('running', job_id)
         db.update_job_start_time_to_now(job_id)
 
-
-        # get plugin (be aware that once the plugin name can be passed by the user, he may try to bypass and run arbitrary code)
+        # the plugin name is first checked by the api to see if it's official
+        # however, the user may try to bypass that
+        # so be aware with potential threads here
         plugin_name = db.get_plugin(target_backend)
-        # download plugin if it isn't installed
         plugin = Plugin(plugin_name)
 
         for result_type, active in result_types.items():
