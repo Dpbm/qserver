@@ -9,9 +9,9 @@ RUN go build -C ./server/
 RUN mkdir -p /qasm
 
 FROM scratch
-COPY --from=build /go/src/server/server /bin/server
+COPY --from=build /go/src/server/server /server
 COPY --from=build /qasm /qasm
 
 EXPOSE 50051
 
-CMD ["/bin/server"]
+CMD ["/server"]

@@ -9,6 +9,7 @@ services:
         environment:
             POSTGRES_PASSWORD: test
             POSTGRES_USER: test
+            DB_NAME: quantum
         ports:
             - '5432:5432'
         volumes:
@@ -74,6 +75,25 @@ services:
             DB_PASSWORD: test
         volumes:
             - qasm:/qasm
+
+    api:
+        container_name: api
+        build:
+            context: ./server/restAPI
+            dockerfile: Dockerfile
+        depends_on:
+            - db
+        ports:
+            - '3000:3000'
+        restart: always
+        environment:
+            GIN_MODE: release
+            PORT: 3000
+            DB_HOST: postgresInstance
+            DB_PORT: 5432
+            DB_NAME: quantum
+            DB_USER: test
+            DB_PASSWORD: test
 
 volumes:
     data:

@@ -6,7 +6,7 @@ BLUE='\033[0;34m'
 ENDC='\033[0m'
 
 
-for id in "postgres-db" "rabbitmq" "jobs-server"; do
+for id in "postgres-db" "rabbitmq" "jobs-server" "api"; do
 	echo -e "\n${BLUE}Stopping container $id ... ${ENDC}"
 	docker stop $id
 done

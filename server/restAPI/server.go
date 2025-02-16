@@ -94,11 +94,13 @@ func addPlugin(context *gin.Context) {
 	err := context.ShouldBindUri(&plugin)
 	if err != nil {
 		context.JSON(400, map[string]string{"msg": err.Error()})
+		return
 	}
 
 	db, ok := context.MustGet("db").(*sql.DB)
 	if !ok {
 		context.JSON(500, map[string]string{"msg": "Failed on Stablish database connection!"})
+		return
 	}
 
 	pluginName := plugin.Name
@@ -106,11 +108,13 @@ func addPlugin(context *gin.Context) {
 
 	if err != nil || len(backends) <= 0 {
 		context.JSON(500, map[string]string{"msg": "Failed get backends!"})
+		return
 	}
 
 	err = saveOnDB(&backends, pluginName, db)
 	if err != nil {
 		context.JSON(500, map[string]string{"msg": "Failed on save data on DB!"})
+		return
 	}
 
 	context.JSON(201, map[string]string{"msg": "added plugin"})

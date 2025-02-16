@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# POSTGRES_USER must be provided as a env on docker compose
+# POSTGRES_USER and DB_NAME must be provided as a env on docker compose
 
 set -e
 
@@ -14,19 +14,18 @@ until pg_isready -U $POSTGRES_USER; do
 	sleep 2
 done
 
-DATABASE_NAME="quantum"
-if [ ! $(psql -U $POSTGRES_USER -tc "SELECT 1 FROM pg_database WHERE datname='${DATABASE_NAME}';") ]; then
-	echo -e "${GREEN}Creating ${DATABASE_NAME} database...${ENDC}"
-	createdb -U $POSTGRES_USER $DATABASE_NAME
+if [ ! $(psql -U $POSTGRES_USER -tc "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}';") ]; then
+	echo -e "${GREEN}Creating ${DB_NAME} database...${ENDC}"
+	createdb -U $POSTGRES_USER $DB_NAME
 fi
 
 echo -e "${GREEN}Setting up tables...${ENDC}\n"
 
-psql -U $POSTGRES_USER -d $DATABASE_NAME -c "
+psql -U $POSTGRES_USER -d $DB_NAME -c "
 CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";
 "
 
-psql -U $POSTGRES_USER -d $DATABASE_NAME -c "
+psql -U $POSTGRES_USER -d $DB_NAME -c "
 CREATE TABLE IF NOT EXISTS backends (
 	backend_name VARCHAR(30) NOT NULL PRIMARY KEY,
 	id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -34,7 +33,7 @@ CREATE TABLE IF NOT EXISTS backends (
 );
 "
 
-psql -U $POSTGRES_USER -d $DATABASE_NAME -c "
+psql -U $POSTGRES_USER -d $DB_NAME -c "
 CREATE TABLE IF NOT EXISTS jobs (
 	id uuid NOT NULL PRIMARY KEY,
 	target_simulator VARCHAR(30) NOT NULL REFERENCES backends(backend_name),
@@ -47,7 +46,7 @@ CREATE TABLE IF NOT EXISTS jobs (
 );
 "
 
-psql -U $POSTGRES_USER -d $DATABASE_NAME -c "
+psql -U $POSTGRES_USER -d $DB_NAME -c "
 CREATE TABLE IF NOT EXISTS result_types (
 	id uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
 	job_id uuid NOT NULL REFERENCES jobs(id),
@@ -57,7 +56,7 @@ CREATE TABLE IF NOT EXISTS result_types (
 );
 "
 
-psql -U $POSTGRES_USER -d $DATABASE_NAME -c "
+psql -U $POSTGRES_USER -d $DB_NAME -c "
 CREATE TABLE IF NOT EXISTS results (
 	id uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
 	job_id uuid NOT NULL REFERENCES jobs(id),
