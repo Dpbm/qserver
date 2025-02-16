@@ -28,11 +28,6 @@ type jobsServer struct {
 	database        *sql.DB
 }
 
-type Message struct {
-	Type string `json:"type"`
-	Data string `json:"data"`
-}
-
 func checkData(data *jobsServerProto.JobData) error {
 	if len(data.Qasm) <= 0 {
 		return errors.New("you must provide your code in qasm format")
@@ -117,16 +112,6 @@ func addToQueue(rabbitmqChannel *amqp.Channel, jobId string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeoutAfter)
 	defer cancel()
 
-	message := Message{
-		Type: "job",
-		Data: jobId,
-	}
-
-	jsonData, err := json.Marshal(message)
-	if err != nil {
-		return err
-	}
-
 	err = rabbitmqChannel.PublishWithContext(
 		ctx,
 		"",        // exchange
@@ -135,8 +120,8 @@ func addToQueue(rabbitmqChannel *amqp.Channel, jobId string) error {
 		false,     // immediate
 		amqp.Publishing{
 			DeliveryMode: amqp.Persistent,
-			ContentType:  "application/json",
-			Body:         jsonData,
+			ContentType:  "text/plain",
+			Body:         []byte(jobId),
 		})
 
 	if err != nil {

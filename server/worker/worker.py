@@ -1,18 +1,11 @@
-import pika, os, json, logging
+import pika, os
 from utils.db import DB
 from utils.plugin import Plugin
 
 
 def callback(ch, method, body,db):
     try:
-
-        data = json.loads(body.decode())
-
-        if(data['type'] != 'job'):
-            # TODO: Handle plugin add
-            return
-
-        job_id = data['data']
+        job_id = body.decode()
 
         print(f"Processing job {job_id}")
 
@@ -26,8 +19,9 @@ def callback(ch, method, body,db):
         db.update_job_start_time_to_now(job_id)
 
 
-        plugin_name = db.get_plugin(target_backend)
         # get plugin (be aware that once the plugin name can be passed by the user, he may try to bypass and run arbitrary code)
+        plugin_name = db.get_plugin(target_backend)
+        # download plugin if it isn't installed
         plugin = Plugin(plugin_name)
 
         for result_type, active in result_types.items():
