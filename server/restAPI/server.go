@@ -3,14 +3,18 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
-	amqp "github.com/rabbitmq/amqp091-go"
 )
+
+const REPO_URL = "https://raw.githubusercontent.com/quantum-plugins"
 
 type GetJobById struct {
 	ID string `uri:"id" binding:"required,uuid"`
@@ -25,7 +29,7 @@ func getJobData(jobId string, db *sql.DB) (sql.Result, error) {
 		SELECT * 
 		FROM results
 		WHERE job_id=$1 
-	`, (jobId))
+	`, jobId)
 }
 
 func getJob(context *gin.Context) {
@@ -50,12 +54,46 @@ func getJob(context *gin.Context) {
 	context.JSON(200, result)
 }
 
+func getBackends(pluginName string) ([]string, error) {
+	pipName := strings.Replace(pluginName, "-", "_", -1)
+	fullBackendsListURL := fmt.Sprintf("%s/%s/refs/heads/main/%s/backends.txt", REPO_URL, pluginName, pipName)
+
+	response, err := http.Get(fullBackendsListURL)
+	if err != nil {
+		return []string{}, err
+	}
+	defer response.Body.Close()
+
+	backends, err := io.ReadAll(response.Body)
+	if err != nil {
+		return []string{}, err
+	}
+	lines := strings.Split(string(backends), "\n")
+
+	return lines, nil
+}
+
+func saveOnDB(backends *[]string, pluginName string, db *sql.DB) error {
+
+	for _, backend := range *backends {
+		_, err := db.Exec(`
+			INSERT INTO backends(backend_name, plugin)
+			VALUES($1, $2)
+		`, backend, pluginName)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func addPlugin(context *gin.Context) {
 	var plugin AddPluginByName
 	err := context.ShouldBindUri(&plugin)
 	if err != nil {
 		context.JSON(400, map[string]string{"msg": err.Error()})
-		return
 	}
 
 	db, ok := context.MustGet("db").(*sql.DB)
@@ -63,27 +101,25 @@ func addPlugin(context *gin.Context) {
 		context.JSON(500, map[string]string{"msg": "Failed on Stablish database connection!"})
 	}
 
-	queueChannel, ok := context.MustGet("queueChannel").(*amqp.Channel)
-	if !ok {
-		context.JSON(500, map[string]string{"msg": "Failed on get queue channel!"})
+	pluginName := plugin.Name
+	backends, err := getBackends(pluginName)
+
+	if err != nil || len(backends) <= 0 {
+		context.JSON(500, map[string]string{"msg": "Failed get backends!"})
 	}
 
-	// get all backends names with python script
-	// go to the community official plugins, and get using curl, or whatever, the list
-	// add to queue to install
+	err = saveOnDB(&backends, pluginName, db)
+	if err != nil {
+		context.JSON(500, map[string]string{"msg": "Failed on save data on DB!"})
+	}
+
+	context.JSON(201, map[string]string{"msg": "added plugin"})
 
 }
 
 func dbMiddleware(db *sql.DB) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		context.Set("db", db)
-		context.Next()
-	}
-}
-
-func queueMiddleware(channel *amqp.Channel) gin.HandlerFunc {
-	return func(context *gin.Context) {
-		context.Set("queueChannel", channel)
 		context.Next()
 	}
 }
@@ -113,34 +149,10 @@ func main() {
 		panic("Failed connect postgres!")
 	}
 
-	rabbitmqHost := os.Getenv("RABBITMQ_HOST")
-	rabbitmqPort := os.Getenv("RABBITMQ_PORT")
-	_, err = strconv.Atoi(rabbitmqPort)
-	if err != nil {
-		log.Fatalf("Invalid Port Value For RabbitMQ : %v", err)
-		panic("Invalid Port Value For RabbitMQ!")
-	}
-	rabbitmqServerUrl := fmt.Sprintf("amqp://guest:guest@%s:%s", rabbitmqHost, rabbitmqPort)
-	rabbitmqConnection, err := amqp.Dial(rabbitmqServerUrl)
-	if err != nil {
-		log.Fatalf("Failed on connect to rabbitmq : %v", err)
-		panic("Failed rabbitmq connect")
-	}
-	defer rabbitmqConnection.Close()
-
-	rabbitmqChannel, err := rabbitmqConnection.Channel()
-	if err != nil {
-		log.Fatalf("Failed on connect to rabbitmq channel : %v", err)
-		panic("Failed rabbitmq channel")
-	}
-	defer rabbitmqChannel.Close()
-
-	//----------------------------------------------------------------------------
 	server := gin.Default()
 
 	// check: https://stackoverflow.com/questions/34046194/how-to-pass-arguments-to-router-handlers-in-golang-using-gin-web-framework
 	server.Use(dbMiddleware(db))
-	server.Use(queueMiddleware(rabbitmqChannel))
 
 	server.GET("/job/:id", getJob)
 	server.POST("/plugin/:name", addPlugin)
