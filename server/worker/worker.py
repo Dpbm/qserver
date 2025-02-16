@@ -51,7 +51,7 @@ if __name__ == '__main__':
     db_host = os.getenv("DB_HOST")
     db_port = os.getenv("DB_PORT")
     db_name = os.getenv("DB_NAME")
-    db_user = os.getenv("DB_USER")
+    db_user = os.getenv("DB_USERNAME")
     db_password = os.getenv("DB_PASSWORD")
 
     credentials = pika.PlainCredentials('guest', 'guest')

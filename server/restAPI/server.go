@@ -36,6 +36,7 @@ func getJob(context *gin.Context) {
 	var job GetJobById
 	err := context.ShouldBindUri(&job)
 	if err != nil {
+		log.Println(err)
 		context.JSON(400, map[string]string{"msg": err.Error()})
 		return
 	}
@@ -47,6 +48,7 @@ func getJob(context *gin.Context) {
 
 	result, err := getJobData(job.ID, db)
 	if err != nil {
+		log.Println(err)
 		context.JSON(404, map[string]string{"msg": "Results Data not found!"})
 		return
 	}
@@ -60,12 +62,14 @@ func getBackends(pluginName string) ([]string, error) {
 
 	response, err := http.Get(fullBackendsListURL)
 	if err != nil {
+		log.Println(err)
 		return []string{}, err
 	}
 	defer response.Body.Close()
 
 	backends, err := io.ReadAll(response.Body)
 	if err != nil {
+		log.Println(err)
 		return []string{}, err
 	}
 	lines := strings.Split(string(backends), "\n")
@@ -82,6 +86,7 @@ func saveOnDB(backends *[]string, pluginName string, db *sql.DB) error {
 		`, backend, pluginName)
 
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 	}
@@ -93,6 +98,7 @@ func addPlugin(context *gin.Context) {
 	var plugin AddPluginByName
 	err := context.ShouldBindUri(&plugin)
 	if err != nil {
+		log.Println(err)
 		context.JSON(400, map[string]string{"msg": err.Error()})
 		return
 	}
@@ -107,12 +113,14 @@ func addPlugin(context *gin.Context) {
 	backends, err := getBackends(pluginName)
 
 	if err != nil || len(backends) <= 0 {
-		context.JSON(500, map[string]string{"msg": "Failed get backends!"})
+		log.Println(err)
+		context.JSON(500, map[string]string{"msg": "Failed on get backends!"})
 		return
 	}
 
 	err = saveOnDB(&backends, pluginName, db)
 	if err != nil {
+		log.Println(err)
 		context.JSON(500, map[string]string{"msg": "Failed on save data on DB!"})
 		return
 	}

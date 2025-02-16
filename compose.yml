@@ -6,10 +6,9 @@ services:
             context: ./server/database/
             dockerfile: Dockerfile
         restart: always
-        environment:
-            POSTGRES_PASSWORD: test
-            POSTGRES_USER: test
-            DB_NAME: quantum
+        env_file:
+            - ./postgres.env
+            - ./db.env
         ports:
             - '5432:5432'
         volumes:
@@ -36,17 +35,12 @@ services:
         depends_on:
             - db
             - queue-handler
+        env_file:
+            - ./db.env
+            - ./rabbitmq.env
         environment:
             HOST: 0.0.0.0
             PORT: 50051
-            RABBITMQ_HOST: rabbitmqInstance
-            RABBITMQ_PORT: 5672
-            RABBITMQ_QUEUE_NAME: qexec
-            DB_HOST: postgresInstance
-            DB_PORT: 5432
-            DB_USERNAME: test
-            DB_PASSWORD: test
-            DB_NAME: quantum
             QASM_PATH: /qasm
         restart: always
         volumes:
@@ -64,15 +58,9 @@ services:
             mode: replicated
             replicas: 4
         restart: always
-        environment:
-            RABBITMQ_HOST: rabbitmqInstance
-            RABBITMQ_PORT: 5672
-            RABBITMQ_QUEUE_NAME: qexec
-            DB_HOST: postgresInstance
-            DB_PORT: 5432
-            DB_NAME: quantum
-            DB_USER: test
-            DB_PASSWORD: test
+        env_file:
+            - ./rabbitmq.env
+            - ./db.env
         volumes:
             - qasm:/qasm
 
@@ -86,14 +74,11 @@ services:
         ports:
             - '3000:3000'
         restart: always
+        env_file:
+            - ./db.env
         environment:
-            GIN_MODE: release
+            GIN_MODE: debug
             PORT: 3000
-            DB_HOST: postgresInstance
-            DB_PORT: 5432
-            DB_NAME: quantum
-            DB_USER: test
-            DB_PASSWORD: test
 
 volumes:
     data:
