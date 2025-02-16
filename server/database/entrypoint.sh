@@ -23,20 +23,28 @@ fi
 echo -e "${GREEN}Setting up tables...${ENDC}\n"
 
 psql -U $POSTGRES_USER -d $DATABASE_NAME -c "
+CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";
+"
+
+psql -U $POSTGRES_USER -d $DATABASE_NAME -c "
+CREATE TABLE IF NOT EXISTS backends (
+	backend_name VARCHAR(30) NOT NULL PRIMARY KEY,
+	id uuid NOT NULL DEFAULT gen_random_uuid(),
+	plugin VARCHAR(20) NOT NULL
+);
+"
+
+psql -U $POSTGRES_USER -d $DATABASE_NAME -c "
 CREATE TABLE IF NOT EXISTS jobs (
 	id uuid NOT NULL PRIMARY KEY,
+	target_simulator VARCHAR(30) NOT NULL REFERENCES backends(backend_name),
 	qasm VARCHAR(80) NOT NULL,
 	status VARCHAR(8) NOT NULL DEFAULT 'pending',
 	submission_date timestamptz NOT NULL,
 	start_time timestamptz,
 	finish_time timestamptz,
-	target_simulator VARCHAR(20) NOT NULL,
 	metadata jsonb
 );
-"
-
-psql -U $POSTGRES_USER -d $DATABASE_NAME -c "
-CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";
 "
 
 psql -U $POSTGRES_USER -d $DATABASE_NAME -c "
@@ -59,12 +67,5 @@ CREATE TABLE IF NOT EXISTS results (
 );
 "
 
-psql -U $POSTGRES_USER -d $DATABASE_NAME -c "
-CREATE TABLE IF NOT EXISTS backends (
-	id uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
-	backend_name VARCHAR(30) NOT NULL,
-	plugin VARCHAR(20) NOT NULL
-);
-"
 
 echo -e "${GREEN}Finished SETUP${ENDC}"
