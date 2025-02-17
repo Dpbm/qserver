@@ -11,6 +11,7 @@
         "isready",
         "libc",
         "linux",
+        "nginx",
         "ossp",
         "pennylane",
         "postgres",

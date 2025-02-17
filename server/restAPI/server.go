@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -65,6 +66,12 @@ func getBackends(pluginName string) ([]string, error) {
 		log.Println(err)
 		return []string{}, err
 	}
+
+	if response.StatusCode != 200 {
+		log.Println("Failed on get plugin. Status code != 200")
+		return []string{}, errors.New("failed on get plugin. Status code != 200")
+	}
+
 	defer response.Body.Close()
 
 	backends, err := io.ReadAll(response.Body)

@@ -27,6 +27,7 @@ services:
 
     jobs-server:
         container_name: jobs-server
+        hostname: jobsServerInstance
         build:
             context: ./server/jobsServer/
             dockerfile: Dockerfile
@@ -66,6 +67,7 @@ services:
 
     api:
         container_name: api
+        hostname: apiInstance
         build:
             context: ./server/restAPI
             dockerfile: Dockerfile
@@ -79,6 +81,18 @@ services:
         environment:
             GIN_MODE: debug
             PORT: 3000
+
+    proxy:
+        container_name: proxy
+        build:
+            context: ./proxy/
+            dockerfile: Dockerfile
+        depends_on:
+            - api
+            - jobs-server
+        ports:
+            - '8080:8080'
+        restart: always
 
 volumes:
     data:
