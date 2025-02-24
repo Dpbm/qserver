@@ -10,6 +10,7 @@ import (
 func AddPlugin(context *gin.Context) {
 	var plugin types.AddPluginByName
 	err := context.ShouldBindUri(&plugin)
+	// TODO: test this part
 	if err != nil {
 		logger.LogError(err)
 		context.JSON(400, map[string]string{"msg": err.Error()})
@@ -32,6 +33,7 @@ func AddPlugin(context *gin.Context) {
 	}
 
 	err = db.SaveBackends(backends, pluginName)
+	// TODO: test this part
 	if err != nil {
 		logger.LogError(err)
 		context.JSON(500, map[string]string{"msg": "Failed on save data on DB!"})

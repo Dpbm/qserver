@@ -2,7 +2,6 @@ package test
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -14,6 +13,24 @@ import (
 	"github.com/Dpbm/quantumRestAPI/server"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestGetNoJobId(t *testing.T) {
+	os.Setenv("DB_PORT", "1") // to pass the por env check
+
+	dbInstance := db.DB{}
+	dbInstance.Connect(&db.Mock{})
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/job/", nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 404, writer.Code)
+
+}
 
 func TestGetInvalidUUIDJob(t *testing.T) {
 	os.Setenv("DB_PORT", "1") // to pass the por env check
@@ -53,7 +70,7 @@ func TestGetUUIDNotFound(t *testing.T) {
 
 }
 
-func TestFailDBConnection(t *testing.T) {
+func TestFailDBConnectionGetJob(t *testing.T) {
 	var dbInstance *db.DB = nil
 	server := server.SetupServer(dbInstance)
 
@@ -92,8 +109,79 @@ func TestGetCorrectJob(t *testing.T) {
 
 	assert.Equal(t, 200, writer.Code)
 
-	log.Println(writer.Body.String())
-
 	result := fmt.Sprintf(`{"id":"%s","job_id":"%s","counts":{},"quasi_dist":{},"expval":10.3}`, constants.TEST_JOB_ID, constants.TEST_JOB_ID)
 	assert.Equal(t, result, writer.Body.String())
+}
+
+func TestAddPluginNoName(t *testing.T) {
+	os.Setenv("DB_PORT", "1") // to pass the por env check
+
+	dbInstance := db.DB{}
+	dbInstance.Connect(&db.Mock{})
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/plugin/", nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 404, writer.Code)
+
+}
+
+func TestGetInvalidPluginName(t *testing.T) {
+	os.Setenv("DB_PORT", "1") // to pass the por env check
+
+	dbInstance := db.DB{}
+	dbInstance.Connect(&db.Mock{})
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/plugin/invalid-name", nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 500, writer.Code)
+
+}
+
+func TestFailDBConnectionAddPlugin(t *testing.T) {
+	var dbInstance *db.DB = nil
+	server := server.SetupServer(dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/plugin/%s", constants.TEST_PLUGIN), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 500, writer.Code)
+}
+
+func TestPotCorrectPlugin(t *testing.T) {
+	os.Setenv("DB_PORT", "1") // to pass the por env check
+
+	dbInstance := db.DB{}
+	dbInstance.Connect(&db.Mock{})
+	defer dbInstance.CloseConnection()
+
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	mock.ExpectExec("INSERT INTO backends").WithArgs("aer", "aer-plugin").WillReturnResult(sqlmock.NewResult(1, 1))
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/plugin/%s", constants.TEST_PLUGIN), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 201, writer.Code)
+
 }
