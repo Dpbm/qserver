@@ -1,2 +1,9 @@
 *.sh
 *.yml
+*.toml
+.pylintrc
+*.ini
+.tox
+.mypy_cache
+utils/__pycache__
+dev-requirements.txt
