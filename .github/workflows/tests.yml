@@ -17,12 +17,11 @@ jobs:
             - name: setup project
               run: |
                   cd ./server/restAPI &&
-                  go mod init restAPI &&
                   go mod download && 
                   go mod verify
 
             - name: build
-              run: go build .
+              run: go build
 
             - name: Run tests
               run: go test ./test
