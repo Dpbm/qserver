@@ -19,7 +19,7 @@ func GetJob(context *gin.Context) {
 	}
 
 	db, ok := utils.GetDBFromContext(context)
-	if !ok {
+	if !ok || db == nil {
 		logger.LogError(errors.New("failed on get DB from context"))
 		context.JSON(500, map[string]string{"msg": "Failed on Stablish database connection!"})
 		return

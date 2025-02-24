@@ -5,12 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gin-gonic/gin"
-
 	"github.com/Dpbm/quantumRestAPI/db"
 	logger "github.com/Dpbm/quantumRestAPI/log"
-	"github.com/Dpbm/quantumRestAPI/middlewares"
-	"github.com/Dpbm/quantumRestAPI/routes"
+	"github.com/Dpbm/quantumRestAPI/server"
 	"github.com/Dpbm/quantumRestAPI/types"
 )
 
@@ -23,13 +20,9 @@ func main() {
 
 	dbInstance := db.DB{}
 	dbInstance.Connect(&db.Postgres{}) // on error it should exit the program with return code 1
+	defer dbInstance.CloseConnection()
 
-	server := gin.Default()
-
-	server.Use(middlewares.DB(&dbInstance))
-
-	server.GET("/job/:id", routes.GetJob)
-	server.POST("/plugin/:name", routes.AddPlugin)
+	server := server.SetupServer(&dbInstance)
 
 	portString := fmt.Sprintf(":%s", port)
 	server.Run(portString)

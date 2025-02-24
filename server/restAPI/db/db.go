@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -13,6 +14,7 @@ import (
 
 type DB struct {
 	connection *sql.DB
+	Extra      any
 }
 
 func (db *DB) Connect(model Model) {
@@ -27,7 +29,7 @@ func (db *DB) Connect(model Model) {
 		os.Exit(1)
 	}
 
-	dbConnection, err := model.ConnectDB(username, password, host, format.PortEnvToInt(port), dbname)
+	dbConnection, err, extra := model.ConnectDB(username, password, host, format.PortEnvToInt(port), dbname)
 
 	if err != nil {
 		logger.LogFatal(err)
@@ -35,16 +37,32 @@ func (db *DB) Connect(model Model) {
 	}
 
 	db.connection = dbConnection
+	db.Extra = extra
 }
 
-func (db *DB) GetJobData(jobID string) (sql.Result, error) {
+func (db *DB) GetJobData(jobID string) (*types.JobData, error) {
 	logger.LogAction(fmt.Sprintf("Get Job Data for id: %s", jobID))
 
-	return db.connection.Exec(`
-		SELECT * 
-		FROM results
-		WHERE job_id=$1 
-	`, jobID)
+	data := &types.JobData{}
+	var counts string
+	var quasiDist string
+	err := db.connection.QueryRow("SELECT * FROM results WHERE job_id=$1", jobID).Scan(&data.ID, &data.JobId, &counts, &quasiDist, &data.Expval)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal([]byte(counts), &data.Counts)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal([]byte(quasiDist), &data.QuasiDist)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
 
 func (db *DB) SaveBackends(backends *[]string, pluginName string) error {
@@ -63,4 +81,8 @@ func (db *DB) SaveBackends(backends *[]string, pluginName string) error {
 	}
 
 	return nil
+}
+
+func (db *DB) CloseConnection() {
+	db.connection.Close()
 }
