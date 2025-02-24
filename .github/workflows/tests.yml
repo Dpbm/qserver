@@ -19,4 +19,4 @@ jobs:
                   cd ./server/restAPI &&
                   go mod download && 
                   go mod verify &&
-                  go test ./tests
+                  go test ./test
