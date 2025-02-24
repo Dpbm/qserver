@@ -21,12 +21,12 @@ func main() {
 		os.Exit(1) // ensure the program is going to exit
 	}
 
-	db := db.DB{}
-	db.Connect() // on error it should exit the program with return code 1
+	dbInstance := db.DB{}
+	dbInstance.Connect(&db.Postgres{}) // on error it should exit the program with return code 1
 
 	server := gin.Default()
 
-	server.Use(middlewares.DB(&db))
+	server.Use(middlewares.DB(&dbInstance))
 
 	server.GET("/job/:id", routes.GetJob)
 	server.POST("/plugin/:name", routes.AddPlugin)

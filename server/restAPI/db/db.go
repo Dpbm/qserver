@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"os"
 
-	_ "github.com/lib/pq"
-
 	"github.com/Dpbm/quantumRestAPI/format"
 	logger "github.com/Dpbm/quantumRestAPI/log"
 	"github.com/Dpbm/quantumRestAPI/types"
@@ -17,7 +15,7 @@ type DB struct {
 	connection *sql.DB
 }
 
-func (db *DB) Connect() {
+func (db *DB) Connect(model Model) {
 	host := os.Getenv("DB_HOST")
 	port := os.Getenv("DB_PORT")
 	username := os.Getenv("DB_USERNAME")
@@ -29,7 +27,7 @@ func (db *DB) Connect() {
 		os.Exit(1)
 	}
 
-	dbConnection, err := connectToPostgres(username, password, host, format.PortEnvToInt(port), dbname)
+	dbConnection, err := model.ConnectDB(username, password, host, format.PortEnvToInt(port), dbname)
 
 	if err != nil {
 		logger.LogFatal(err)
@@ -37,15 +35,6 @@ func (db *DB) Connect() {
 	}
 
 	db.connection = dbConnection
-}
-
-func connectToPostgres(username string, password string, host string, port int, dbname string) (*sql.DB, error) {
-	connectionStr := generatePostgresConnectionStr(username, password, host, port, dbname)
-	return sql.Open("postgres", connectionStr)
-}
-
-func generatePostgresConnectionStr(username string, password string, host string, port int, dbname string) string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", username, password, host, port, dbname)
 }
 
 func (db *DB) GetJobData(jobID string) (sql.Result, error) {
@@ -59,6 +48,8 @@ func (db *DB) GetJobData(jobID string) (sql.Result, error) {
 }
 
 func (db *DB) SaveBackends(backends *[]string, pluginName string) error {
+	logger.LogAction(fmt.Sprintf("Saving backends of: %s", pluginName))
+
 	for _, backend := range *backends {
 		_, err := db.connection.Exec(`
 			INSERT INTO backends(backend_name, plugin)

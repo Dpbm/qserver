@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	db "github.com/Dpbm/quantumRestAPI/db"
+	"github.com/Dpbm/quantumRestAPI/db"
 	"github.com/gin-gonic/gin"
 )
 
