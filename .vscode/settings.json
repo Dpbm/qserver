@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "Chunck",
         "cirq",
         "createdb",
         "datname",
@@ -8,10 +9,13 @@
         "genproto",
         "github",
         "GOBIN",
+        "gonic",
+        "initdb",
         "isready",
         "libc",
         "linux",
         "nginx",
+        "oneof",
         "ossp",
         "pennylane",
         "postgres",
