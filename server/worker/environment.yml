@@ -7,3 +7,8 @@ dependencies:
     - pip:
           - pika
           - psycopg2-binary
+          - tox
+          - black
+          - pylint
+          - mypy
+          - types-psycopg2

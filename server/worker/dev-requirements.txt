@@ -1,0 +1,5 @@
+tox
+mypy
+black
+pylint
+types-psycopg2
