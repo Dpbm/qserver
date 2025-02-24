@@ -17,6 +17,7 @@ jobs:
             - name: setup project
               run: |
                   cd ./server/restAPI &&
+                  go mod init restAPI &&
                   go mod download && 
                   go mod verify
 
