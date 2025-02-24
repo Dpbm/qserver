@@ -15,15 +15,15 @@ jobs:
                   go-version: '1.23.5'
 
             - name: setup
-              working-directory: ./app
+              working-directory: ./server/restAPI
               run: |
                   go mod download && 
                   go mod verify
 
             - name: build
-              working-directory: ./app
+              working-directory: ./server/restAPI
               run: go build
 
             - name: Run tests
-              working-directory: ./app
+              working-directory: ./server/restAPI
               run: go test ./test
