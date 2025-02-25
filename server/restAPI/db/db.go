@@ -7,7 +7,6 @@ import (
 	"os"
 
 	dbDefinition "github.com/Dpbm/shared/db"
-	"github.com/Dpbm/shared/format"
 	logger "github.com/Dpbm/shared/log"
 
 	"github.com/Dpbm/quantumRestAPI/types"
@@ -18,13 +17,7 @@ type DB struct {
 	Extra      any
 }
 
-func (db *DB) Connect(model dbDefinition.Model) {
-	host := os.Getenv("DB_HOST")
-	port := format.PortEnvToInt(os.Getenv("DB_PORT")) // should execute os.Exit(1) after logging
-	username := os.Getenv("DB_USERNAME")
-	password := os.Getenv("DB_PASSWORD")
-	dbname := os.Getenv("DB_NAME")
-
+func (db *DB) Connect(model dbDefinition.Model, host string, port int, username string, password string, dbname string) {
 	dbConnection, extra, err := model.ConnectDB(username, password, host, port, dbname)
 
 	if err != nil {

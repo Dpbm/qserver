@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -15,11 +14,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetNoJobId(t *testing.T) {
-	os.Setenv("DB_PORT", "1") // to pass the por env check
+const dbHost = ""
+const dbPort = 0
+const dbUsername = ""
+const dbPassword = ""
+const dbName = ""
 
+func TestGetNoJobId(t *testing.T) {
 	dbInstance := db.DB{}
-	dbInstance.Connect(&dbDefinition.Mock{})
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
 	server := server.SetupServer(&dbInstance)
@@ -34,10 +37,8 @@ func TestGetNoJobId(t *testing.T) {
 }
 
 func TestGetInvalidUUIDJob(t *testing.T) {
-	os.Setenv("DB_PORT", "1") // to pass the por env check
-
 	dbInstance := db.DB{}
-	dbInstance.Connect(&dbDefinition.Mock{})
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
 	server := server.SetupServer(&dbInstance)
@@ -52,10 +53,8 @@ func TestGetInvalidUUIDJob(t *testing.T) {
 }
 
 func TestGetUUIDNotFound(t *testing.T) {
-	os.Setenv("DB_PORT", "1") // to pass the por env check
-
 	dbInstance := db.DB{}
-	dbInstance.Connect(&dbDefinition.Mock{})
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
 	server := server.SetupServer(&dbInstance)
@@ -85,10 +84,8 @@ func TestFailDBConnectionGetJob(t *testing.T) {
 }
 
 func TestGetCorrectJob(t *testing.T) {
-	os.Setenv("DB_PORT", "1") // to pass the por env check
-
 	dbInstance := db.DB{}
-	dbInstance.Connect(&dbDefinition.Mock{})
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
@@ -115,10 +112,8 @@ func TestGetCorrectJob(t *testing.T) {
 }
 
 func TestAddPluginNoName(t *testing.T) {
-	os.Setenv("DB_PORT", "1") // to pass the por env check
-
 	dbInstance := db.DB{}
-	dbInstance.Connect(&dbDefinition.Mock{})
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
 	server := server.SetupServer(&dbInstance)
@@ -133,10 +128,8 @@ func TestAddPluginNoName(t *testing.T) {
 }
 
 func TestGetInvalidPluginName(t *testing.T) {
-	os.Setenv("DB_PORT", "1") // to pass the por env check
-
 	dbInstance := db.DB{}
-	dbInstance.Connect(&dbDefinition.Mock{})
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
 	server := server.SetupServer(&dbInstance)
@@ -163,10 +156,8 @@ func TestFailDBConnectionAddPlugin(t *testing.T) {
 }
 
 func TestPotCorrectPlugin(t *testing.T) {
-	os.Setenv("DB_PORT", "1") // to pass the por env check
-
 	dbInstance := db.DB{}
-	dbInstance.Connect(&dbDefinition.Mock{})
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
