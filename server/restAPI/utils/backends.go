@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	url "github.com/Dpbm/quantumRestAPI/format"
-	logger "github.com/Dpbm/quantumRestAPI/log"
+	logger "github.com/Dpbm/shared/log"
 )
 
 func GetBackendsList(pluginName string) (*[]string, error) {

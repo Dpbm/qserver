@@ -3,12 +3,13 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 
-	"github.com/Dpbm/quantumRestAPI/format"
-	logger "github.com/Dpbm/quantumRestAPI/log"
+	dbDefinition "github.com/Dpbm/shared/db"
+	"github.com/Dpbm/shared/format"
+	logger "github.com/Dpbm/shared/log"
+
 	"github.com/Dpbm/quantumRestAPI/types"
 )
 
@@ -17,19 +18,14 @@ type DB struct {
 	Extra      any
 }
 
-func (db *DB) Connect(model Model) {
+func (db *DB) Connect(model dbDefinition.Model) {
 	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
+	port := format.PortEnvToInt(os.Getenv("DB_PORT")) // should execute os.Exit(1) after logging
 	username := os.Getenv("DB_USERNAME")
 	password := os.Getenv("DB_PASSWORD")
 	dbname := os.Getenv("DB_NAME")
 
-	if !types.ValidIntFromEnv(port) {
-		logger.LogFatal(errors.New("invalid port")) // should execute os.Exit(1) after logging, but to ensure we gone add another one later
-		os.Exit(1)
-	}
-
-	dbConnection, extra, err := model.ConnectDB(username, password, host, format.PortEnvToInt(port), dbname)
+	dbConnection, extra, err := model.ConnectDB(username, password, host, port, dbname)
 
 	if err != nil {
 		logger.LogFatal(err)

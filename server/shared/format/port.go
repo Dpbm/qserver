@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	logger "github.com/Dpbm/quantumRestAPI/log"
+	logger "github.com/Dpbm/shared/log"
 )
 
 func PortEnvToInt(env string) int {

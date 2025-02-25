@@ -7,6 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/lib/pq v1.10.9
 	github.com/stretchr/testify v1.10.0
+	github.com/Dpbm/shared v0.0.1
 )
 
 require (
@@ -39,3 +40,5 @@ require (
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/Dpbm/shared v0.0.1 => ../shared

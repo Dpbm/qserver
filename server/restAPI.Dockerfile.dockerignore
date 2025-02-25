@@ -1,0 +1,5 @@
+*.sh
+test/
+database/
+worker/
+jobsServer/

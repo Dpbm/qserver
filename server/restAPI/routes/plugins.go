@@ -1,9 +1,9 @@
 package routes
 
 import (
-	logger "github.com/Dpbm/quantumRestAPI/log"
 	"github.com/Dpbm/quantumRestAPI/types"
 	"github.com/Dpbm/quantumRestAPI/utils"
+	logger "github.com/Dpbm/shared/log"
 	"github.com/gin-gonic/gin"
 )
 

@@ -11,6 +11,7 @@ import (
 	constants "github.com/Dpbm/quantumRestAPI/constants"
 	"github.com/Dpbm/quantumRestAPI/db"
 	"github.com/Dpbm/quantumRestAPI/server"
+	dbDefinition "github.com/Dpbm/shared/db"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +19,7 @@ func TestGetNoJobId(t *testing.T) {
 	os.Setenv("DB_PORT", "1") // to pass the por env check
 
 	dbInstance := db.DB{}
-	dbInstance.Connect(&db.Mock{})
+	dbInstance.Connect(&dbDefinition.Mock{})
 	defer dbInstance.CloseConnection()
 
 	server := server.SetupServer(&dbInstance)
@@ -36,7 +37,7 @@ func TestGetInvalidUUIDJob(t *testing.T) {
 	os.Setenv("DB_PORT", "1") // to pass the por env check
 
 	dbInstance := db.DB{}
-	dbInstance.Connect(&db.Mock{})
+	dbInstance.Connect(&dbDefinition.Mock{})
 	defer dbInstance.CloseConnection()
 
 	server := server.SetupServer(&dbInstance)
@@ -54,7 +55,7 @@ func TestGetUUIDNotFound(t *testing.T) {
 	os.Setenv("DB_PORT", "1") // to pass the por env check
 
 	dbInstance := db.DB{}
-	dbInstance.Connect(&db.Mock{})
+	dbInstance.Connect(&dbDefinition.Mock{})
 	defer dbInstance.CloseConnection()
 
 	server := server.SetupServer(&dbInstance)
@@ -87,7 +88,7 @@ func TestGetCorrectJob(t *testing.T) {
 	os.Setenv("DB_PORT", "1") // to pass the por env check
 
 	dbInstance := db.DB{}
-	dbInstance.Connect(&db.Mock{})
+	dbInstance.Connect(&dbDefinition.Mock{})
 	defer dbInstance.CloseConnection()
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
@@ -117,7 +118,7 @@ func TestAddPluginNoName(t *testing.T) {
 	os.Setenv("DB_PORT", "1") // to pass the por env check
 
 	dbInstance := db.DB{}
-	dbInstance.Connect(&db.Mock{})
+	dbInstance.Connect(&dbDefinition.Mock{})
 	defer dbInstance.CloseConnection()
 
 	server := server.SetupServer(&dbInstance)
@@ -135,7 +136,7 @@ func TestGetInvalidPluginName(t *testing.T) {
 	os.Setenv("DB_PORT", "1") // to pass the por env check
 
 	dbInstance := db.DB{}
-	dbInstance.Connect(&db.Mock{})
+	dbInstance.Connect(&dbDefinition.Mock{})
 	defer dbInstance.CloseConnection()
 
 	server := server.SetupServer(&dbInstance)
@@ -165,7 +166,7 @@ func TestPotCorrectPlugin(t *testing.T) {
 	os.Setenv("DB_PORT", "1") // to pass the por env check
 
 	dbInstance := db.DB{}
-	dbInstance.Connect(&db.Mock{})
+	dbInstance.Connect(&dbDefinition.Mock{})
 	defer dbInstance.CloseConnection()
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
