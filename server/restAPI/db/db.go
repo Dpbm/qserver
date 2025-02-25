@@ -29,7 +29,7 @@ func (db *DB) Connect(model Model) {
 		os.Exit(1)
 	}
 
-	dbConnection, err, extra := model.ConnectDB(username, password, host, format.PortEnvToInt(port), dbname)
+	dbConnection, extra, err := model.ConnectDB(username, password, host, format.PortEnvToInt(port), dbname)
 
 	if err != nil {
 		logger.LogFatal(err)

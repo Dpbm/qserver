@@ -9,7 +9,7 @@ import (
 type Mock struct {
 }
 
-func (mock *Mock) ConnectDB(username string, password string, host string, port int, dbname string) (*sql.DB, error, any) {
+func (mock *Mock) ConnectDB(username string, password string, host string, port int, dbname string) (*sql.DB, any, error) {
 	db, mockInstance, err := sqlmock.New()
-	return db, err, mockInstance
+	return db, mockInstance, err
 }

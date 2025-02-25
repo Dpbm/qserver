@@ -28,6 +28,7 @@
         "psycopg",
         "pycache",
         "pylint",
+        "pylintrc",
         "pyrightconfig",
         "qasm",
         "qexec",
