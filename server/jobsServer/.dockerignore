@@ -1,4 +1,4 @@
-run-server-for-local-tests.sh
-setup-linux.sh
+*.sh
 proto/jobs.proto
-proto/generate-proto-code.sh
+probo/jobs_grpc.pb.go
+qasm/

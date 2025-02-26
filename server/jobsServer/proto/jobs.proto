@@ -6,13 +6,20 @@ service Jobs{
 	rpc AddJob (stream JobData) returns (PendingJob) {}
 }
 
+message JobProperties{
+	bool resultTypeCounts = 1;
+	bool resultTypeQuasiDist = 2;
+	bool resultTypeExpVal = 3;
+	string targetSimulator = 4;
+	optional string metadata = 5;
+}
+
+
 message JobData{
-	string qasm = 1;
-	bool resultTypeCounts = 2;
-	bool resultTypeQuasiDist = 3;
-	bool resultTypeExpVal = 4;
-	string targetSimulator = 5;
-	optional string metadata = 6;
+	oneof DataStream{
+		JobProperties properties = 1;
+		string qasmChunk = 2;
+	}
 }
 
 message PendingJob{

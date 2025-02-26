@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"os"
 
 	dbDefinition "github.com/Dpbm/shared/db"
 	logger "github.com/Dpbm/shared/log"
@@ -18,12 +17,7 @@ type DB struct {
 }
 
 func (db *DB) Connect(model dbDefinition.Model, host string, port int, username string, password string, dbname string) {
-	dbConnection, extra, err := model.ConnectDB(username, password, host, port, dbname)
-
-	if err != nil {
-		logger.LogFatal(err)
-		os.Exit(1) // ensure the program is going to exit on error
-	}
+	dbConnection, extra := model.ConnectDB(username, password, host, port, dbname) // it will exit if an error occour
 
 	db.connection = dbConnection
 	db.Extra = extra

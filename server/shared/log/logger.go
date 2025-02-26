@@ -2,6 +2,7 @@ package log
 
 import (
 	defaultLog "log"
+	"os"
 )
 
 func LogError(err error) {
@@ -14,4 +15,5 @@ func LogAction(action string) {
 
 func LogFatal(err error) {
 	defaultLog.Fatalf("Error: %v\n", err)
+	os.Exit(1) // ensure the program will exit with an error status
 }
