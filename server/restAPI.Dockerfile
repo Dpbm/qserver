@@ -17,4 +17,6 @@ FROM scratch
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /go/src/api/serverExec /server
 
+EXPOSE 3000
+
 CMD ["/server"]

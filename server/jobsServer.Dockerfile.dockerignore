@@ -1,0 +1,7 @@
+*.sh
+jobsServer/proto/jobs.proto
+jobsServer/probo/jobs_grpc.pb.go
+jobsServer/qasm/
+database/
+worker/
+restAPI/
