@@ -29,7 +29,8 @@ func (db *DB) GetJobData(jobID string) (*types.JobData, error) {
 	data := &types.JobData{}
 	var counts string
 	var quasiDist string
-	err := db.connection.QueryRow("SELECT * FROM results WHERE job_id=$1", jobID).Scan(&data.ID, &data.JobId, &counts, &quasiDist, &data.Expval)
+	var expval string
+	err := db.connection.QueryRow("SELECT * FROM results WHERE job_id=$1", jobID).Scan(&data.ID, &data.JobId, &counts, &quasiDist, &expval)
 
 	if err != nil {
 		return nil, err
@@ -41,6 +42,11 @@ func (db *DB) GetJobData(jobID string) (*types.JobData, error) {
 	}
 
 	err = json.Unmarshal([]byte(quasiDist), &data.QuasiDist)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal([]byte(expval), &data.Expval)
 	if err != nil {
 		return nil, err
 	}
