@@ -11,7 +11,7 @@ import (
 type Postgres struct {
 }
 
-func (postgres *Postgres) ConnectDB(username string, password string, host string, port int, dbname string) (*sql.DB, any) {
+func (postgres *Postgres) ConnectDB(username string, password string, host string, port uint32, dbname string) (*sql.DB, any) {
 	connectionStr := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", username, password, host, port, dbname)
 	db, err := sql.Open("postgres", connectionStr)
 

@@ -16,7 +16,7 @@ type DB struct {
 	Extra      any
 }
 
-func (db *DB) Connect(model dbDefinition.Model, host string, port int, username string, password string, dbname string) {
+func (db *DB) Connect(model dbDefinition.Model, host string, port uint32, username string, password string, dbname string) {
 	dbConnection, extra := model.ConnectDB(username, password, host, port, dbname) // it will exit if an error occour
 
 	db.connection = dbConnection

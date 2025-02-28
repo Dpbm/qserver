@@ -8,7 +8,7 @@ import (
 	logger "github.com/Dpbm/shared/log"
 )
 
-func PortEnvToInt(env string) int {
+func PortEnvToInt(env string) uint32 {
 	port, err := strconv.Atoi(env)
 
 	if err != nil || port < 0 {
@@ -16,5 +16,5 @@ func PortEnvToInt(env string) int {
 		os.Exit(1) // just to ensure the program is going to close
 	}
 
-	return port
+	return uint32(port)
 }

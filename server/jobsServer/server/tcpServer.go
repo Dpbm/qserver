@@ -7,12 +7,12 @@ import (
 	logger "github.com/Dpbm/shared/log"
 )
 
-type Server struct {
+type TCPServer struct {
 	ServerURL string
 	Listener  net.Listener
 }
 
-func (server *Server) Listen(host string, port int) {
+func (server *TCPServer) Listen(host string, port uint32) {
 	serverURL := fmt.Sprintf("%s:%d", host, port)
 	listen, err := net.Listen("tcp", serverURL)
 	if err != nil {
@@ -23,6 +23,6 @@ func (server *Server) Listen(host string, port int) {
 	server.Listener = listen
 }
 
-func (server *Server) Close() {
+func (server *TCPServer) Close() {
 	server.Listener.Close()
 }

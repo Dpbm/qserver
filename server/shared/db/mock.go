@@ -11,7 +11,7 @@ import (
 type Mock struct {
 }
 
-func (mock *Mock) ConnectDB(username string, password string, host string, port int, dbname string) (*sql.DB, any) {
+func (mock *Mock) ConnectDB(username string, password string, host string, port uint32, dbname string) (*sql.DB, any) {
 	db, mockInstance, err := sqlmock.New()
 
 	if err != nil {

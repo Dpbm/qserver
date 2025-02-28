@@ -5,26 +5,16 @@ import (
 	"os"
 
 	internalDB "github.com/Dpbm/jobsServer/db"
-	jobsServerProto "github.com/Dpbm/jobsServer/proto"
 	"github.com/Dpbm/jobsServer/queue"
+	"github.com/Dpbm/jobsServer/server"
 	serverDefinition "github.com/Dpbm/jobsServer/server"
 	externalDB "github.com/Dpbm/shared/db"
 	"github.com/Dpbm/shared/format"
 	logger "github.com/Dpbm/shared/log"
 	_ "github.com/lib/pq"
-	grpc "google.golang.org/grpc"
 )
 
 func main() {
-
-	//--------SERVER-----------------------------------
-	serverHost := os.Getenv("HOST")
-	serverPort := format.PortEnvToInt(os.Getenv("PORT")) // portEnvToInt ensures that the env port is a number,
-	// in other case it runs os.Exit(1)
-
-	serverInstance := &serverDefinition.Server{}
-	serverInstance.Listen(serverHost, serverPort) // it will exit with status 1 if an error occour
-	defer serverInstance.Close()
 
 	//-----RABBITMQ---------------------------------------------------------------------------------------------------
 
@@ -54,15 +44,21 @@ func main() {
 
 	qasmPath := os.Getenv("QASM_PATH")
 	queueName := os.Getenv("RABBITMQ_QUEUE_NAME")
-	grpcServer := grpc.NewServer()
-	server := &serverDefinition.JobsServer{
+	serverHost := os.Getenv("HOST")
+	serverPort := format.PortEnvToInt(os.Getenv("PORT")) // portEnvToInt ensures that the env port is a number,
+	// in other case it runs os.Exit(1)
+
+	jobServerDefinition := &serverDefinition.JobsServer{
 		QueueChannel: rabbitmqChannel,
 		Database:     dbInstance,
 		QasmPath:     qasmPath,
 		QueueName:    queueName,
 	}
 
-	jobsServerProto.RegisterJobsServer(grpcServer, server)
-	logger.LogAction(fmt.Sprintf("Listening on host: %s", serverInstance.ServerURL))
-	grpcServer.Serve(serverInstance.Listener)
+	server := &server.GRPC{}
+	server.Create(serverHost, serverPort, jobServerDefinition)
+	defer server.Close()
+
+	logger.LogAction(fmt.Sprintf("Listening on host: %s", server.TCPServer.ServerURL))
+	server.Listen()
 }
