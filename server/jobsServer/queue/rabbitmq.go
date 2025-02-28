@@ -1,7 +1,9 @@
 package queue
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	logger "github.com/Dpbm/shared/log"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -19,6 +21,40 @@ type RabbitMQChannel struct {
 
 func (channel *RabbitMQChannel) Close() {
 	channel.Channel.Close()
+}
+
+func (channel *RabbitMQChannel) AddJob(queueName string, jobId string) error {
+	_, err := channel.Channel.QueueDeclare(
+		queueName, // name
+		true,      // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
+	)
+
+	if err != nil {
+		return err
+	}
+
+	timeoutAfter := 5 * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutAfter)
+	defer cancel()
+
+	err = channel.Channel.PublishWithContext(
+		ctx,
+		"",        // exchange
+		queueName, // routing key
+		false,     // mandatory
+		false,     // immediate
+		amqp.Publishing{
+			DeliveryMode: amqp.Persistent,
+			ContentType:  "text/plain",
+			Body:         []byte(jobId),
+		})
+
+	return err
+
 }
 
 func (connection *RabbitMQConnection) Close() {

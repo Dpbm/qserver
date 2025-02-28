@@ -2,6 +2,7 @@ package queue
 
 type QueueChannel interface {
 	Close()
+	AddJob(queueName string, jobId string) error
 }
 
 type QueueConnection interface {
