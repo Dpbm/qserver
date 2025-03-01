@@ -28,7 +28,7 @@ func TestGetNoJobId(t *testing.T) {
 	server := server.SetupServer(&dbInstance)
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/job/", nil)
+	req, _ := http.NewRequest("GET", "/api/v1/job/", nil)
 
 	server.ServeHTTP(writer, req)
 
@@ -44,7 +44,7 @@ func TestGetInvalidUUIDJob(t *testing.T) {
 	server := server.SetupServer(&dbInstance)
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/job/nothing", nil)
+	req, _ := http.NewRequest("GET", "/api/v1/job/nothing", nil)
 
 	server.ServeHTTP(writer, req)
 
@@ -60,7 +60,7 @@ func TestGetUUIDNotFound(t *testing.T) {
 	server := server.SetupServer(&dbInstance)
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/job/00000000-0000-0000-0000-000000000000", nil)
+	req, _ := http.NewRequest("GET", "/api/v1/job/00000000-0000-0000-0000-000000000000", nil)
 
 	server.ServeHTTP(writer, req)
 
@@ -75,7 +75,7 @@ func TestFailDBConnectionGetJob(t *testing.T) {
 	server := server.SetupServer(dbInstance)
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/job/00000000-0000-0000-0000-000000000000", nil)
+	req, _ := http.NewRequest("GET", "/api/v1/job/00000000-0000-0000-0000-000000000000", nil)
 
 	server.ServeHTTP(writer, req)
 
@@ -101,7 +101,7 @@ func TestGetCorrectJob(t *testing.T) {
 	server := server.SetupServer(&dbInstance)
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/job/%s", constants.TEST_JOB_ID), nil)
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/v1/job/%s", constants.TEST_JOB_ID), nil)
 
 	server.ServeHTTP(writer, req)
 
@@ -119,7 +119,7 @@ func TestAddPluginNoName(t *testing.T) {
 	server := server.SetupServer(&dbInstance)
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/plugin/", nil)
+	req, _ := http.NewRequest("POST", "/api/v1/plugin/", nil)
 
 	server.ServeHTTP(writer, req)
 
@@ -135,7 +135,7 @@ func TestGetInvalidPluginName(t *testing.T) {
 	server := server.SetupServer(&dbInstance)
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/plugin/invalid-name", nil)
+	req, _ := http.NewRequest("POST", "/api/v1/plugin/invalid-name", nil)
 
 	server.ServeHTTP(writer, req)
 
@@ -148,7 +148,7 @@ func TestFailDBConnectionAddPlugin(t *testing.T) {
 	server := server.SetupServer(dbInstance)
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/plugin/%s", constants.TEST_PLUGIN), nil)
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/api/v1/plugin/%s", constants.TEST_PLUGIN), nil)
 
 	server.ServeHTTP(writer, req)
 
@@ -170,7 +170,7 @@ func TestPotCorrectPlugin(t *testing.T) {
 	server := server.SetupServer(&dbInstance)
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/plugin/%s", constants.TEST_PLUGIN), nil)
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/api/v1/plugin/%s", constants.TEST_PLUGIN), nil)
 
 	server.ServeHTTP(writer, req)
 

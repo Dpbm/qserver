@@ -166,5 +166,3 @@ func GetJob(context *gin.Context) {
 }
 
 // TODO: ADD CANCEL JOB (PUT)
-
-// TODO: list jobs by id
