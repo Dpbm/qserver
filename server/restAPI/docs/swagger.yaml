@@ -1,6 +1,35 @@
 definitions:
   types.JobData:
     properties:
+      finish_time:
+        type: string
+      id:
+        type: string
+      metadata:
+        additionalProperties: {}
+        type: object
+      order:
+        type: integer
+      qasm:
+        type: string
+      result_types:
+        additionalProperties:
+          type: string
+        type: object
+      results:
+        additionalProperties: {}
+        type: object
+      start_time:
+        type: string
+      status:
+        type: string
+      submission_date:
+        type: string
+      target_simulator:
+        type: string
+    type: object
+  types.JobResultData:
+    properties:
       counts:
         additionalProperties:
           type: number
@@ -60,6 +89,7 @@ paths:
       summary: delete job data
       tags:
       - jobs
+  /job/result/{id}:
     get:
       description: get job results by ID
       parameters:
@@ -74,7 +104,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.JobData'
+            $ref: '#/definitions/types.JobResultData'
         "400":
           description: Invalid ID parameter
           schema:
@@ -94,6 +124,32 @@ paths:
               type: string
             type: object
       summary: get job results
+      tags:
+      - jobs
+  /jobs:
+    get:
+      description: get all data from jobs
+      parameters:
+      - description: Last id gotten from db
+        in: query
+        name: cursor
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.JobData'
+            type: array
+        "500":
+          description: Failed during DB connection
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: get jobs data
       tags:
       - jobs
   /plugin/{name}:

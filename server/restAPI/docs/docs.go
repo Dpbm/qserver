@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/job/{id}": {
+        "/job/result/{id}": {
             "get": {
                 "description": "get job results by ID",
                 "produces": [
@@ -38,7 +38,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.JobData"
+                            "$ref": "#/definitions/types.JobResultData"
                         }
                     },
                     "400": {
@@ -69,7 +69,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
+            }
+        },
+        "/job/{id}": {
             "delete": {
                 "description": "delete all data related to this job id",
                 "produces": [
@@ -128,6 +130,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/jobs": {
+            "get": {
+                "description": "get all data from jobs",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "get jobs data",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Last id gotten from db",
+                        "name": "cursor",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.JobData"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed during DB connection",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/plugin/{name}": {
             "post": {
                 "description": "add plugin by name",
@@ -163,6 +205,49 @@ const docTemplate = `{
     },
     "definitions": {
         "types.JobData": {
+            "type": "object",
+            "properties": {
+                "finish_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "qasm": {
+                    "type": "string"
+                },
+                "result_types": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "results": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "submission_date": {
+                    "type": "string"
+                },
+                "target_simulator": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.JobResultData": {
             "type": "object",
             "properties": {
                 "counts": {

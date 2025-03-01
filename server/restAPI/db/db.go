@@ -23,10 +23,10 @@ func (db *DB) Connect(model dbDefinition.Model, host string, port uint32, userna
 	db.Extra = extra
 }
 
-func (db *DB) GetJobData(jobID string) (*types.JobData, error) {
+func (db *DB) GetJobData(jobID string) (*types.JobResultData, error) {
 	logger.LogAction(fmt.Sprintf("Get Job Data for id: %s", jobID))
 
-	data := &types.JobData{}
+	data := &types.JobResultData{}
 	var counts string
 	var quasiDist string
 	var expval string
@@ -64,7 +64,6 @@ func (db *DB) SaveBackends(backends *[]string, pluginName string) error {
 		`, backend, pluginName)
 
 		if err != nil {
-			logger.LogError(err)
 			return err
 		}
 	}
@@ -82,5 +81,76 @@ func (db *DB) DeleteJobData(jobId string) error {
 	_, err := db.connection.Exec("DELETE FROM jobs WHERE id=$1", jobId)
 
 	return err
+
+}
+
+func (db *DB) GetJobsData(cursor uint32) ([]*types.JobData, error) {
+	logger.LogAction(fmt.Sprintf("Getting jobs from cursor: %d", cursor))
+
+	rows, err := db.connection.Query(`
+		SELECT 
+			j.*, 
+			(
+					SELECT row_to_json(data)
+					FROM (
+						SELECT rt.*
+						FROM result_types AS rt
+						WHERE rt.job_id = j.id
+					) data
+			) AS result_types,
+			(
+					SELECT row_to_json(data)
+					FROM (
+						SELECT r.*
+						FROM results AS r
+						WHERE r.job_id = j.id
+					) data
+			) AS results
+		FROM 
+			jobs AS j
+		WHERE
+			j.cursor > $1 AND j.cursor < $1 + 20
+	`, cursor)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	rowsData := make([]*types.JobData, 0)
+
+	for rows.Next() {
+		data := &types.JobData{}
+		var metadata string
+		var resultTypes string
+		var results string
+
+		err := rows.Scan(&data.ID, &data.Order, &data.TargetSimulator, &data.Qasm, &data.Status, &data.SubmissionDate, &data.StartTime, &data.FinishTime, &metadata, &resultTypes, &results)
+
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal([]byte(metadata), &data.Metadata)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal([]byte(resultTypes), &data.ResultTypes)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal([]byte(results), &data.Results)
+		if err != nil {
+			return nil, err
+		}
+
+		rowsData = append(rowsData, data)
+
+	}
+
+	return rowsData, nil
 
 }

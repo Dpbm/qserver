@@ -20,14 +20,14 @@ func SetupServer(dbInstance *db.DB) *gin.Engine {
 	{
 		job := v1.Group("/job")
 		{
-			job.GET("/:id", routes.GetJob)
+			job.GET("/result/:id", routes.GetJob)
 			job.DELETE("/:id", routes.DeleteJob)
 		}
 
-		/* jobs := v1.Group("/jobs")
+		jobs := v1.Group("/jobs")
 		{
-
-		} */
+			jobs.GET("/", routes.GetJobs)
+		}
 
 		plugin := v1.Group("/plugin")
 		{
