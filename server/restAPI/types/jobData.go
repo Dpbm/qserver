@@ -10,16 +10,24 @@ type JobResultData struct {
 	Expval    []float32          `json:"expval"`
 }
 
+type JobResultTypes struct {
+	ID        string `json:"id"`
+	JobId     string `json:"job_id"`
+	Counts    bool   `json:"counts"`
+	QuasiDist bool   `json:"quasi_dist"`
+	Expval    bool   `json:"expval"`
+}
+
 type JobData struct {
-	ID              string            `json:"id"`
-	Order           uint32            `json:"order"`
-	TargetSimulator string            `json:"target_simulator"`
-	Qasm            string            `json:"qasm"`
-	Status          string            `json:"status"`
-	SubmissionDate  time.Time         `json:"submission_date"`
-	StartTime       time.Time         `json:"start_time"`
-	FinishTime      time.Time         `json:"finish_time"`
-	Metadata        map[any]any       `json:"metadata"`
-	ResultTypes     map[string]string `json:"result_types"`
-	Results         map[string]any    `json:"results"`
+	ID              string         `json:"id"`
+	Order           uint32         `json:"order"`
+	TargetSimulator string         `json:"target_simulator"`
+	Qasm            string         `json:"qasm"`
+	Status          string         `json:"status"`
+	SubmissionDate  time.Time      `json:"submission_date"`
+	StartTime       time.Time      `json:"start_time"`
+	FinishTime      time.Time      `json:"finish_time"`
+	Metadata        map[any]any    `json:"metadata"`
+	ResultTypes     JobResultTypes `json:"result_types"`
+	Results         JobResultData  `json:"results"`
 }

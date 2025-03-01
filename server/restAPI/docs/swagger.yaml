@@ -13,12 +13,9 @@ definitions:
       qasm:
         type: string
       result_types:
-        additionalProperties:
-          type: string
-        type: object
+        $ref: '#/definitions/types.JobResultTypes'
       results:
-        additionalProperties: {}
-        type: object
+        $ref: '#/definitions/types.JobResultData'
       start_time:
         type: string
       status:
@@ -46,6 +43,19 @@ definitions:
         additionalProperties:
           type: number
         type: object
+    type: object
+  types.JobResultTypes:
+    properties:
+      counts:
+        type: boolean
+      expval:
+        type: boolean
+      id:
+        type: string
+      job_id:
+        type: string
+      quasi_dist:
+        type: boolean
     type: object
 info:
   contact: {}
@@ -89,6 +99,44 @@ paths:
       summary: delete job data
       tags:
       - jobs
+    get:
+      description: get all data from job by ID
+      parameters:
+      - description: job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.JobData'
+            type: array
+        "400":
+          description: Invalid ID parameter
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: It wasn't possible to find the job
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed during DB connection
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: get job data
+      tags:
+      - jobs
   /job/result/{id}:
     get:
       description: get job results by ID
@@ -130,7 +178,7 @@ paths:
     get:
       description: get all data from jobs
       parameters:
-      - description: Last id gotten from db
+      - description: Last id(order) gotten from db
         in: query
         name: cursor
         type: integer

@@ -23,13 +23,14 @@ func (db *DB) Connect(model dbDefinition.Model, host string, port uint32, userna
 	db.Extra = extra
 }
 
-func (db *DB) GetJobData(jobID string) (*types.JobResultData, error) {
+func (db *DB) GetJobResult(jobID string) (*types.JobResultData, error) {
 	logger.LogAction(fmt.Sprintf("Get Job Data for id: %s", jobID))
 
 	data := &types.JobResultData{}
 	var counts string
 	var quasiDist string
 	var expval string
+
 	err := db.connection.QueryRow("SELECT * FROM results WHERE job_id=$1", jobID).Scan(&data.ID, &data.JobId, &counts, &quasiDist, &expval)
 
 	if err != nil {
@@ -153,4 +154,65 @@ func (db *DB) GetJobsData(cursor uint32) ([]*types.JobData, error) {
 
 	return rowsData, nil
 
+}
+
+func (db *DB) GetJob(jobID string) (*types.JobData, error) {
+	logger.LogAction(fmt.Sprintf("Getting job with ID: %s", jobID))
+
+	row := db.connection.QueryRow(`
+		SELECT 
+			j.*, 
+			(
+					SELECT row_to_json(data)
+					FROM (
+						SELECT rt.*
+						FROM result_types AS rt
+						WHERE rt.job_id = j.id
+					) data
+			) AS result_types,
+			(
+					SELECT row_to_json(data)
+					FROM (
+						SELECT r.*
+						FROM results AS r
+						WHERE r.job_id = j.id
+					) data
+			) AS results
+		FROM 
+			jobs AS j
+		WHERE
+			j.id = $1
+	`, jobID)
+
+	data := &types.JobData{}
+	var metadata string
+	var resultTypes string
+	var results string
+
+	err := row.Scan(&data.ID, &data.Order, &data.TargetSimulator, &data.Qasm, &data.Status, &data.SubmissionDate, &data.StartTime, &data.FinishTime, &metadata, &resultTypes, &results)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal([]byte(metadata), &data.Metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal([]byte(resultTypes), &data.ResultTypes)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal([]byte(results), &data.Results)
+	if err != nil {
+		return nil, err
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }

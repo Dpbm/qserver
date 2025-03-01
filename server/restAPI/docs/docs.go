@@ -72,6 +72,63 @@ const docTemplate = `{
             }
         },
         "/job/{id}": {
+            "get": {
+                "description": "get all data from job by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "summary": "get job data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.JobData"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID parameter",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "It wasn't possible to find the job",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed during DB connection",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "delete": {
                 "description": "delete all data related to this job id",
                 "produces": [
@@ -143,7 +200,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Last id gotten from db",
+                        "description": "Last id(order) gotten from db",
                         "name": "cursor",
                         "in": "query"
                     }
@@ -224,14 +281,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "result_types": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                    "$ref": "#/definitions/types.JobResultTypes"
                 },
                 "results": {
-                    "type": "object",
-                    "additionalProperties": {}
+                    "$ref": "#/definitions/types.JobResultData"
                 },
                 "start_time": {
                     "type": "string"
@@ -273,6 +326,26 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "number"
                     }
+                }
+            }
+        },
+        "types.JobResultTypes": {
+            "type": "object",
+            "properties": {
+                "counts": {
+                    "type": "boolean"
+                },
+                "expval": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "job_id": {
+                    "type": "string"
+                },
+                "quasi_dist": {
+                    "type": "boolean"
                 }
             }
         }
