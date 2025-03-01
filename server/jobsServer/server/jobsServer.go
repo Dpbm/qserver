@@ -11,6 +11,7 @@ import (
 	"github.com/Dpbm/jobsServer/files"
 	jobsServerProto "github.com/Dpbm/jobsServer/proto"
 	"github.com/Dpbm/jobsServer/queue"
+	"github.com/Dpbm/shared/log"
 	logger "github.com/Dpbm/shared/log"
 	"github.com/google/uuid"
 )
@@ -50,6 +51,7 @@ func (server *JobsServer) AddJob(request jobsServerProto.Jobs_AddJobServer) erro
 	}
 	defer qasmFile.Close()
 
+	log.LogAction("Getting QASM...")
 	qasmSize := 0
 	for {
 		req, err := request.Recv()
@@ -72,6 +74,8 @@ func (server *JobsServer) AddJob(request jobsServerProto.Jobs_AddJobServer) erro
 			return err
 		}
 	}
+
+	log.LogAction(fmt.Sprintf("QASM size %d", qasmSize))
 
 	if qasmSize <= 0 {
 		err = errors.New("you must provide qasm data")

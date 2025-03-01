@@ -1,7 +1,7 @@
 import os
 import sys
 import pika
-from utils import DB, Plugin
+from utils import DB, Plugin, port_to_int
 
 
 # pylint: disable=too-many-locals
@@ -54,11 +54,13 @@ def callback(ch, method, body, db_instance):
 
 if __name__ == "__main__":
     rabbitmq_host = os.getenv("RABBITMQ_HOST")
-    rabbitmq_port = os.getenv("RABBITMQ_PORT")
+    rabbitmq_port = port_to_int(os.getenv("RABBITMQ_PORT"))
     rabbitmq_queue_name = os.getenv("RABBITMQ_QUEUE_NAME")
+    rabbitmq_user = os.getenv("RABBITMQ_USER")
+    rabbitmq_password = os.getenv("RABBITMQ_PASSWORD")
 
     db_host = os.getenv("DB_HOST")
-    db_port = os.getenv("DB_PORT")
+    db_port = port_to_int(os.getenv("DB_PORT"))
     db_name = os.getenv("DB_NAME")
     db_user = os.getenv("DB_USERNAME")
     db_password = os.getenv("DB_PASSWORD")
@@ -73,10 +75,10 @@ if __name__ == "__main__":
         db_user,
         db_password,
     ):
-        print("Invalid environment variables for database!")
+        print("Invalid environment variables!")
         sys.exit(1)
 
-    credentials = pika.PlainCredentials("guest", "guest")
+    credentials = pika.PlainCredentials(rabbitmq_user, rabbitmq_password)
     # pylint: disable=invalid-name
     connection = None
 

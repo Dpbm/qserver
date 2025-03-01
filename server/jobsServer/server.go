@@ -6,7 +6,6 @@ import (
 
 	internalDB "github.com/Dpbm/jobsServer/db"
 	"github.com/Dpbm/jobsServer/queue"
-	"github.com/Dpbm/jobsServer/server"
 	serverDefinition "github.com/Dpbm/jobsServer/server"
 	externalDB "github.com/Dpbm/shared/db"
 	"github.com/Dpbm/shared/format"
@@ -20,9 +19,11 @@ func main() {
 
 	rabbitmqHost := os.Getenv("RABBITMQ_HOST")
 	rabbitmqPort := format.PortEnvToInt(os.Getenv("RABBITMQ_PORT")) // check port and exits if it's a number
+	rabbitmqUser := os.Getenv("RABBITMQ_USER")
+	rabbitmqPassword := os.Getenv("RABBITMQ_PASSWORD")
 
 	rabbitmq := &queue.RabbitMQ{}
-	rabbitmqConnection := rabbitmq.ConnectQueue(rabbitmqHost, rabbitmqPort, "guest", "guest") // it will exit with status 1 if an error occour
+	rabbitmqConnection := rabbitmq.ConnectQueue(rabbitmqHost, rabbitmqPort, rabbitmqUser, rabbitmqPassword) // it will exit with status 1 if an error occour
 	defer rabbitmqConnection.Close()
 
 	rabbitmqChannel := rabbitmqConnection.CreateChannel() // it will exit with status 1 if an error occour
@@ -55,7 +56,7 @@ func main() {
 		QueueName:    queueName,
 	}
 
-	server := &server.GRPC{}
+	server := &serverDefinition.GRPC{}
 	server.Create(serverHost, serverPort, jobServerDefinition)
 	defer server.Close()
 

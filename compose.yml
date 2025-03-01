@@ -75,12 +75,12 @@ services:
             - db
         ports:
             - '3000:3000'
-        restart: always
         env_file:
             - ./db.env
         environment:
-            GIN_MODE: debug
+            GIN_MODE: release
             PORT: 3000
+        restart: always
 
     proxy:
         container_name: proxy
