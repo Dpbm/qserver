@@ -1,0 +1,120 @@
+definitions:
+  types.JobData:
+    properties:
+      counts:
+        additionalProperties:
+          type: number
+        type: object
+      expval:
+        items:
+          type: number
+        type: array
+      id:
+        type: string
+      job_id:
+        type: string
+      quasi_dist:
+        additionalProperties:
+          type: number
+        type: object
+    type: object
+info:
+  contact: {}
+paths:
+  /job/{id}:
+    delete:
+      description: delete all data related to this job id
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid ID parameter
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: No results for this ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed during DB connection
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: delete job data
+      tags:
+      - jobs
+    get:
+      description: get job results by ID
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.JobData'
+        "400":
+          description: Invalid ID parameter
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: No results for this ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed during DB connection
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: get job results
+      tags:
+      - jobs
+  /plugin/{name}:
+    post:
+      description: add plugin by name
+      parameters:
+      - description: Plugin name as shown in the github org
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: add plugin
+      tags:
+      - plugins
+swagger: "2.0"

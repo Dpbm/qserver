@@ -7,10 +7,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @BasePath /api/v1
+// @version 1.0
+// @Summary add plugin
+// @Schemes http
+// @Description add plugin by name
+// @Tags plugins
+// @Param name path string true "Plugin name as shown in the github org"
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Router /plugin/{name} [post]
 func AddPlugin(context *gin.Context) {
 	var plugin types.AddPluginByName
 	err := context.ShouldBindUri(&plugin)
-	// TODO: test this part
+	// TODO: test this error
 	if err != nil {
 		logger.LogError(err)
 		context.JSON(400, map[string]string{"msg": err.Error()})
@@ -42,3 +52,5 @@ func AddPlugin(context *gin.Context) {
 
 	context.JSON(201, map[string]string{"msg": "added plugin"})
 }
+
+// TODO: ADD REMOVE PLUGIN

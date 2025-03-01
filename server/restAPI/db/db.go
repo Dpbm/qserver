@@ -75,3 +75,12 @@ func (db *DB) SaveBackends(backends *[]string, pluginName string) error {
 func (db *DB) CloseConnection() {
 	db.connection.Close()
 }
+
+func (db *DB) DeleteJobData(jobId string) error {
+	logger.LogAction(fmt.Sprintf("Deleting job data of id: %s", jobId))
+
+	_, err := db.connection.Exec("DELETE FROM jobs WHERE id=$1", jobId)
+
+	return err
+
+}

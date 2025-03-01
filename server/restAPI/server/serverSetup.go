@@ -2,18 +2,39 @@ package server
 
 import (
 	"github.com/Dpbm/quantumRestAPI/db"
+	docs "github.com/Dpbm/quantumRestAPI/docs"
 	"github.com/Dpbm/quantumRestAPI/middlewares"
 	routes "github.com/Dpbm/quantumRestAPI/routes"
 	"github.com/gin-gonic/gin"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func SetupServer(dbInstance *db.DB) *gin.Engine {
 	server := gin.Default()
+	docs.SwaggerInfo.BasePath = "/api/v1"
 
 	server.Use(middlewares.DB(dbInstance))
 
-	server.GET("/job/:id", routes.GetJob)
-	server.POST("/plugin/:name", routes.AddPlugin)
+	v1 := server.Group("/api/v1")
+	{
+		job := v1.Group("/job")
+		{
+			job.GET("/:id", routes.GetJob)
+			job.DELETE("/:id", routes.DeleteJob)
+		}
 
+		/* jobs := v1.Group("/jobs")
+		{
+
+		} */
+
+		plugin := v1.Group("/plugin")
+		{
+			plugin.POST("/:name", routes.AddPlugin)
+		}
+	}
+
+	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	return server
 }
