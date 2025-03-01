@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"errors"
+
 	"github.com/Dpbm/quantumRestAPI/types"
 	"github.com/Dpbm/quantumRestAPI/utils"
 	logger "github.com/Dpbm/shared/log"
@@ -20,10 +22,10 @@ import (
 func AddPlugin(context *gin.Context) {
 	var plugin types.AddPluginByName
 	err := context.ShouldBindUri(&plugin)
-	// TODO: test this error
+	// TODO: test this sort of error
 	if err != nil {
 		logger.LogError(err)
-		context.JSON(400, map[string]string{"msg": err.Error()})
+		context.JSON(400, map[string]string{"msg": "Invalid Parameter"})
 		return
 	}
 
@@ -53,4 +55,41 @@ func AddPlugin(context *gin.Context) {
 	context.JSON(201, map[string]string{"msg": "added plugin"})
 }
 
-// TODO: ADD REMOVE PLUGIN
+// @BasePath /api/v1
+// @version 1.0
+// @Summary delete plugin
+// @Schemes http
+// @Description delete all data related to this plugin name
+// @Tags plugins
+// @Param name path string true "Plugin Name"
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string "Invalid Name parameter"
+// @Failure 500 {object} map[string]string "Failed during DB connection"
+// @Failure 404 {object} map[string]string "No results for this ID"
+// @Router /plugin/{id} [delete]
+func DeletePlugin(context *gin.Context) {
+	var plugin types.AddPluginByName
+	err := context.ShouldBindUri(&plugin)
+	if err != nil {
+		logger.LogError(err)
+		context.JSON(400, map[string]string{"msg": "Invalid Parameter"})
+		return
+	}
+
+	db, ok := utils.GetDBFromContext(context)
+	if !ok || db == nil {
+		logger.LogError(errors.New("failed on get DB from context"))
+		context.JSON(500, map[string]string{"msg": "Failed on Stablish database connection!"})
+		return
+	}
+
+	err = db.DeletePlugin(plugin.Name)
+	if err != nil {
+		logger.LogError(err)
+		context.JSON(404, map[string]string{"msg": "Failed on delete your plugin data!"})
+		return
+	}
+
+	context.JSON(200, map[string]string{"msg": "Success"})
+}

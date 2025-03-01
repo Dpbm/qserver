@@ -85,6 +85,15 @@ func (db *DB) DeleteJobData(jobId string) error {
 
 }
 
+func (db *DB) DeletePlugin(pluginName string) error {
+	logger.LogAction(fmt.Sprintf("Deleting plugin data of name: %s", pluginName))
+
+	_, err := db.connection.Exec("DELETE FROM backends WHERE plugin=$1", pluginName)
+
+	return err
+
+}
+
 func (db *DB) GetJobsData(cursor uint32) ([]*types.JobData, error) {
 	logger.LogAction(fmt.Sprintf("Getting jobs from cursor: %d", cursor))
 

@@ -86,7 +86,7 @@ func DeleteJob(context *gin.Context) {
 		return
 	}
 
-	context.JSON(200, map[string]string{"msg": "Sucess"})
+	context.JSON(200, map[string]string{"msg": "Success"})
 }
 
 // @BasePath /api/v1

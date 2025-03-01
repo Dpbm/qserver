@@ -200,6 +200,45 @@ paths:
       summary: get jobs data
       tags:
       - jobs
+  /plugin/{id}:
+    delete:
+      description: delete all data related to this plugin name
+      parameters:
+      - description: Plugin Name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid Name parameter
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: No results for this ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed during DB connection
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: delete plugin
+      tags:
+      - plugins
   /plugin/{name}:
     post:
       description: add plugin by name

@@ -33,6 +33,7 @@ func SetupServer(dbInstance *db.DB) *gin.Engine {
 		plugin := v1.Group("/plugin")
 		{
 			plugin.POST("/:name", routes.AddPlugin)
+			plugin.DELETE("/:name", routes.DeletePlugin)
 		}
 	}
 
