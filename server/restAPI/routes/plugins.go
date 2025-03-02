@@ -17,10 +17,13 @@ import (
 // @Tags plugins
 // @Param name path string true "Plugin name as shown in the github org"
 // @Produce json
-// @Success 200 {object} map[string]string
+// @Success 201 {object} map[string]string
+// @Failure 400 {object} map[string]string "Invalid Name parameter"
+// @Failure 500 {object} map[string]string "Couldn't connect to database or get the plugin info from github"
+// @Failure 404 {object} map[string]string "No results for this name"
 // @Router /plugin/{name} [post]
 func AddPlugin(context *gin.Context) {
-	var plugin types.AddPluginByName
+	var plugin types.PluginByName
 	err := context.ShouldBindUri(&plugin)
 	// TODO: test this sort of error
 	if err != nil {
@@ -66,10 +69,10 @@ func AddPlugin(context *gin.Context) {
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string "Invalid Name parameter"
 // @Failure 500 {object} map[string]string "Failed during DB connection"
-// @Failure 404 {object} map[string]string "No results for this ID"
-// @Router /plugin/{id} [delete]
+// @Failure 404 {object} map[string]string "No results for this Name"
+// @Router /plugin/{name} [delete]
 func DeletePlugin(context *gin.Context) {
-	var plugin types.AddPluginByName
+	var plugin types.PluginByName
 	err := context.ShouldBindUri(&plugin)
 	if err != nil {
 		logger.LogError(err)

@@ -11,4 +11,5 @@ export DB_USERNAME=test
 export DB_PASSWORD=test
 export DB_NAME=quantum
 
+docker stop api
 go run server.go

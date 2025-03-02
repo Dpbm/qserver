@@ -1,9 +1,13 @@
 package types
 
-type GetJobById struct {
+type JobById struct {
 	ID string `uri:"id" binding:"required,uuid"`
 }
 
-type AddPluginByName struct {
+type PluginByName struct {
+	Name string `uri:"name" binding:"required"`
+}
+
+type BackendByName struct {
 	Name string `uri:"name" binding:"required"`
 }

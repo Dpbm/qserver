@@ -119,7 +119,7 @@ func (db *DB) GetJobsData(cursor uint32) ([]*types.JobData, error) {
 		FROM 
 			jobs AS j
 		WHERE
-			j.cursor > $1 AND j.cursor < $1 + 20
+			j.pointer > $1 AND j.pointer < $1 + 20
 	`, cursor)
 
 	if err != nil {
@@ -136,7 +136,7 @@ func (db *DB) GetJobsData(cursor uint32) ([]*types.JobData, error) {
 		var resultTypes string
 		var results string
 
-		err := rows.Scan(&data.ID, &data.Order, &data.TargetSimulator, &data.Qasm, &data.Status, &data.SubmissionDate, &data.StartTime, &data.FinishTime, &metadata, &resultTypes, &results)
+		err := rows.Scan(&data.ID, &data.Pointer, &data.TargetSimulator, &data.Qasm, &data.Status, &data.SubmissionDate, &data.StartTime, &data.FinishTime, &metadata, &resultTypes, &results)
 
 		if err != nil {
 			return nil, err
@@ -198,7 +198,7 @@ func (db *DB) GetJob(jobID string) (*types.JobData, error) {
 	var resultTypes string
 	var results string
 
-	err := row.Scan(&data.ID, &data.Order, &data.TargetSimulator, &data.Qasm, &data.Status, &data.SubmissionDate, &data.StartTime, &data.FinishTime, &metadata, &resultTypes, &results)
+	err := row.Scan(&data.ID, &data.Pointer, &data.TargetSimulator, &data.Qasm, &data.Status, &data.SubmissionDate, &data.StartTime, &data.FinishTime, &metadata, &resultTypes, &results)
 
 	if err != nil {
 		return nil, err
@@ -218,6 +218,23 @@ func (db *DB) GetJob(jobID string) (*types.JobData, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+func (db *DB) GetBackend(backendName string) (*types.BackendData, error) {
+	logger.LogAction(fmt.Sprintf("Getting backend with name: %s", backendName))
+
+	row := db.connection.QueryRow(`
+		SELECT * FROM backends WHERE backend_name=$1
+	`, backendName)
+
+	data := &types.BackendData{}
+	err := row.Scan(&data.Name, &data.ID, &data.Pointer, &data.Plugin)
 
 	if err != nil {
 		return nil, err

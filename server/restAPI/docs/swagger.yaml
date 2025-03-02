@@ -1,4 +1,15 @@
 definitions:
+  types.BackendData:
+    properties:
+      backend_name:
+        type: string
+      id:
+        type: string
+      plugin:
+        type: string
+      pointer:
+        type: integer
+    type: object
   types.JobData:
     properties:
       finish_time:
@@ -8,7 +19,7 @@ definitions:
       metadata:
         additionalProperties: {}
         type: object
-      order:
+      pointer:
         type: integer
       qasm:
         type: string
@@ -60,6 +71,43 @@ definitions:
 info:
   contact: {}
 paths:
+  /backend/{name}:
+    get:
+      description: backend data by backend name
+      parameters:
+      - description: Backend name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.BackendData'
+        "400":
+          description: Invalid ID parameter
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: It wasn't possible to find the backend
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed during DB connection
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: get backend data
+      tags:
+      - backends
   /job/{id}:
     delete:
       description: delete all data related to this job id
@@ -113,9 +161,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/types.JobData'
-            type: array
+            $ref: '#/definitions/types.JobData'
         "400":
           description: Invalid ID parameter
           schema:
@@ -200,7 +246,7 @@ paths:
       summary: get jobs data
       tags:
       - jobs
-  /plugin/{id}:
+  /plugin/{name}:
     delete:
       description: delete all data related to this plugin name
       parameters:
@@ -225,7 +271,7 @@ paths:
               type: string
             type: object
         "404":
-          description: No results for this ID
+          description: No results for this Name
           schema:
             additionalProperties:
               type: string
@@ -239,7 +285,6 @@ paths:
       summary: delete plugin
       tags:
       - plugins
-  /plugin/{name}:
     post:
       description: add plugin by name
       parameters:
@@ -251,8 +296,26 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid Name parameter
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: No results for this name
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Couldn't connect to database or get the plugin info from github
           schema:
             additionalProperties:
               type: string

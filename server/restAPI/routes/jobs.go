@@ -25,7 +25,7 @@ import (
 // @Failure 404 {object} map[string]string "No results for this ID"
 // @Router /job/result/{id} [get]
 func GetJobResult(context *gin.Context) {
-	var job types.GetJobById
+	var job types.JobById
 	err := context.ShouldBindUri(&job)
 	if err != nil {
 		logger.LogError(err)
@@ -64,7 +64,7 @@ func GetJobResult(context *gin.Context) {
 // @Failure 404 {object} map[string]string "No results for this ID"
 // @Router /job/{id} [delete]
 func DeleteJob(context *gin.Context) {
-	var job types.GetJobById
+	var job types.JobById
 	err := context.ShouldBindUri(&job)
 	if err != nil {
 		logger.LogError(err)
@@ -134,13 +134,13 @@ func GetJobs(context *gin.Context) {
 // @Tags jobs
 // @Param id path string true "job ID"
 // @Produce json
-// @Success 200 {object} []types.JobData
+// @Success 200 {object} types.JobData
 // @Failure 400 {object} map[string]string "Invalid ID parameter"
 // @Failure 500 {object} map[string]string "Failed during DB connection"
 // @Failure 404 {object} map[string]string "It wasn't possible to find the job"
 // @Router /job/{id} [get]
 func GetJob(context *gin.Context) {
-	var job types.GetJobById
+	var job types.JobById
 	err := context.ShouldBindUri(&job)
 	if err != nil {
 		logger.LogError(err)

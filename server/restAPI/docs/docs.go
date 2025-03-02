@@ -15,6 +15,62 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/backend/{name}": {
+            "get": {
+                "description": "backend data by backend name",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "backends"
+                ],
+                "summary": "get backend data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Backend name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.BackendData"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID parameter",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "It wasn't possible to find the backend",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed during DB connection",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/job/result/{id}": {
             "get": {
                 "description": "get job results by ID",
@@ -94,10 +150,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/types.JobData"
-                            }
+                            "$ref": "#/definitions/types.JobData"
                         }
                     },
                     "400": {
@@ -227,7 +280,64 @@ const docTemplate = `{
                 }
             }
         },
-        "/plugin/{id}": {
+        "/plugin/{name}": {
+            "post": {
+                "description": "add plugin by name",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "plugins"
+                ],
+                "summary": "add plugin",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Plugin name as shown in the github org",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Name parameter",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No results for this name",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Couldn't connect to database or get the plugin info from github",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "delete": {
                 "description": "delete all data related to this plugin name",
                 "produces": [
@@ -266,7 +376,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "No results for this ID",
+                        "description": "No results for this Name",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -285,41 +395,26 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/plugin/{name}": {
-            "post": {
-                "description": "add plugin by name",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "plugins"
-                ],
-                "summary": "add plugin",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Plugin name as shown in the github org",
-                        "name": "name",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
+        "types.BackendData": {
+            "type": "object",
+            "properties": {
+                "backend_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "plugin": {
+                    "type": "string"
+                },
+                "pointer": {
+                    "type": "integer"
+                }
+            }
+        },
         "types.JobData": {
             "type": "object",
             "properties": {
@@ -333,7 +428,7 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {}
                 },
-                "order": {
+                "pointer": {
                     "type": "integer"
                 },
                 "qasm": {

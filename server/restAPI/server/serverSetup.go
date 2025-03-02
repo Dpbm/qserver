@@ -35,6 +35,11 @@ func SetupServer(dbInstance *db.DB) *gin.Engine {
 			plugin.POST("/:name", routes.AddPlugin)
 			plugin.DELETE("/:name", routes.DeletePlugin)
 		}
+
+		backend := v1.Group("/backend")
+		{
+			backend.GET("/:name", routes.GetBackend)
+		}
 	}
 
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

@@ -20,7 +20,7 @@ type JobResultTypes struct {
 
 type JobData struct {
 	ID              string         `json:"id"`
-	Order           uint32         `json:"order"`
+	Pointer         uint32         `json:"pointer"`
 	TargetSimulator string         `json:"target_simulator"`
 	Qasm            string         `json:"qasm"`
 	Status          string         `json:"status"`
