@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	dbDefinition "github.com/Dpbm/shared/db"
@@ -273,4 +274,24 @@ func (db *DB) GetBackends(cursor uint32) ([]*types.BackendData, error) {
 
 	return rowsData, nil
 
+}
+
+func (db *DB) CancelJob(jobID string) error {
+	logger.LogAction(fmt.Sprintf("Canceling job with ID: %s", jobID))
+
+	data, err := db.GetJob(jobID)
+
+	if err != nil {
+		return err
+	}
+
+	if data.Status == "running" {
+		return errors.New("job is already running")
+	}
+
+	_, err = db.connection.Exec(`
+		UPDATE jobs SET status=canceled WHERE id=$1
+	`, jobID)
+
+	return err
 }

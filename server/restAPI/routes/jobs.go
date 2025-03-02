@@ -12,6 +12,82 @@ import (
 
 // @BasePath /api/v1
 // @version 1.0
+// @Summary get job data
+// @Schemes http
+// @Description get all data from job by ID
+// @Tags jobs
+// @Param id path string true "job ID"
+// @Produce json
+// @Success 200 {object} types.JobData
+// @Failure 400 {object} map[string]string "Invalid ID parameter"
+// @Failure 500 {object} map[string]string "Failed during DB connection"
+// @Failure 404 {object} map[string]string "It wasn't possible to find the job"
+// @Router /job/{id} [get]
+func GetJob(context *gin.Context) {
+	var job types.JobById
+	err := context.ShouldBindUri(&job)
+	if err != nil {
+		logger.LogError(err)
+		context.JSON(400, map[string]string{"msg": "Invalid Parameter"})
+		return
+	}
+
+	db, ok := utils.GetDBFromContext(context)
+	if !ok || db == nil {
+		logger.LogError(errors.New("failed on get DB from context"))
+		context.JSON(500, map[string]string{"msg": "Failed on Stablish database connection!"})
+		return
+	}
+
+	result, err := db.GetJob(job.ID)
+	if err != nil {
+		logger.LogError(err)
+		context.JSON(404, map[string]string{"msg": "Could not find the required job"})
+		return
+	}
+
+	context.JSON(200, result)
+}
+
+// @BasePath /api/v1
+// @version 1.0
+// @Summary get jobs data
+// @Schemes http
+// @Description get all data from jobs
+// @Tags jobs
+// @Param cursor query int false "Last id(pointer) gotten from db"
+// @Produce json
+// @Success 200 {object} []types.JobData
+// @Failure 500 {object} map[string]string "Failed during DB connection"
+// @Router /jobs [get]
+func GetJobs(context *gin.Context) {
+	cursor := context.Query("cursor")
+	cursorValue, err := format.StrToUint(cursor)
+
+	if err != nil {
+		logger.LogError(err)
+		cursorValue = 0
+	}
+
+	db, ok := utils.GetDBFromContext(context)
+	if !ok || db == nil {
+		logger.LogError(errors.New("failed on get DB from context"))
+		context.JSON(500, map[string]string{"msg": "Failed on Stablish database connection!"})
+		return
+	}
+
+	result, err := db.GetJobsData(cursorValue)
+	if err != nil {
+		logger.LogError(err)
+		context.JSON(200, map[any]any{})
+		return
+	}
+
+	context.JSON(200, result)
+}
+
+// @BasePath /api/v1
+// @version 1.0
 // @Summary get job results
 // @Schemes http
 // @Description get job results by ID
@@ -90,55 +166,17 @@ func DeleteJob(context *gin.Context) {
 
 // @BasePath /api/v1
 // @version 1.0
-// @Summary get jobs data
+// @Summary cancel job
 // @Schemes http
-// @Description get all data from jobs
+// @Description cancel a job before running it
 // @Tags jobs
-// @Param cursor query int false "Last id(pointer) gotten from db"
+// @Param id path string true "Job ID"
 // @Produce json
-// @Success 200 {object} []types.JobData
-// @Failure 500 {object} map[string]string "Failed during DB connection"
-// @Router /jobs [get]
-func GetJobs(context *gin.Context) {
-	cursor := context.Query("cursor")
-	cursorValue, err := format.StrToUint(cursor)
-
-	if err != nil {
-		logger.LogError(err)
-		cursorValue = 0
-	}
-
-	db, ok := utils.GetDBFromContext(context)
-	if !ok || db == nil {
-		logger.LogError(errors.New("failed on get DB from context"))
-		context.JSON(500, map[string]string{"msg": "Failed on Stablish database connection!"})
-		return
-	}
-
-	result, err := db.GetJobsData(cursorValue)
-	if err != nil {
-		logger.LogError(err)
-		context.JSON(200, map[any]any{})
-		return
-	}
-
-	context.JSON(200, result)
-}
-
-// @BasePath /api/v1
-// @version 1.0
-// @Summary get job data
-// @Schemes http
-// @Description get all data from job by ID
-// @Tags jobs
-// @Param id path string true "job ID"
-// @Produce json
-// @Success 200 {object} types.JobData
+// @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string "Invalid ID parameter"
-// @Failure 500 {object} map[string]string "Failed during DB connection"
-// @Failure 404 {object} map[string]string "It wasn't possible to find the job"
-// @Router /job/{id} [get]
-func GetJob(context *gin.Context) {
+// @Failure 500 {object} map[string]string "Failed during DB connection or during db update"
+// @Router /job/cancel/{id} [put]
+func CancelJob(context *gin.Context) {
 	var job types.JobById
 	err := context.ShouldBindUri(&job)
 	if err != nil {
@@ -154,14 +192,12 @@ func GetJob(context *gin.Context) {
 		return
 	}
 
-	result, err := db.GetJob(job.ID)
+	err = db.CancelJob(job.ID)
 	if err != nil {
 		logger.LogError(err)
-		context.JSON(404, map[string]string{"msg": "Could not find the required job"})
+		context.JSON(500, map[string]string{"msg": "Failed on cancel your job!"})
 		return
 	}
 
-	context.JSON(200, result)
+	context.JSON(200, map[string]string{"msg": "Success"})
 }
-
-// TODO: ADD CANCEL JOB (PUT)

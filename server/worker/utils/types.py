@@ -1,4 +1,5 @@
 from typing import Dict, Any, List, Optional
+from enum import Enum
 from psycopg2.extras import RealDictRow
 
 Backend = str
@@ -20,3 +21,10 @@ def port_to_int(port:str) -> Optional[int]:
         return int_port
     except:
         return None
+
+class Statuses(Enum):
+    PENDING="pending"
+    RUNNING="running" 
+    FINISHED="finished"
+    CANCELED="canceled" 
+    FAILED="failed"

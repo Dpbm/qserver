@@ -209,6 +209,39 @@ paths:
       summary: get job data
       tags:
       - jobs
+  /job/cancel/{id}:
+    put:
+      description: cancel a job before running it
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid ID parameter
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed during DB connection or during db update
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: cancel job
+      tags:
+      - jobs
   /job/result/{id}:
     get:
       description: get job results by ID

@@ -1,7 +1,9 @@
 import os
 import sys
 import pika
-from utils import DB, Plugin, port_to_int
+from utils import DB, Plugin
+from utils.types import port_to_int, Statuses
+from utils.exceptions import CanceledJob
 
 
 # pylint: disable=too-many-locals
@@ -20,6 +22,10 @@ def callback(ch, method, body, db_instance):
         qasm_file = data["qasm"]
         target_backend = data["target_simulator"]
         metadata = data["metadata"]
+        status = data["status"]
+
+        if(status == Statuses.CANCELED):
+            raise CanceledJob()
 
         db_instance.update_job_status("running", job_id)
         db_instance.update_job_start_time_to_now(job_id)
