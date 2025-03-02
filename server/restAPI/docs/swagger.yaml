@@ -108,6 +108,32 @@ paths:
       summary: get backend data
       tags:
       - backends
+  /backends:
+    get:
+      description: get all data from backends
+      parameters:
+      - description: Last id(pointer) gotten from db
+        in: query
+        name: cursor
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.BackendData'
+            type: array
+        "500":
+          description: Failed during DB connection
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: get all backends
+      tags:
+      - backends
   /job/{id}:
     delete:
       description: delete all data related to this job id
@@ -224,7 +250,7 @@ paths:
     get:
       description: get all data from jobs
       parameters:
-      - description: Last id(order) gotten from db
+      - description: Last id(pointer) gotten from db
         in: query
         name: cursor
         type: integer

@@ -40,6 +40,11 @@ func SetupServer(dbInstance *db.DB) *gin.Engine {
 		{
 			backend.GET("/:name", routes.GetBackend)
 		}
+
+		backends := v1.Group("/backends")
+		{
+			backends.GET("/", routes.GetBackends)
+		}
 	}
 
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

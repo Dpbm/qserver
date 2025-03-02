@@ -6,7 +6,6 @@ import (
 	"github.com/Dpbm/quantumRestAPI/types"
 	"github.com/Dpbm/quantumRestAPI/utils"
 	"github.com/Dpbm/shared/format"
-	"github.com/Dpbm/shared/log"
 	logger "github.com/Dpbm/shared/log"
 	"github.com/gin-gonic/gin"
 )
@@ -95,7 +94,7 @@ func DeleteJob(context *gin.Context) {
 // @Schemes http
 // @Description get all data from jobs
 // @Tags jobs
-// @Param cursor query int false "Last id(order) gotten from db"
+// @Param cursor query int false "Last id(pointer) gotten from db"
 // @Produce json
 // @Success 200 {object} []types.JobData
 // @Failure 500 {object} map[string]string "Failed during DB connection"
@@ -105,7 +104,7 @@ func GetJobs(context *gin.Context) {
 	cursorValue, err := format.StrToUint(cursor)
 
 	if err != nil {
-		log.LogError(err)
+		logger.LogError(err)
 		cursorValue = 0
 	}
 

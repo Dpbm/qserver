@@ -242,3 +242,35 @@ func (db *DB) GetBackend(backendName string) (*types.BackendData, error) {
 
 	return data, nil
 }
+
+func (db *DB) GetBackends(cursor uint32) ([]*types.BackendData, error) {
+	logger.LogAction(fmt.Sprintf("Getting backends from cursor: %d", cursor))
+
+	rows, err := db.connection.Query(`
+		SELECT * FROM backends
+		WHERE pointer > $1 AND pointer < $1 + 20;
+	`, cursor)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	rowsData := make([]*types.BackendData, 0)
+
+	for rows.Next() {
+		data := &types.BackendData{}
+		err := rows.Scan(&data.Name, &data.ID, &data.Pointer, &data.Plugin)
+
+		if err != nil {
+			return nil, err
+		}
+
+		rowsData = append(rowsData, data)
+
+	}
+
+	return rowsData, nil
+
+}

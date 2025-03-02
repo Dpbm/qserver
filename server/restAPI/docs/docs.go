@@ -71,6 +71,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/backends": {
+            "get": {
+                "description": "get all data from backends",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "backends"
+                ],
+                "summary": "get all backends",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Last id(pointer) gotten from db",
+                        "name": "cursor",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.BackendData"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed during DB connection",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/job/result/{id}": {
             "get": {
                 "description": "get job results by ID",
@@ -253,7 +293,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Last id(order) gotten from db",
+                        "description": "Last id(pointer) gotten from db",
                         "name": "cursor",
                         "in": "query"
                     }
