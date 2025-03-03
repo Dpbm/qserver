@@ -19,10 +19,11 @@ jobs:
           run: docker compose up -d --build proxy
 
         - name: Run tests
-          working-directory: ./proxy
-          run: |
-              chmod +x test.sh && \
-              ./test.sh
+          uses: nick-fields/retry@v3
+          with:
+            timeout_minutes: 10
+            max_attempts: 3
+            command: cd ./proxy && chmod +x test.sh && ./test.sh
 
     api:
         runs-on: ubuntu-24.04

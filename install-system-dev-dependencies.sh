@@ -25,7 +25,12 @@ if [ ! $(which go) &>/dev/null ]; then
     mv ./go "$HOME"
     rm -rf "$TARGET_GO_TAR_FILE"
 
+    GOBIN = "$HOME/go-binaries/bin"
+    mkdir -p "$GOBIN"
+
     echo "export PATH=\$HOME/go/bin:\$PATH" >> "$HOME/.bashrc"
+    echo "export GOBIN=$GOBIN" >> "$HOME/.bashrc"
+    echo "export PATH=$GOBIN:\$PATH" >> "$HOME/.bashrc"
     source "$HOME/.bashrc"
 fi
 
