@@ -2,15 +2,17 @@
 
 set -e
 
+source ./colors.sh
+
 sudo apt update
 
 if [ ! $(which curl) &>/dev/null ]; then 
-	echo -e "Installing curl..."
+	echo -e "${GREEN}Installing curl...${ENDC}"
 	sudo apt install curl -y
 fi
 
 if [ ! $(which go) &>/dev/null ]; then
-    echo -e "Installing golang..."
+    echo -e "${GREEN}Installing golang...${ENDC}"
 
     TAR_FILE="go1.23.5.linux-amd64.tar.gz"
     TARGET_GO_TAR_FILE="go.tar.gz"
@@ -29,6 +31,6 @@ fi
 
 
 if [ ! $(which grpcurl) &>/dev/null ]; then
-    echo -e "Installing grpcurl..."
+    echo -e "${GREEN}Installing grpcurl...${ENDC}"
     go install github.com/fullstorydev/grpcurl/cmd/grpcurl@v1.9.2
 fi

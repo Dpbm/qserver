@@ -45,8 +45,8 @@ EOM
 
 }
 
-SERVER=$SERVER_IP:$SERVER_PORT
-BASE_URL="http://$SERVER"
+SERVER_STRING="$SERVER_IP:$SERVER_PORT"
+BASE_URL="http://$SERVER_STRING"
 
 echo -e "${BLUE}--Test API Access--${ENDC}"
 test_status "$BASE_URL/api/v1/jobs/" 200
@@ -58,9 +58,9 @@ test_status "$BASE_URL/swagger/index.html" 200
 test_status "$BASE_URL/swagger/anything" 200
 
 echo -e "${BLUE}--Test NGINX--${ENDC}"
-test_status "$BASE_URL/not-a-nginx-route/" 415
+test_status "$BASE_URL/not-a-nginx-route/" 404
 test_status "$BASE_URL/healthcheck/" 200
 
 echo -e "${BLUE}--Test GRPC--${ENDC}"
 add_plugin $BASE_URL
-send_grpc $SERVER
+send_grpc $SERVER_STRING
