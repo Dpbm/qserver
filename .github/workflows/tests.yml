@@ -16,7 +16,7 @@ jobs:
               ./install-system-dev-dependencies.sh
 
         - name: Run proxy
-          run: docker-compose up -d --build proxy
+          run: docker compose up -d --build proxy
 
         - name: Run tests
           working-directory: ./proxy
