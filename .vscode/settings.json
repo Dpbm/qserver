@@ -13,6 +13,7 @@
         "GOBIN",
         "gonic",
         "grpcurl",
+        "healthcheck",
         "initdb",
         "isready",
         "libc",
