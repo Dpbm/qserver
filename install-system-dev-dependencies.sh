@@ -17,7 +17,7 @@ if [ ! $GOBIN ]; then
     echo "export GOBIN=$GOBIN_PATH" >> "$HOME/.bashrc"
     echo "export PATH=$GOBIN_PATH:\$PATH" >> "$HOME/.bashrc"
 
-    GOBIN="$GOBIN_PATH"
+    export GOBIN="$GOBIN_PATH"
 fi
 
 if [ ! $(which curl) &>/dev/null ]; then 

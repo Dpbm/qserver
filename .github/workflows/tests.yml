@@ -24,7 +24,7 @@ jobs:
             timeout_minutes: 1
             max_attempts: 3
             command: cd ./proxy && \
-                     export PATH=$HOME/go-binaries/bin:$PATH && \
+                     PATH=$HOME/go-binaries/bin:$PATH && \
                     chmod +x test.sh && \ 
                     ./test.sh
 
