@@ -26,6 +26,8 @@ if [ ! $(which go) &>/dev/null ]; then
     rm -rf "$TARGET_GO_TAR_FILE"
 
     GOBIN = "$HOME/go-binaries/bin"
+
+    echo -e "${GREEN}Creating path: $GOBIN${ENDC}"
     mkdir -p "$GOBIN"
 
     echo "export PATH=\$HOME/go/bin:\$PATH" >> "$HOME/.bashrc"
