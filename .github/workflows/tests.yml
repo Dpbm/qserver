@@ -13,11 +13,16 @@ jobs:
         - name: Run proxy
           run: docker compose up -d --build proxy
 
-        - name: Run tests
+        - name: Get Dev dependencies
           run: |
                 chmod +x install-system-dev-dependencies.sh && \
-                ./install-system-dev-dependencies.sh && \
-                cd ./proxy && \
+                ./install-system-dev-dependencies.sh
+
+        - name: Run tests
+          working-directory: ./proxy
+          run: |
+                echo "AAAA: $GOBIN" && \
+                ls -la $HOME/go-binaries/bin && \
                 chmod +x test.sh && \
                 ./test.sh
 
