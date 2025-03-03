@@ -3,6 +3,27 @@ name: Test parts
 on: [push]
 
 jobs:
+
+    proxy:
+      runs-on: ubuntu-24.04
+
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: Setup System dev dependencies
+          run: |
+              chmod +x install-system-dev-dependencies.sh && \
+              ./install-system-dev-dependencies.sh
+
+        - name: Run proxy
+          run: docker-compose up -d --build proxy
+
+        - name: Run tests
+          working-directory: ./proxy
+          run: |
+              chmod +x test.sh && \
+              ./test.sh
+
     api:
         runs-on: ubuntu-24.04
 
