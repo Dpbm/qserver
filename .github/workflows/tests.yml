@@ -17,7 +17,9 @@ jobs:
           run: |
                 chmod +x install-system-dev-dependencies.sh && \
                 ./install-system-dev-dependencies.sh && \
-                cd ./proxy
+                cd ./proxy && \
+                chmod +x test.sh && \
+                ./test.sh
 
     api:
         runs-on: ubuntu-24.04
