@@ -6,7 +6,7 @@ source ./colors.sh
 
 sudo apt update
 
-GOBIN_PATH = "$HOME/go-binaries/bin"
+GOBIN_PATH="$HOME/go-binaries/bin"
 
 echo -e "${GREEN}Creating path: $GOBIN_PATH${ENDC}"
 mkdir -p "$GOBIN_PATH"
