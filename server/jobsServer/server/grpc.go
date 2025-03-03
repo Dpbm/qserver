@@ -4,6 +4,7 @@ import (
 	jobsServerProto "github.com/Dpbm/jobsServer/proto"
 	"google.golang.org/grpc"
 	_ "google.golang.org/grpc/encoding/gzip"
+	"google.golang.org/grpc/reflection"
 )
 
 type GRPC struct {
@@ -18,6 +19,8 @@ func (server *GRPC) Create(host string, port uint32, jobServerDefinition *JobsSe
 	grpcServer := grpc.NewServer()
 
 	jobsServerProto.RegisterJobsServer(grpcServer, jobServerDefinition)
+
+	reflection.Register(grpcServer)
 
 	server.TCPServer = tcpServer
 	server.GRPCServer = grpcServer
