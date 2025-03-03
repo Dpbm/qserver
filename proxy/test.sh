@@ -9,12 +9,16 @@ source ../colors.sh
 
 echo -e "${BLUE}Testing NGINX Routes...${ENDC}"
 
+
 test_status(){
     URL=$1
     DESIRED_STATUS_CODE=$2
-    GET_STATUS_CODE=$(curl -so /dev/null -w '%{response_code}' $URL)
 
-    if [ $GET_STATUS_CODE != $DESIRED_STATUS_CODE ]; then
+    DATA=$(curl -v -w ' %{response_code}' $URL)
+    echo -e "${BLUE}Response: $DATA${ENDC}"
+    STATUS_CODE=$(echo $DATA | awk '{print $NF}')
+
+    if [ $STATUS_CODE != $DESIRED_STATUS_CODE ]; then
         echo -e "${RED}Error: status $GET_STATUS_CODE for url $URL instead of $DESIRED_STATUS_CODE${ENDC}"
         exit 1
     else
@@ -25,7 +29,10 @@ test_status(){
 add_plugin(){
     BASE_URL=$1
     DEFAULT_PLUGIN="aer-plugin"
-    STATUS_CODE=$(curl --request POST -so /dev/null -w '%{response_code}' "$BASE_URL/api/v1/plugin/$DEFAULT_PLUGIN")
+
+    DATA=$(curl --request POST -v -w ' %{response_code}' "$BASE_URL/api/v1/plugin/$DEFAULT_PLUGIN")
+    echo -e "${BLUE}Response: $DATA${ENDC}"
+    STATUS_CODE=$(echo $DATA | awk '{print $NF}')
 
     if [ $STATUS_CODE != 201 ]; then
         echo -e "${RED}Failed on add plugin!${ENDC}"
