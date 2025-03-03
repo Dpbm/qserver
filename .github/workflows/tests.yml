@@ -23,7 +23,10 @@ jobs:
           with:
             timeout_minutes: 1
             max_attempts: 3
-            command: cd ./proxy && chmod +x test.sh && ./test.sh
+            command: cd ./proxy && \
+                     export PATH=$HOME/go-binaries/bin:$PATH && \
+                    chmod +x test.sh && \ 
+                    ./test.sh
 
     api:
         runs-on: ubuntu-24.04

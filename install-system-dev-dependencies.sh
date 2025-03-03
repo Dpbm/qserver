@@ -6,17 +6,19 @@ source ./colors.sh
 
 sudo apt update
 
-GOBIN_PATH="$HOME/go-binaries/bin"
+if [ ! $GOBIN ]; then
+    GOBIN_PATH="$HOME/go-binaries/bin"
 
-echo -e "${GREEN}Creating path: $GOBIN_PATH${ENDC}"
-mkdir -p "$GOBIN_PATH"
+    echo -e "${GREEN}Creating path: $GOBIN_PATH...${ENDC}"
+    mkdir -p "$GOBIN_PATH"
 
-echo "export PATH=\$HOME/go/bin:\$PATH" >> "$HOME/.bashrc"
-echo "export GOBIN=$GOBIN_PATH" >> "$HOME/.bashrc"
-echo "export PATH=$GOBIN_PATH:\$PATH" >> "$HOME/.bashrc"
-source "$HOME/.bashrc"
+    echo -e "${GREEN}Exporting Variables...${ENDC}"
+    echo "export PATH=\$HOME/go/bin:\$PATH" >> "$HOME/.bashrc"
+    echo "export GOBIN=$GOBIN_PATH" >> "$HOME/.bashrc"
+    echo "export PATH=$GOBIN_PATH:\$PATH" >> "$HOME/.bashrc"
 
-
+    export GOBIN="$GOBIN_PATH"
+fi
 
 if [ ! $(which curl) &>/dev/null ]; then 
 	echo -e "${GREEN}Installing curl...${ENDC}"
