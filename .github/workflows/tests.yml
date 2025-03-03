@@ -21,8 +21,7 @@ jobs:
         - name: Run tests
           working-directory: ./proxy
           run: |
-                echo "AAAA: $GOBIN" && \
-                ls -la $HOME/go-binaries/bin && \
+                export PATH=$HOME/go-binaries/bin:$PATH && \
                 chmod +x test.sh && \
                 ./test.sh
 
