@@ -30,6 +30,11 @@ add_plugin(){
     BASE_URL=$1
     DEFAULT_PLUGIN="aer-plugin"
 
+    until docker exec postgres-db pg_isready -U postgres; do
+        echo -e "${BLUE}Waiting for Postgres...${ENDC}"
+        sleep 2
+    done
+
     DATA=$(curl --request POST -v -w ' %{response_code}' "$BASE_URL/api/v1/plugin/$DEFAULT_PLUGIN")
     echo -e "${BLUE}Response: $DATA${ENDC}"
     STATUS_CODE=$(echo $DATA | awk '{print $NF}')
