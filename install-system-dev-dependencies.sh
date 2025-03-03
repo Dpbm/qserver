@@ -6,6 +6,18 @@ source ./colors.sh
 
 sudo apt update
 
+GOBIN_PATH = "$HOME/go-binaries/bin"
+
+echo -e "${GREEN}Creating path: $GOBIN_PATH${ENDC}"
+mkdir -p "$GOBIN_PATH"
+
+echo "export PATH=\$HOME/go/bin:\$PATH" >> "$HOME/.bashrc"
+echo "export GOBIN=$GOBIN_PATH" >> "$HOME/.bashrc"
+echo "export PATH=$GOBIN_PATH:\$PATH" >> "$HOME/.bashrc"
+source "$HOME/.bashrc"
+
+
+
 if [ ! $(which curl) &>/dev/null ]; then 
 	echo -e "${GREEN}Installing curl...${ENDC}"
 	sudo apt install curl -y
@@ -24,16 +36,6 @@ if [ ! $(which go) &>/dev/null ]; then
     tar -C /tmp -xvf "$TARGET_GO_TAR_FILE"
     mv ./go "$HOME"
     rm -rf "$TARGET_GO_TAR_FILE"
-
-    GOBIN = "$HOME/go-binaries/bin"
-
-    echo -e "${GREEN}Creating path: $GOBIN${ENDC}"
-    mkdir -p "$GOBIN"
-
-    echo "export PATH=\$HOME/go/bin:\$PATH" >> "$HOME/.bashrc"
-    echo "export GOBIN=$GOBIN" >> "$HOME/.bashrc"
-    echo "export PATH=$GOBIN:\$PATH" >> "$HOME/.bashrc"
-    source "$HOME/.bashrc"
 fi
 
 
