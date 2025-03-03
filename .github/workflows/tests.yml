@@ -14,15 +14,12 @@ jobs:
           run: docker compose up -d --build proxy
 
         - name: Run tests
-          uses: nick-fields/retry@v3
-          with:
-            timeout_minutes: 1
-            max_attempts: 3
-            command: chmod +x install-system-dev-dependencies.sh && \
-                     ./install-system-dev-dependencies.sh && \
-                     cd ./proxy && \
-                     chmod +x test.sh && \ 
-                     ./test.sh
+          run: |
+                chmod +x install-system-dev-dependencies.sh && \
+                ./install-system-dev-dependencies.sh && \
+                cd ./proxy && \
+                chmod +x test.sh && \ 
+                ./test.sh
 
     api:
         runs-on: ubuntu-24.04
