@@ -10,11 +10,6 @@ jobs:
       steps:
         - uses: actions/checkout@v4
 
-        - name: Setup System dev dependencies
-          run: |
-              chmod +x install-system-dev-dependencies.sh && \
-              ./install-system-dev-dependencies.sh
-
         - name: Run proxy
           run: docker compose up -d --build proxy
 
@@ -23,10 +18,11 @@ jobs:
           with:
             timeout_minutes: 1
             max_attempts: 3
-            command: cd ./proxy && \
-                     PATH=$HOME/go-binaries/bin:$PATH && \
-                    chmod +x test.sh && \ 
-                    ./test.sh
+            command: chmod +x install-system-dev-dependencies.sh && \
+                     ./install-system-dev-dependencies.sh && \
+                     cd ./proxy && \
+                     chmod +x test.sh && \ 
+                     ./test.sh
 
     api:
         runs-on: ubuntu-24.04

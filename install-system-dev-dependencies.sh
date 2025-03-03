@@ -43,5 +43,6 @@ fi
 
 if [ ! $(which grpcurl) &>/dev/null ]; then
     echo -e "${GREEN}Installing grpcurl...${ENDC}"
+    echo -e "${BLUE}Using GOBIN as: $GOBIN${ENDC}"
     go install github.com/fullstorydev/grpcurl/cmd/grpcurl@v1.9.2
 fi
