@@ -4,9 +4,10 @@
 
 set -e
 
-ENDC='\033[0m' 
+BLUE='\033[0;34m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
+ENDC='\033[0m'
 
 echo -e "${GREEN}Waiting for PostgreSQL to start...${ENDC}\n"
 until pg_isready -U $POSTGRES_USER; do
