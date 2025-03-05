@@ -2,7 +2,7 @@
 
 set -e
 
-source ../colors.sh
+source ./colors.sh
 
 RUNNING_STATUS=$(docker inspect postgres-db | jq '.[].State.Status')
 HEALTH_STATUS=$(docker inspect postgres-db | jq '.[].State.Health.Status')
