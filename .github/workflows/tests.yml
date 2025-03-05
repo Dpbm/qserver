@@ -28,25 +28,17 @@ jobs:
 
     database:
       runs-on: ubuntu-24.04
-      env:
-        POSTGRES_USER: test
-        POSTGRES_PASSWORD: test
-        DB_NAME: test_db
-        DB_USERNAME: test_user
 
       steps:
         - uses: actions/checkout@v4
 
-        - name: Start Postgres
-          # https://stackoverflow.com/questions/75702592/how-to-set-up-postgresql-in-github-actions-workflow
-          run: sudo systemctl start postgresql.service
+        - name: Run database
+          run: docker compose up -d --build db
 
-        - name: GET Test
-          run: psql -U postgres -c "SHOW hba_file;"
-          
-        - name: Run script
-          working-directory: ./server/database
-          run: chmod +x entrypoint.sh && ./entrypoint.sh
+        - name: Test status
+          run: |
+              chmod +x check-postgres-status-for-ci.sh && \
+              ./check-postgres-status-for-ci.sh
 
     api:
         runs-on: ubuntu-24.04

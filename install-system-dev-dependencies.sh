@@ -40,6 +40,11 @@ if [ ! $(which go) &>/dev/null ]; then
     rm -rf "$TARGET_GO_TAR_FILE"
 fi
 
+if [ ! $(which jq) &>/dev/null ]; then 
+	echo -e "${GREEN}Installing jq...${ENDC}"
+	sudo apt install jq -y
+fi
+
 
 if [ ! $(which grpcurl) &>/dev/null ]; then
     echo -e "${GREEN}Installing grpcurl...${ENDC}"
