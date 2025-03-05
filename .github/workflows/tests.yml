@@ -34,14 +34,13 @@ jobs:
         - name: Start Postgres
           # https://stackoverflow.com/questions/75702592/how-to-set-up-postgresql-in-github-actions-workflow
           run: |
-              sudo systemctl start postgresql.service && \
-              createuser --no-password -s -U test 
+              sudo systemctl start postgresql.service
           
         - name: Run script
           env:
             POSTGRES_USER: test
-            POSTGRES_PASSWORD: test
             DB_NAME: test_db
+            POSTGRES_HOST: localhost
           working-directory: ./server/database
           run: chmod +x entrypoint.sh && ./entrypoint.sh
 
