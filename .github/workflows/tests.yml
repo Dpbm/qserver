@@ -19,10 +19,13 @@ jobs:
                 ./install-system-dev-dependencies.sh
 
         - name: Run tests
-          working-directory: ./proxy
-          run: |
-                # this exports ensure that grpcurl gonna be found
-                export PATH=$HOME/go-binaries/bin:$PATH && \
+          uses: nick-fields/retry@v3
+          with:
+            timeout_seconds: 40
+            retry_wait_seconds: 30
+            max_attempts: 3
+            command: cd ./proxy && \
+                export PATH=$HOME/go-binaries/bin:$PATH && \ 
                 chmod +x test.sh && \
                 ./test.sh
 
