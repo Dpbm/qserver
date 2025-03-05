@@ -18,6 +18,12 @@ jobs:
                 chmod +x install-system-dev-dependencies.sh && \
                 ./install-system-dev-dependencies.sh
 
+        - name: OOPS
+          run: docker ps
+
+        - name: IP
+          run: chmod +x ./get-ip.sh && ./get-ip.sh proxy
+
         - name: Run tests
           uses: nick-fields/retry@v3
           with:
