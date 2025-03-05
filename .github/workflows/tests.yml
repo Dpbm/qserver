@@ -28,24 +28,20 @@ jobs:
 
     database:
       runs-on: ubuntu-24.04
+      env:
+        POSTGRES_USER: test
+        POSTGRES_PASSWORD: test
+        DB_NAME: test_db
+        DB_USERNAME: test_user
 
       steps:
         - uses: actions/checkout@v4
 
         - name: Start Postgres
-          env:
-            POSTGRES_USER: test
-            POSTGRES_PASSWORD: test
           # https://stackoverflow.com/questions/75702592/how-to-set-up-postgresql-in-github-actions-workflow
-          run: |
-              sudo systemctl start postgresql.service && \
-              psql -U $POSTGRES_USER -d postgres -c "CREATE USER $POSTGRES_USER WITH PASSWORD '$POSTGRES_PASSWORD';" && \
-              psql -U $POSTGRES_USER -d postgres -c "ALTER USER $POSTGRES_USER CREATEDB;"
+          run: sudo systemctl start postgresql.service
           
         - name: Run script
-          env:
-            POSTGRES_USER: test
-            DB_NAME: test_db
           working-directory: ./server/database
           run: chmod +x entrypoint.sh && ./entrypoint.sh
 
