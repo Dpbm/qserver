@@ -40,6 +40,9 @@ jobs:
         - name: Start Postgres
           # https://stackoverflow.com/questions/75702592/how-to-set-up-postgresql-in-github-actions-workflow
           run: sudo systemctl start postgresql.service
+
+        - name: GET Test
+          run: psql -U postgres -c "SHOW hba_file;"
           
         - name: Run script
           working-directory: ./server/database
