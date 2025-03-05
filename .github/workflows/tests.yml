@@ -36,6 +36,7 @@ jobs:
           run: docker compose up -d --build db
 
         - name: Test status
+          timeout-minutes: 1
           run: |
               chmod +x check-postgres-status-for-ci.sh && \
               ./check-postgres-status-for-ci.sh
