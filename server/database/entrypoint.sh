@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# POSTGRES_USER and DB_NAME must be provided as a env on docker compose
+# POSTGRES_USER, DB_USERNAME and DB_NAME must be provided as a env on docker compose
 
 set -e
 
@@ -9,24 +9,31 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 ENDC='\033[0m'
 
+
 echo -e "${GREEN}Waiting for PostgreSQL to start...${ENDC}\n"
 until pg_isready -U $POSTGRES_USER; do
 	echo -e "${RED}Not ready yet...${ENDC}\n"
 	sleep 2
 done
 
+echo -e "${GREEN}Creating new user ${DB_USERNAME}...${ENDC}\n"
+psql -U $POSTGRES_USER -c "CREATE DATABASE $DB_USERNAME;"
+psql -U $POSTGRES_USER -c "CREATE USER $DB_USERNAME WITH LOGIN PASSWORD '$DB_PASSWORD' CREATEDB;"
+
 if [ ! $(psql -U $POSTGRES_USER -tc "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}';") ]; then
-	echo -e "${GREEN}Creating ${DB_NAME} database...${ENDC}"
-	createdb -U $POSTGRES_USER $DB_NAME
+	echo -e "${GREEN}Creating ${DB_NAME} database...${ENDC}\n"
+	psql -U $DB_USERNAME -c "CREATE DATABASE $DB_NAME OWNER $DB_USERNAME;"
+	psql -U $POSTGRES_USER -c "GRANT CONNECT ON DATABASE $DB_NAME TO $DB_USERNAME;"
+	psql -U $POSTGRES_USER -c "GRANT SELECT, UPDATE, INSERT, DELETE, TRIGGER ON ALL TABLES IN SCHEMA public TO $DB_USERNAME;"
 fi
 
 echo -e "${GREEN}Setting up tables...${ENDC}\n"
 
-psql -U $POSTGRES_USER -d $DB_NAME -c "
+psql -U $DB_USERNAME -d $DB_NAME -c "
 CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";
 "
 
-psql -U $POSTGRES_USER -d $DB_NAME -c "
+psql -U $DB_USERNAME -d $DB_NAME -c "
 CREATE TABLE IF NOT EXISTS backends (
 	backend_name VARCHAR(30) NOT NULL PRIMARY KEY,
 	id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -35,7 +42,7 @@ CREATE TABLE IF NOT EXISTS backends (
 );
 "
 
-psql -U $POSTGRES_USER -d $DB_NAME -c "
+psql -U $DB_USERNAME -d $DB_NAME -c "
 CREATE TABLE IF NOT EXISTS jobs (
 	id uuid NOT NULL PRIMARY KEY,
 	pointer serial NOT NULL,
@@ -49,7 +56,7 @@ CREATE TABLE IF NOT EXISTS jobs (
 );
 "
 
-psql -U $POSTGRES_USER -d $DB_NAME -c "
+psql -U $DB_USERNAME -d $DB_NAME -c "
 CREATE TABLE IF NOT EXISTS result_types (
 	id uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
 	job_id uuid NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
@@ -59,7 +66,7 @@ CREATE TABLE IF NOT EXISTS result_types (
 );
 "
 
-psql -U $POSTGRES_USER -d $DB_NAME -c "
+psql -U $DB_USERNAME -d $DB_NAME -c "
 CREATE TABLE IF NOT EXISTS results (
 	id uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
 	job_id uuid NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
@@ -69,7 +76,7 @@ CREATE TABLE IF NOT EXISTS results (
 );
 "
 
-psql -U $POSTGRES_USER -d $DB_NAME -c "
+psql -U $DB_USERNAME -d $DB_NAME -c "
 COMMENT ON COLUMN backends.plugin is 'The name of the python plugin used for this specific backend';
 COMMENT ON COLUMN backends.pointer is 'The pointer holds the order a value was inserted. This is useful for getting data using cursors.';
 COMMENT ON COLUMN jobs.qasm is 'The path of a .qasm file';
@@ -84,4 +91,4 @@ COMMENT ON COLUMN results.expval is 'When results_types.expval is TRUE, the resu
 "
 
 
-echo -e "${GREEN}Finished SETUP${ENDC}"
+echo -e "${GREEN}Finished SETUP${ENDC}\n"

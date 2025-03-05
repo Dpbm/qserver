@@ -10,7 +10,8 @@ RUN mkdir -p /var/log/postgres
 RUN chmod -R 777 /var/log/postgres && \
     chown postgres /var/log/postgres
 
+# POSTGRES_USER must be passed as a env variable
 HEALTHCHECK --interval=5s --timeout=30s --start-period=5s --retries=3 \
-    CMD pg_isready -U postgres
+    CMD pg_isready -U $POSTGRES_USER
 
 CMD ["postgres", "-c", "config_file=/docker-entrypoint-initdb.d/postgresql.conf"]

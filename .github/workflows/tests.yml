@@ -45,9 +45,7 @@ jobs:
         - name: Run script
           env:
             POSTGRES_USER: test
-            PGPASSWORD: test
             DB_NAME: test_db
-            POSTGRES_HOST: localhost
           working-directory: ./server/database
           run: chmod +x entrypoint.sh && ./entrypoint.sh
 
