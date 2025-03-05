@@ -4,6 +4,7 @@
         "Chunck",
         "cirq",
         "createdb",
+        "createuser",
         "datname",
         "ENDC",
         "expval",
