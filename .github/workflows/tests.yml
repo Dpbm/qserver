@@ -32,13 +32,10 @@ jobs:
         - uses: actions/checkout@v4
 
         - name: Start Postgres
-          env: 
-            POSTGRES_USER: test
-            POSTGRES_PASSWORD: test
           # https://stackoverflow.com/questions/75702592/how-to-set-up-postgresql-in-github-actions-workflow
           run: |
               sudo systemctl start postgresql.service && \
-              sudo -u postgres createuser "$POSTGRES_USER"
+              createuser --no-password -s test 
           
         - name: Run script
           env:
