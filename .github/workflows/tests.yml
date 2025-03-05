@@ -35,7 +35,7 @@ jobs:
           # https://stackoverflow.com/questions/75702592/how-to-set-up-postgresql-in-github-actions-workflow
           run: |
               sudo systemctl start postgresql.service && \
-              createuser --no-password -s test 
+              createuser --no-password -s -U test 
           
         - name: Run script
           env:
