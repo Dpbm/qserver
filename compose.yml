@@ -19,11 +19,10 @@ services:
 
     db:
         container_name: postgres-db
-        hostname: postgresInstance #https://stackoverflow.com/questions/29924843/how-do-i-set-hostname-in-docker-compose
+        hostname: postgresInstance
         build:
             context: ./server/database/
             dockerfile: Dockerfile
-        restart: always
         env_file:
             - ./postgres.env
             - ./db.env
@@ -33,9 +32,11 @@ services:
             # https://stackoverflow.com/questions/41637505/how-to-persist-data-in-a-dockerized-postgres-database-using-volumes
             - data:/var/lib/postgresql/data
             - postgres:/var/run/postgresql
+            - logs:/var/log
             - qasm:/qasm
+        restart: always
         networks:
-            qnet: {}
+            - qnet
 
     queue-handler:
         container_name: rabbitmq

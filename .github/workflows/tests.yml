@@ -21,6 +21,7 @@ jobs:
         - name: Run tests
           working-directory: ./proxy
           run: |
+                # this exports ensure that grpcurl gonna be found
                 export PATH=$HOME/go-binaries/bin:$PATH && \
                 chmod +x test.sh && \
                 ./test.sh
