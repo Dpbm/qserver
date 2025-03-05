@@ -24,8 +24,7 @@ jobs:
             timeout_seconds: 40
             retry_wait_seconds: 30
             max_attempts: 3
-            command: cd ./proxy && \
-                bash -c "chmod +x test.sh && PATH=$HOME/go-binaries/bin:$PATH ./test.sh"                
+            command: cd ./proxy && chmod +x test.sh && PATH=$HOME/go-binaries/bin:$PATH ./test.sh                
 
     database:
       runs-on: ubuntu-24.04
