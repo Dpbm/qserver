@@ -25,6 +25,7 @@
         "oneof",
         "ossp",
         "pennylane",
+        "PLPGSQL",
         "posargs",
         "postgres",
         "postgresql",

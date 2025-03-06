@@ -24,7 +24,7 @@ if [ ! $(psql -U $POSTGRES_USER -tc "SELECT 1 FROM pg_database WHERE datname='${
 	echo -e "${GREEN}Creating ${DB_NAME} database...${ENDC}\n"
 	psql -U $DB_USERNAME -c "CREATE DATABASE $DB_NAME OWNER $DB_USERNAME;"
 	psql -U $POSTGRES_USER -c "GRANT CONNECT ON DATABASE $DB_NAME TO $DB_USERNAME;"
-	psql -U $POSTGRES_USER -c "GRANT SELECT, UPDATE, INSERT, DELETE, TRIGGER ON ALL TABLES IN SCHEMA public TO $DB_USERNAME;"
+	psql -U $POSTGRES_USER -d $DB_NAME -c "GRANT SELECT, UPDATE, INSERT, DELETE, TRIGGER ON ALL TABLES IN SCHEMA public TO $DB_USERNAME;"
 fi
 
 echo -e "${GREEN}Setting up tables...${ENDC}\n"
@@ -76,7 +76,68 @@ CREATE TABLE IF NOT EXISTS results (
 );
 "
 
-psql -U $DB_USERNAME -d $DB_NAME -c "
+psql -U $POSTGRES_USER -d $DB_NAME -c "
+CREATE TABLE IF NOT EXISTS history (
+	id serial NOT NULL PRIMARY KEY,
+	job_id uuid NOT NULL,
+	target_simulator VARCHAR(30) NOT NULL,
+	qasm VARCHAR(80) NOT NULL,
+	status VARCHAR(8) NOT NULL,
+	submission_date timestamptz NOT NULL,
+	start_time timestamptz NOT NULL,
+	finish_time timestamptz NOT NULL,
+	metadata jsonb
+);
+"
+
+# the user can only access the history, but not update it, since the updates are done via trigger
+psql -U $POSTGRES_USER -d $DB_NAME -c "REVOKE ALL PRIVILEGES ON TABLE history FROM $DB_USERNAME;"
+psql -U $POSTGRES_USER -d $DB_NAME -c "GRANT SELECT ON TABLE history TO $DB_USERNAME;"
+
+
+psql -U $POSTGRES_USER -d $DB_NAME -c "
+CREATE OR REPLACE FUNCTION insert_into_history()
+  RETURNS TRIGGER
+  LANGUAGE PLPGSQL
+  AS
+\$\$
+BEGIN
+	INSERT INTO history(
+		job_id, 
+		target_simulator, 
+		qasm, 
+		status, 
+		submission_date, 
+		start_time,
+		finish_time,
+		metadata
+	)
+	VALUES(
+		NEW.id,
+		NEW.target_simulator,
+		NEW.qasm, 
+		NEW.status, 
+		NEW.submission_date, 
+		NEW.start_time,
+		NEW.finish_time,
+		NEW.metadata
+	);
+
+	DELETE FROM jobs WHERE id=NEW.id;
+END;	
+\$\$
+"
+
+psql -U $POSTGRES_USER -d $DB_NAME -c "
+CREATE OR REPLACE TRIGGER move_to_history 
+	BEFORE UPDATE ON jobs
+	FOR EACH ROW
+	WHEN (NEW.status != 'pending' AND NEW.status != 'running')
+	EXECUTE FUNCTION insert_into_history();
+"
+
+
+psql -U $POSTGRES_USER -d $DB_NAME -c "
 COMMENT ON COLUMN backends.plugin is 'The name of the python plugin used for this specific backend';
 COMMENT ON COLUMN backends.pointer is 'The pointer holds the order a value was inserted. This is useful for getting data using cursors.';
 COMMENT ON COLUMN jobs.qasm is 'The path of a .qasm file';
@@ -88,6 +149,7 @@ COMMENT ON COLUMN result_types.expval is 'When TRUE, the worker will run the job
 COMMENT ON COLUMN results.counts is 'When results_types.counts is TRUE, the resulting counts JSON is stored here.';
 COMMENT ON COLUMN results.quasi_dist is 'When results_types.quasi_dist is TRUE, the resulting quasi dist JSON is stored here.';
 COMMENT ON COLUMN results.expval is 'When results_types.expval is TRUE, the resulting expectation values are stored here.';
+COMMENT ON COLUMN history.id is 'Once we are only caring about saving data on history, we are not using uuid as PK, once SERIAL will give us a better idea about the insertion sequence.';
 "
 
 
