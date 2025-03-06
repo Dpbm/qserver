@@ -58,11 +58,16 @@ jobs:
                 chmod +x install-system-dev-dependencies.sh && \
                 ./install-system-dev-dependencies.sh
 
-        - name: Run jobs server
+        - name: Setup jobs Server Execution permission
           working-directory: ./server/jobsServer
           run: |
-                chmod +x run-server-for-local-tests.sh && \
-                ./run-server-for-local-tests.sh
+                chmod +x run-server-for-local-tests.sh
+
+        - name: Run Jobs Server
+          working-directory: ./server/jobsServer
+          run: |
+                nohup ./run-server-for-local-tests.sh > nohup.out 2> nohup.err < /dev/null &
+                #https://github.com/appleboy/ssh-action/issues/40
 
         - name: Run tests
           uses: nick-fields/retry@v3
