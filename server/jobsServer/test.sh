@@ -60,7 +60,7 @@ run_test_5(){
 
 run_test_6(){
         DATA=$(cat <<EOM
-{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"aer"}}
+{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"aer", "metadata":"{}"}}
 {"qasmChunk":""}
 EOM
 )
@@ -79,7 +79,7 @@ run_test_7(){
     fi
 
     DATA=$(cat <<EOM
-{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"aer"}}
+{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"aer", "metadata":"{}"}}
 {"qasmChunk":"AAAA"}
 EOM
 )

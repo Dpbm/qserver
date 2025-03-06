@@ -49,7 +49,7 @@ send_grpc(){
     SERVER=$1
 
     DATA=$(cat <<EOM
-{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"aer"}}
+{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"aer", "metadata":"{}"}}
 {"qasmChunk":"AAAA"}
 EOM
 )

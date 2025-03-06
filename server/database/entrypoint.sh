@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS jobs (
 	submission_date timestamptz NOT NULL DEFAULT NOW(),
 	start_time timestamptz,
 	finish_time timestamptz,
-	metadata jsonb
+	metadata json NOT NULL DEFAULT '{}'::json
 );
 "
 
@@ -86,9 +86,13 @@ CREATE TABLE IF NOT EXISTS history (
 	submission_date timestamptz NOT NULL,
 	start_time timestamptz NOT NULL,
 	finish_time timestamptz NOT NULL,
-	metadata jsonb
+	metadata json NOT NULL DEFAULT '{}'::json,
+	result_types json NOT NULL,
+	results json NOT NULL DEFAULT '{}'::json
 );
 "
+
+echo -e "${GREEN}Adding Trigger for history...${ENDC}\n"
 
 # the user can only access the history, but not update it, since the updates are done via trigger
 psql -U $POSTGRES_USER -d $DB_NAME -c "REVOKE ALL PRIVILEGES ON TABLE history FROM $DB_USERNAME;"
@@ -102,7 +106,26 @@ CREATE OR REPLACE FUNCTION insert_into_history()
   LANGUAGE PLPGSQL
   AS
 \$\$
+DECLARE
+	resultTypes json;
+	results json;
 BEGIN
+	SELECT row_to_json(data) as result_types
+		INTO resultTypes 
+		FROM (
+			SELECT * 
+			FROM result_types
+			WHERE result_types.job_id=NEW.id
+		) as data;
+
+	SELECT coalesce(json_agg(data), '[{}]'::json)->>0 as results
+		INTO results
+		FROM (
+			SELECT * 
+			FROM results
+			WHERE results.job_id=NEW.id
+		) as data;
+
 	INSERT INTO history(
 		job_id, 
 		target_simulator, 
@@ -111,7 +134,9 @@ BEGIN
 		submission_date, 
 		start_time,
 		finish_time,
-		metadata
+		metadata,
+		result_types,
+		results
 	)
 	VALUES(
 		NEW.id,
@@ -121,9 +146,12 @@ BEGIN
 		NEW.submission_date, 
 		NEW.start_time,
 		NEW.finish_time,
-		NEW.metadata
+		NEW.metadata,
+		resultTypes,
+		results
 	);
 
+	-- CASCADE will delete result and result_types as well 
 	DELETE FROM jobs WHERE id=NEW.id;
 
 	return NEW;
@@ -139,6 +167,8 @@ CREATE OR REPLACE TRIGGER move_to_history
 	EXECUTE FUNCTION insert_into_history();
 "
 
+
+echo -e "${GREEN}Adding Column Comments...${ENDC}\n"
 
 psql -U $POSTGRES_USER -d $DB_NAME -c "
 COMMENT ON COLUMN backends.plugin is 'The name of the python plugin used for this specific backend';

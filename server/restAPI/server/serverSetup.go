@@ -46,6 +46,11 @@ func SetupServer(dbInstance *db.DB) *gin.Engine {
 		{
 			backends.GET("/", routes.GetBackends)
 		}
+
+		history := v1.Group("/history")
+		{
+			history.GET("/", routes.GetHistory)
+		}
 	}
 
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

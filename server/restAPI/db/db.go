@@ -32,7 +32,10 @@ func (db *DB) GetJobResult(jobID string) (*types.JobResultData, error) {
 	var quasiDist string
 	var expval string
 
-	err := db.connection.QueryRow("SELECT * FROM results WHERE job_id=$1", jobID).Scan(&data.ID, &data.JobId, &counts, &quasiDist, &expval)
+	err := db.connection.QueryRow(`
+	SELECT coalesce(json_agg(results), '[{}]'::json)->>0 as results 
+	FROM results 
+	WHERE job_id=$1`, jobID).Scan(&data.ID, &data.JobId, &counts, &quasiDist, &expval)
 
 	if err != nil {
 		return nil, err
@@ -102,7 +105,7 @@ func (db *DB) GetJobsData(cursor uint32) ([]*types.JobData, error) {
 		SELECT 
 			j.*, 
 			(
-					SELECT row_to_json(data)
+					SELECT to_jsonb(data)
 					FROM (
 						SELECT rt.*
 						FROM result_types AS rt
@@ -110,7 +113,7 @@ func (db *DB) GetJobsData(cursor uint32) ([]*types.JobData, error) {
 					) data
 			) AS result_types,
 			(
-					SELECT row_to_json(data)
+					SELECT coalesce(to_jsonb(data), '{}'::jsonb)
 					FROM (
 						SELECT r.*
 						FROM results AS r
@@ -173,7 +176,7 @@ func (db *DB) GetJob(jobID string) (*types.JobData, error) {
 		SELECT 
 			j.*, 
 			(
-					SELECT row_to_json(data)
+					SELECT to_jsonb(data)
 					FROM (
 						SELECT rt.*
 						FROM result_types AS rt
@@ -181,7 +184,7 @@ func (db *DB) GetJob(jobID string) (*types.JobData, error) {
 					) data
 			) AS result_types,
 			(
-					SELECT row_to_json(data)
+					SELECT coalesce(to_jsonb(data), '{}'::jsonb)
 					FROM (
 						SELECT r.*
 						FROM results AS r
@@ -216,10 +219,6 @@ func (db *DB) GetJob(jobID string) (*types.JobData, error) {
 	}
 
 	err = json.Unmarshal([]byte(results), &data.Results)
-	if err != nil {
-		return nil, err
-	}
-
 	if err != nil {
 		return nil, err
 	}
@@ -294,4 +293,56 @@ func (db *DB) CancelJob(jobID string) error {
 	`, jobID)
 
 	return err
+}
+
+func (db *DB) GetHistoryData(cursor uint32) ([]*types.Historydata, error) {
+	logger.LogAction(fmt.Sprintf("Getting History from cursor: %d", cursor))
+
+	rows, err := db.connection.Query(`
+		SELECT *
+		FROM history
+		WHERE id > $1 AND id < $1 + 20
+	`, cursor)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	rowsData := make([]*types.Historydata, 0)
+
+	for rows.Next() {
+		data := &types.Historydata{}
+		var metadata string
+		var resultTypes string
+		var results string
+
+		err := rows.Scan(&data.ID, &data.JobId, &data.TargetSimulator, &data.Qasm, &data.Status, &data.SubmissionDate, &data.StartTime, &data.FinishTime, &metadata, &resultTypes, &results)
+
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal([]byte(metadata), &data.Metadata)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal([]byte(resultTypes), &data.ResultTypes)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal([]byte(results), &data.Results)
+		if err != nil {
+			return nil, err
+		}
+
+		rowsData = append(rowsData, data)
+
+	}
+
+	return rowsData, nil
+
 }

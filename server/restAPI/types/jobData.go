@@ -1,6 +1,11 @@
 package types
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
+
+type Metada = map[string]any
 
 type JobResultData struct {
 	ID        string             `json:"id"`
@@ -25,9 +30,23 @@ type JobData struct {
 	Qasm            string         `json:"qasm"`
 	Status          string         `json:"status"`
 	SubmissionDate  time.Time      `json:"submission_date"`
-	StartTime       time.Time      `json:"start_time"`
-	FinishTime      time.Time      `json:"finish_time"`
-	Metadata        map[any]any    `json:"metadata"`
+	StartTime       sql.NullTime   `json:"start_time"`
+	FinishTime      sql.NullTime   `json:"finish_time"`
+	Metadata        Metada         `json:"metadata"`
+	ResultTypes     JobResultTypes `json:"result_types"`
+	Results         JobResultData  `json:"results"`
+}
+
+type Historydata struct {
+	ID              uint32         `json:"id"`
+	JobId           string         `json:"job_id"`
+	TargetSimulator string         `json:"target_simulator"`
+	Qasm            string         `json:"qasm"`
+	Status          string         `json:"status"`
+	SubmissionDate  time.Time      `json:"submission_date"`
+	StartTime       sql.NullTime   `json:"start_time"`
+	FinishTime      sql.NullTime   `json:"finish_time"`
+	Metadata        Metada         `json:"metadata"`
 	ResultTypes     JobResultTypes `json:"result_types"`
 	Results         JobResultData  `json:"results"`
 }

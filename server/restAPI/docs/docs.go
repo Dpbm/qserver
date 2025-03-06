@@ -111,6 +111,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/history": {
+            "get": {
+                "description": "get jobs history",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "history"
+                ],
+                "summary": "get history data",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Last id(pointer) gotten from db",
+                        "name": "cursor",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.Historydata"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed during DB connection",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/job/cancel/{id}": {
             "put": {
                 "description": "cancel a job before running it",
@@ -502,6 +542,45 @@ const docTemplate = `{
                 },
                 "pointer": {
                     "type": "integer"
+                }
+            }
+        },
+        "types.Historydata": {
+            "type": "object",
+            "properties": {
+                "finish_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "job_id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "qasm": {
+                    "type": "string"
+                },
+                "result_types": {
+                    "$ref": "#/definitions/types.JobResultTypes"
+                },
+                "results": {
+                    "$ref": "#/definitions/types.JobResultData"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "submission_date": {
+                    "type": "string"
+                },
+                "target_simulator": {
+                    "type": "string"
                 }
             }
         },

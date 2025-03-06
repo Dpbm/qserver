@@ -11,7 +11,7 @@ message JobProperties{
 	bool resultTypeQuasiDist = 2;
 	bool resultTypeExpVal = 3;
 	string targetSimulator = 4;
-	optional string metadata = 5;
+	string metadata = 5;
 }
 
 
