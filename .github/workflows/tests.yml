@@ -62,7 +62,7 @@ jobs:
           working-directory: ./server/jobsServer
           run: |
                 chmod +x run-server-for-local-tests.sh && \
-                nohup ./run-server-for-local-tests.sh &
+                ./run-server-for-local-tests.sh
 
         - name: Run tests
           uses: nick-fields/retry@v3
