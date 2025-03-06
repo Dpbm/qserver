@@ -59,3 +59,12 @@ func (db *DB) AddJob(job *jobsServerProto.JobProperties, qasmFilePath string, id
 
 	return nil
 }
+
+func (db *DB) RemoveJob(id string) error {
+	_, err := db.connection.Exec(`
+	DELETE FROM jobs
+	WHERE id=$1
+	`, id)
+
+	return err
+}

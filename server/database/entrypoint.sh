@@ -92,7 +92,8 @@ CREATE TABLE IF NOT EXISTS history (
 
 # the user can only access the history, but not update it, since the updates are done via trigger
 psql -U $POSTGRES_USER -d $DB_NAME -c "REVOKE ALL PRIVILEGES ON TABLE history FROM $DB_USERNAME;"
-psql -U $POSTGRES_USER -d $DB_NAME -c "GRANT SELECT ON TABLE history TO $DB_USERNAME;"
+psql -U $POSTGRES_USER -d $DB_NAME -c "GRANT SELECT,INSERT ON TABLE history TO $DB_USERNAME;"
+psql -U $POSTGRES_USER -d $DB_NAME -c "GRANT USAGE,SELECT ON SEQUENCE history_id_seq TO $DB_USERNAME;"
 
 
 psql -U $POSTGRES_USER -d $DB_NAME -c "
@@ -124,13 +125,15 @@ BEGIN
 	);
 
 	DELETE FROM jobs WHERE id=NEW.id;
+
+	return NEW;
 END;	
 \$\$
 "
 
 psql -U $POSTGRES_USER -d $DB_NAME -c "
 CREATE OR REPLACE TRIGGER move_to_history 
-	BEFORE UPDATE ON jobs
+	AFTER UPDATE ON jobs
 	FOR EACH ROW
 	WHEN (NEW.status != 'pending' AND NEW.status != 'running')
 	EXECUTE FUNCTION insert_into_history();
