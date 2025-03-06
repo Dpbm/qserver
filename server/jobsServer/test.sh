@@ -4,7 +4,7 @@ set +e
 
 source ../../colors.sh
 
-SERVER="localhost:50051"
+SERVER="127.0.0.1:50051"
 DEFAULT_PLUGIN="aer-plugin"
 PLUGINS_SERVER="http://0.0.0.0:3000"
 
