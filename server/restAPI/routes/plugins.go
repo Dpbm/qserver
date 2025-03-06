@@ -90,7 +90,7 @@ func DeletePlugin(context *gin.Context) {
 	err = db.DeletePlugin(plugin.Name)
 	if err != nil {
 		logger.LogError(err)
-		context.JSON(404, map[string]string{"msg": "Failed on delete your plugin data!"})
+		context.JSON(404, map[string]string{"msg": "Failed on delete your plugin data. Remeber to wait your pending and running jobs to finished before deleting a plugin!"})
 		return
 	}
 
