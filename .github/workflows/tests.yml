@@ -49,8 +49,7 @@ jobs:
 
         - name: Run services
           run: |
-              docker compose up -d --build db && \
-              docker compose up -d --build queue-handler && \
+              docker compose up -d --build jobs-server && \
               docker compose up -d --build api
 
         - name: Get Dev dependencies
@@ -58,24 +57,13 @@ jobs:
                 chmod +x install-system-dev-dependencies.sh && \
                 ./install-system-dev-dependencies.sh
 
-        - name: Setup jobs Server Execution permission
-          working-directory: ./server/jobsServer
-          run: |
-                chmod +x run-server-for-local-tests.sh
-
-        - name: Run Jobs Server
-          working-directory: ./server/jobsServer
-          run: |
-                nohup ./run-server-for-local-tests.sh > nohup.out 2> nohup.err < /dev/null &
-                #https://github.com/appleboy/ssh-action/issues/40
-
         - name: Run tests
           uses: nick-fields/retry@v3
           with:
             timeout_seconds: 40
             retry_wait_seconds: 30
             max_attempts: 3
-            command: cd ./server/jobsServer && chmod +x test.sh && PATH=$HOME/go-binaries/bin:$PATH ./test.sh             
+            command: cd ./server/jobsServer && chmod +x test.sh && PATH=$HOME/go-binaries/bin:$PATH HOST="0.0.0.0" ./test.sh             
 
 
     api:
