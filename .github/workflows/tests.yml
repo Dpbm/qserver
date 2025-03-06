@@ -42,7 +42,7 @@ jobs:
               ./check-postgres-status-for-ci.sh
               
     jobsServer:
-      runs-on: ubuntu-22.04
+      runs-on: ubuntu-24.04
 
       steps:
         - uses: actions/checkout@v4
@@ -58,13 +58,19 @@ jobs:
                 chmod +x install-system-dev-dependencies.sh && \
                 ./install-system-dev-dependencies.sh
 
+        - name: Run jobs server
+          working-directory: ./server/jobsServer
+          run: |
+                chmod +x run-server-for-local-tests.sh && \
+                nohup ./run-server-for-local-tests.sh &
+
         - name: Run tests
           uses: nick-fields/retry@v3
           with:
             timeout_seconds: 40
             retry_wait_seconds: 30
             max_attempts: 3
-            command: cd ./server/jobsServer && chmod +x test.sh && chmod +x run-server-for-local-tests.sh && nohup ./run-server-for-local-tests.sh && PATH=$HOME/go-binaries/bin:$PATH ./test.sh             
+            command: cd ./server/jobsServer && chmod +x test.sh && PATH=$HOME/go-binaries/bin:$PATH ./test.sh             
 
 
     api:
