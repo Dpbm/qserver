@@ -23,7 +23,7 @@ func main() {
 	rabbitmqPassword := os.Getenv("RABBITMQ_PASSWORD")
 
 	rabbitmq := &queue.RabbitMQ{}
-	rabbitmqConnection := rabbitmq.ConnectQueue(rabbitmqHost, rabbitmqPort, rabbitmqUser, rabbitmqPassword) // it will exit with status 1 if an error occour
+	rabbitmqConnection := rabbitmq.ConnectQueue(rabbitmqUser, rabbitmqPassword, rabbitmqHost, rabbitmqPort) // it will exit with status 1 if an error occour
 	defer rabbitmqConnection.Close()
 
 	rabbitmqChannel := rabbitmqConnection.CreateChannel() // it will exit with status 1 if an error occour

@@ -18,6 +18,7 @@ if [ ! $GOBIN ]; then
     echo "export PATH=$GOBIN_PATH:\$PATH" >> "$HOME/.bashrc"
 
     export GOBIN="$GOBIN_PATH"
+	source $HOME/.bashrc
 fi
 
 if [ ! $(which curl) &>/dev/null ]; then 
@@ -50,4 +51,25 @@ if [ ! $(which grpcurl) &>/dev/null ]; then
     echo -e "${GREEN}Installing grpcurl...${ENDC}"
     echo -e "${BLUE}Using GOBIN as: $GOBIN${ENDC}"
     go install github.com/fullstorydev/grpcurl/cmd/grpcurl@v1.9.2
+fi
+
+
+if [ ! $(which protoc) &>/dev/null ]; then
+	PROTOC_RELEASE="https://github.com/protocolbuffers/protobuf/releases/download/v29.3/protoc-29.3-linux-x86_64.zip"
+	TARGET_PATH="/tmp/protobuf"
+	ZIP_FILE="$TARGET_PATH/proto.zip"
+
+	echo -e "${GREEN}Creating target path..${ENDC}"
+	mkdir -p $TARGET_PATH
+
+	echo -e "${GREEN}Installing protoc...${ENDC}"
+	curl -L $PROTOC_RELEASE -o $ZIP_FILE
+	unzip $ZIP_FILE -d $TARGET_PATH
+
+	echo -e "${GREEN}Moving include data into /usr/local/include...${ENDC}"
+	sudo mv "$TARGET_PATH/include/google" /usr/local/include
+
+
+	echo -e "${GREEN}Moving binary into /usr/local/bin...${ENDC}"
+	sudo mv "$TARGET_PATH/bin/protoc" /usr/local/bin
 fi

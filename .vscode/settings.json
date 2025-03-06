@@ -21,6 +21,7 @@
         "linux",
         "mypy",
         "nginx",
+        "nohup",
         "oneof",
         "ossp",
         "pennylane",

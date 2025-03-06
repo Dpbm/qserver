@@ -46,7 +46,7 @@ psql -U $DB_USERNAME -d $DB_NAME -c "
 CREATE TABLE IF NOT EXISTS jobs (
 	id uuid NOT NULL PRIMARY KEY,
 	pointer serial NOT NULL,
-	target_simulator VARCHAR(30) NOT NULL REFERENCES backends(backend_name) ON DELETE RESTRICT,
+	target_simulator VARCHAR(30) NOT NULL REFERENCES backends(backend_name),
 	qasm VARCHAR(80) NOT NULL,
 	status VARCHAR(8) NOT NULL DEFAULT 'pending',
 	submission_date timestamptz NOT NULL DEFAULT NOW(),
