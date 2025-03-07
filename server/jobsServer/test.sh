@@ -3,24 +3,11 @@
 set +e 
 
 source ../../colors.sh
+source ../../test-utils.sh
 
 SERVER="$HOST:50051"
 DEFAULT_PLUGIN="aer-plugin"
 PLUGINS_SERVER="http://0.0.0.0:3000"
-
-test_header(){
-    echo -e "${BLUE}Running test #$1 $2${ENDC}"
-}
-
-has_passed(){
-    if [ $? != 0 ]; then
-        echo -e "${RED}Failed!${ENDC}\n"
-        exit 1
-    else
-        echo -e "${GREEN}Passed!${ENDC}\n"
-    fi
-}
-
 
 run_test_1(){
     grpcurl -plaintext -d "" $SERVER Jobs/AddJob

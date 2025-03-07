@@ -33,6 +33,7 @@ func AddPlugin(context *gin.Context) {
 	}
 
 	db, ok := utils.GetDBFromContext(context)
+	// TODO: test this sort of error too
 	if !ok {
 		context.JSON(500, map[string]string{"msg": "Failed on Stablish database connection!"})
 		return
@@ -40,7 +41,6 @@ func AddPlugin(context *gin.Context) {
 
 	pluginName := plugin.Name
 	backends, err := utils.GetBackendsList(pluginName)
-
 	if err != nil || len(*backends) <= 0 {
 		logger.LogError(err)
 		context.JSON(500, map[string]string{"msg": "Failed on get backends!"})
@@ -74,6 +74,7 @@ func AddPlugin(context *gin.Context) {
 func DeletePlugin(context *gin.Context) {
 	var plugin types.PluginByName
 	err := context.ShouldBindUri(&plugin)
+	// TODO: Test this part
 	if err != nil {
 		logger.LogError(err)
 		context.JSON(400, map[string]string{"msg": "Invalid Parameter"})

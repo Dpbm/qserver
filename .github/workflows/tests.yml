@@ -3,68 +3,66 @@ name: Test parts
 on: [push]
 
 jobs:
-
     proxy:
-      runs-on: ubuntu-24.04
+        runs-on: ubuntu-24.04
 
-      steps:
-        - uses: actions/checkout@v4
+        steps:
+            - uses: actions/checkout@v4
 
-        - name: Run proxy
-          run: docker compose up -d --build proxy
+            - name: Run proxy
+              run: docker compose up -d --build proxy
 
-        - name: Get Dev dependencies
-          run: |
-                chmod +x install-system-dev-dependencies.sh && \
-                ./install-system-dev-dependencies.sh
+            - name: Get Dev dependencies
+              run: |
+                  chmod +x install-system-dev-dependencies.sh && \
+                  ./install-system-dev-dependencies.sh
 
-        - name: Run tests
-          uses: nick-fields/retry@v3
-          with:
-            timeout_seconds: 40
-            retry_wait_seconds: 30
-            max_attempts: 3
-            command: cd ./proxy && chmod +x test.sh && PATH=$HOME/go-binaries/bin:$PATH ./test.sh                
+            - name: Run tests
+              uses: nick-fields/retry@v3
+              with:
+                  timeout_seconds: 40
+                  retry_wait_seconds: 30
+                  max_attempts: 3
+                  command: cd ./proxy && chmod +x test.sh && PATH=$HOME/go-binaries/bin:$PATH ./test.sh
 
     database:
-      runs-on: ubuntu-24.04
+        runs-on: ubuntu-24.04
 
-      steps:
-        - uses: actions/checkout@v4
+        steps:
+            - uses: actions/checkout@v4
 
-        - name: Run database
-          run: docker compose up -d --build db
+            - name: Run database
+              run: docker compose up -d --build db
 
-        - name: Test status
-          timeout-minutes: 1
-          run: |
-              chmod +x check-postgres-status-for-ci.sh && \
-              ./check-postgres-status-for-ci.sh
-              
+            - name: Test status
+              timeout-minutes: 1
+              run: |
+                  chmod +x check-postgres-status-for-ci.sh && \
+                  ./check-postgres-status-for-ci.sh
+
     jobsServer:
-      runs-on: ubuntu-24.04
+        runs-on: ubuntu-24.04
 
-      steps:
-        - uses: actions/checkout@v4
+        steps:
+            - uses: actions/checkout@v4
 
-        - name: Run services
-          run: |
-              docker compose up -d --build jobs-server && \
-              docker compose up -d --build api
+            - name: Run services
+              run: |
+                  docker compose up -d --build jobs-server && \
+                  docker compose up -d --build api
 
-        - name: Get Dev dependencies
-          run: |
-                chmod +x install-system-dev-dependencies.sh && \
-                ./install-system-dev-dependencies.sh
+            - name: Get Dev dependencies
+              run: |
+                  chmod +x install-system-dev-dependencies.sh && \
+                  ./install-system-dev-dependencies.sh
 
-        - name: Run tests
-          uses: nick-fields/retry@v3
-          with:
-            timeout_seconds: 40
-            retry_wait_seconds: 30
-            max_attempts: 3
-            command: cd ./server/jobsServer && chmod +x test.sh && PATH=$HOME/go-binaries/bin:$PATH HOST="0.0.0.0" ./test.sh             
-
+            - name: Run tests
+              uses: nick-fields/retry@v3
+              with:
+                  timeout_seconds: 40
+                  retry_wait_seconds: 30
+                  max_attempts: 3
+                  command: cd ./server/jobsServer && chmod +x test.sh && PATH=$HOME/go-binaries/bin:$PATH HOST="0.0.0.0" ./test.sh
 
     api:
         runs-on: ubuntu-24.04
@@ -87,9 +85,25 @@ jobs:
               working-directory: ./server/restAPI
               run: go build
 
-            - name: Run tests
+            - name: Run Golang tests
               working-directory: ./server/restAPI
               run: go test ./test
+
+            - name: setup api usage tests
+              run: |
+                  docker compose up -d --build jobs-server && \
+                  docker compose up -d --build api
+
+            - name: Get Dev dependencies
+              run: |
+                  chmod +x install-system-dev-dependencies.sh && \
+                  ./install-system-dev-dependencies.sh
+
+            - name: run api usage tests
+              working-directory: ./server/restAPI/test
+              run: |
+                  chmod +x usage-tests.sh && \
+                  HOST="0.0.0.0" ./usage-tests.sh
 
     worker:
         name: Run worker tests
