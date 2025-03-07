@@ -17,9 +17,18 @@ delete_plugin(){
 
 clean_db(){
     JOB_ID=$(curl "$SERVER_URL/api/v1/jobs/" | jq '.[].id' | sed 's/"//g')
-    echo ""
-    curl --request DELETE -f "$SERVER_URL/api/v1/job/$JOB_ID"
-    echo ""
+    curl "$SERVER_URL/api/v1/jobs/" | jq '.[].id'
+    echo "AAAAA ${JOB_ID}"
+    if [ ! -z $JOB_ID ]; then
+        curl --request DELETE -f "$SERVER_URL/api/v1/job/$JOB_ID"
+
+        if [ $? != 0 ]; then
+            echo "${RED} Failed on delete job${ENDC}"
+            return 1
+        fi
+
+        echo ""
+    fi
     delete_plugin
 }
 
@@ -113,13 +122,60 @@ run_test_4(){
     echo ""
 }
 
+run_test_5(){
+    clean_db
+    if [ $? != 0 ]; then
+        echo -e "${RED}Failed on clean db${ENDC}"
+        return 1
+    fi
+    echo ""
 
+    TOTAL_BACKENDS=$(curl -f "$SERVER_URL/api/v1/backends/" | jq length)
+    if [ $TOTAL_BACKENDS != 0 ]; then
+        return 1
+    else
+        return 0
+    fi
+}
 
+run_test_6(){
+    clean_db
+    if [ $? != 0 ]; then
+        echo -e "${RED}Failed on clean db${ENDC}"
+        return 1
+    fi
+    echo ""
 
+    add_plugin
+    if [ $? != 0 ]; then
+        return 1
+    fi
+    echo ""
+
+    TOTAL_BACKENDS=$(curl -f "$SERVER_URL/api/v1/backends/" | jq length)
+    if [ $TOTAL_BACKENDS != 1 ]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+run_test_7(){
+    TOTAL_BACKENDS=$(curl -f "$SERVER_URL/api/v1/backends/?cursor=10000000" | jq length)
+    if [ $TOTAL_BACKENDS != 0 ]; then
+        return 1
+    else
+        return 0
+    fi
+}
 
 echo -e "${GREEN}Cleaning Database...${ENDC}\n"
 clean_db
+if [ $? != 0 ]; then
+    exit 1
+fi
 echo ""
+
 
 test_header 1 "Delete plugin with no job created with it"
 run_test_1
@@ -135,4 +191,16 @@ has_passed
 
 test_header 4 "Backend Exists"
 run_test_4
+has_passed
+
+test_header 5 "No Backends"
+run_test_5
+has_passed
+
+test_header 6 "One Backend Added"
+run_test_6
+has_passed
+
+test_header 7 "Big Cursor for one backend"
+run_test_7
 has_passed

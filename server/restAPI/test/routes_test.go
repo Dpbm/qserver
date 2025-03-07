@@ -2,6 +2,7 @@ package test
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -181,11 +182,11 @@ func TestGetBackendSuccess(t *testing.T) {
 		t.Fatal("Failed on parse mock")
 	}
 
-	rows := mock.NewRows([]string{"backend_name", "id", "plugin", "pointer"}).AddRow("aer", "1", constants.TEST_PLUGIN, 1)
-	mock.ExpectQuery("FROM backends").WithArgs(constants.TEST_PLUGIN).WillReturnRows(rows)
+	rows := mock.NewRows([]string{"backend_name", "id", "pointer", "plugin"}).AddRow(constants.TEST_BACKEND, "1", 1, constants.TEST_PLUGIN)
+	mock.ExpectQuery("FROM backends").WithArgs(constants.TEST_BACKEND).WillReturnRows(rows)
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/v1/backend/%s", constants.TEST_PLUGIN), nil)
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/v1/backend/%s", constants.TEST_BACKEND), nil)
 
 	server.ServeHTTP(writer, req)
 
@@ -195,168 +196,73 @@ func TestGetBackendSuccess(t *testing.T) {
 	json.NewDecoder(writer.Result().Body).Decode(&body)
 
 	assert.Equal(t, body.ID, "1")
-	assert.Equal(t, body.Name, "aer")
+	assert.Equal(t, body.Name, constants.TEST_BACKEND)
 	assert.Equal(t, body.Plugin, constants.TEST_PLUGIN)
 	assert.Equal(t, body.Pointer, uint32(1))
 }
 
-/*
+// ------- GET BACKENDS -------
 
-func TestGetNoJobId(t *testing.T) {
+func TestNoBackends(t *testing.T) {
 	dbInstance := db.DB{}
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
 	server := server.SetupServer(&dbInstance)
-
-	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/api/v1/job/", nil)
-
-	server.ServeHTTP(writer, req)
-
-	assert.Equal(t, 404, writer.Code)
-
-}
-
-func TestGetInvalidUUIDJob(t *testing.T) {
-	dbInstance := db.DB{}
-	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
-	defer dbInstance.CloseConnection()
-
-	server := server.SetupServer(&dbInstance)
-
-	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/api/v1/job/nothing", nil)
-
-	server.ServeHTTP(writer, req)
-
-	assert.Equal(t, 400, writer.Code)
-
-}
-
-func TestGetUUIDNotFound(t *testing.T) {
-	dbInstance := db.DB{}
-	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
-	defer dbInstance.CloseConnection()
-
-	server := server.SetupServer(&dbInstance)
-
-	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/api/v1/job/00000000-0000-0000-0000-000000000000", nil)
-
-	server.ServeHTTP(writer, req)
-
-	assert.Equal(t, 404, writer.Code)
-
-	dbInstance.CloseConnection()
-
-}
-
-func TestFailDBConnectionGetJob(t *testing.T) {
-	var dbInstance *db.DB = nil
-	server := server.SetupServer(dbInstance)
-
-	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/api/v1/job/00000000-0000-0000-0000-000000000000", nil)
-
-	server.ServeHTTP(writer, req)
-
-	assert.Equal(t, 500, writer.Code)
-
-}
-
-func TestGetCorrectJob(t *testing.T) {
-	dbInstance := db.DB{}
-	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
-	defer dbInstance.CloseConnection()
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
 		t.Fatal("Failed on parse mock")
 	}
 
-	rows := sqlmock.NewRows([]string{"id", "job_id", "counts", "quasi_dist", "expval"}).
-		AddRow(constants.TEST_JOB_ID, constants.TEST_JOB_ID, "{}", "{}", 10.3)
-
-	mock.ExpectQuery("FROM results").WithArgs(constants.TEST_JOB_ID).WillReturnRows(rows)
-
-	server := server.SetupServer(&dbInstance)
+	mock.ExpectQuery("FROM backends").WillReturnError(sql.ErrNoRows)
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/v1/job/%s", constants.TEST_JOB_ID), nil)
+	req, _ := http.NewRequest("GET", "/api/v1/backends/", nil)
 
 	server.ServeHTTP(writer, req)
 
 	assert.Equal(t, 200, writer.Code)
 
-	result := fmt.Sprintf(`{"id":"%s","job_id":"%s","counts":{},"quasi_dist":{},"expval":10.3}`, constants.TEST_JOB_ID, constants.TEST_JOB_ID)
-	assert.Equal(t, result, writer.Body.String())
+	var body []types.BackendData
+	json.NewDecoder(writer.Result().Body).Decode(&body)
+
+	assert.Equal(t, len(body), 0)
 }
 
-func TestAddPluginNoName(t *testing.T) {
+func TestOneBackends(t *testing.T) {
 	dbInstance := db.DB{}
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
 	server := server.SetupServer(&dbInstance)
-
-	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/api/v1/plugin/", nil)
-
-	server.ServeHTTP(writer, req)
-
-	assert.Equal(t, 404, writer.Code)
-
-}
-
-func TestGetInvalidPluginName(t *testing.T) {
-	dbInstance := db.DB{}
-	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
-	defer dbInstance.CloseConnection()
-
-	server := server.SetupServer(&dbInstance)
-
-	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/api/v1/plugin/invalid-name", nil)
-
-	server.ServeHTTP(writer, req)
-
-	assert.Equal(t, 500, writer.Code)
-
-}
-
-func TestFailDBConnectionAddPlugin(t *testing.T) {
-	var dbInstance *db.DB = nil
-	server := server.SetupServer(dbInstance)
-
-	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/api/v1/plugin/%s", constants.TEST_PLUGIN), nil)
-
-	server.ServeHTTP(writer, req)
-
-	assert.Equal(t, 500, writer.Code)
-}
-
-func TestPotCorrectPlugin(t *testing.T) {
-	dbInstance := db.DB{}
-	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
-	defer dbInstance.CloseConnection()
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
 		t.Fatal("Failed on parse mock")
 	}
 
-	mock.ExpectExec("INSERT INTO backends").WithArgs("aer", "aer-plugin").WillReturnResult(sqlmock.NewResult(1, 1))
-
-	server := server.SetupServer(&dbInstance)
+	values := [][]driver.Value{
+		{
+			constants.TEST_BACKEND, "1", 1, constants.TEST_PLUGIN,
+		},
+	}
+	rows := mock.NewRows([]string{"backend_name", "id", "pointer", "plugin"}).AddRows(values...)
+	mock.ExpectQuery("FROM backends").WillReturnRows(rows)
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/api/v1/plugin/%s", constants.TEST_PLUGIN), nil)
+	req, _ := http.NewRequest("GET", "/api/v1/backends/", nil)
 
 	server.ServeHTTP(writer, req)
 
-	assert.Equal(t, 201, writer.Code)
+	assert.Equal(t, 200, writer.Code)
 
+	var body []types.BackendData
+	json.NewDecoder(writer.Result().Body).Decode(&body)
+
+	assert.Equal(t, len(body), 1)
+	assert.Equal(t, body[0].ID, "1")
+	assert.Equal(t, body[0].Name, constants.TEST_BACKEND)
+	assert.Equal(t, body[0].Plugin, constants.TEST_PLUGIN)
+	assert.Equal(t, body[0].Pointer, uint32(1))
 }
-*/

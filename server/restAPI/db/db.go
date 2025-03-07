@@ -40,7 +40,7 @@ func (db *DB) DeletePlugin(pluginName string) error {
 func (db *DB) GetBackend(backendName string) (*types.BackendData, error) {
 	logger.LogAction(fmt.Sprintf("Getting backend with name: %s", backendName))
 
-	row := db.connection.QueryRow("SELECT * FROM backends WHERE backend_name = $1", backendName)
+	row := db.connection.QueryRow("SELECT backend_name, id, pointer, plugin FROM backends WHERE backend_name = $1", backendName)
 
 	data := &types.BackendData{}
 	err := row.Scan(&data.Name, &data.ID, &data.Pointer, &data.Plugin)
@@ -50,6 +50,37 @@ func (db *DB) GetBackend(backendName string) (*types.BackendData, error) {
 	}
 
 	return data, nil
+}
+
+func (db *DB) GetBackends(cursor uint32) ([]*types.BackendData, error) {
+	logger.LogAction(fmt.Sprintf("Getting backends from cursor: %d", cursor))
+
+	rows, err := db.connection.Query(`
+		SELECT backend_name, id, pointer, plugin FROM backends
+		WHERE pointer > $1 AND pointer < $1 + 20;
+	`, cursor)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	rowsData := make([]*types.BackendData, 0)
+
+	for rows.Next() {
+		data := &types.BackendData{}
+		err := rows.Scan(&data.Name, &data.ID, &data.Pointer, &data.Plugin)
+
+		if err != nil {
+			return nil, err
+		}
+
+		rowsData = append(rowsData, data)
+	}
+
+	return rowsData, nil
+
 }
 
 func (db *DB) GetJobResult(jobID string) (*types.JobResultData, error) {
@@ -239,38 +270,6 @@ func (db *DB) GetJob(jobID string) (*types.JobData, error) {
 	}
 
 	return data, nil
-}
-
-func (db *DB) GetBackends(cursor uint32) ([]*types.BackendData, error) {
-	logger.LogAction(fmt.Sprintf("Getting backends from cursor: %d", cursor))
-
-	rows, err := db.connection.Query(`
-		SELECT * FROM backends
-		WHERE pointer > $1 AND pointer < $1 + 20;
-	`, cursor)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-
-	rowsData := make([]*types.BackendData, 0)
-
-	for rows.Next() {
-		data := &types.BackendData{}
-		err := rows.Scan(&data.Name, &data.ID, &data.Pointer, &data.Plugin)
-
-		if err != nil {
-			return nil, err
-		}
-
-		rowsData = append(rowsData, data)
-
-	}
-
-	return rowsData, nil
-
 }
 
 func (db *DB) CancelJob(jobID string) error {
