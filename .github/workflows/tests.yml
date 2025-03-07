@@ -103,7 +103,7 @@ jobs:
               working-directory: ./server/restAPI/test
               run: |
                   chmod +x usage-tests.sh && \
-                  HOST="0.0.0.0" ./usage-tests.sh
+                  PATH=$HOME/go-binaries/bin:$PATH HOST="0.0.0.0" ./usage-tests.sh
 
     worker:
         name: Run worker tests
