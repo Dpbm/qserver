@@ -24,6 +24,34 @@ func (db *DB) Connect(model dbDefinition.Model, host string, port uint32, userna
 	db.Extra = extra
 }
 
+func (db *DB) CloseConnection() {
+	db.connection.Close()
+}
+
+func (db *DB) DeletePlugin(pluginName string) error {
+	logger.LogAction(fmt.Sprintf("Deleting plugin data of name: %s", pluginName))
+
+	_, err := db.connection.Exec("DELETE FROM backends WHERE plugin = $1", pluginName)
+
+	return err
+
+}
+
+func (db *DB) GetBackend(backendName string) (*types.BackendData, error) {
+	logger.LogAction(fmt.Sprintf("Getting backend with name: %s", backendName))
+
+	row := db.connection.QueryRow("SELECT * FROM backends WHERE backend_name = $1", backendName)
+
+	data := &types.BackendData{}
+	err := row.Scan(&data.Name, &data.ID, &data.Pointer, &data.Plugin)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
 func (db *DB) GetJobResult(jobID string) (*types.JobResultData, error) {
 	logger.LogAction(fmt.Sprintf("Get Job Data for id: %s", jobID))
 
@@ -76,23 +104,10 @@ func (db *DB) SaveBackends(backends *[]string, pluginName string) error {
 	return nil
 }
 
-func (db *DB) CloseConnection() {
-	db.connection.Close()
-}
-
 func (db *DB) DeleteJobData(jobId string) error {
 	logger.LogAction(fmt.Sprintf("Deleting job data of id: %s", jobId))
 
 	_, err := db.connection.Exec("DELETE FROM jobs WHERE id=$1", jobId)
-
-	return err
-
-}
-
-func (db *DB) DeletePlugin(pluginName string) error {
-	logger.LogAction(fmt.Sprintf("Deleting plugin data of name: %s", pluginName))
-
-	_, err := db.connection.Exec("DELETE FROM backends WHERE plugin=$1", pluginName)
 
 	return err
 
@@ -105,7 +120,7 @@ func (db *DB) GetJobsData(cursor uint32) ([]*types.JobData, error) {
 		SELECT 
 			j.*, 
 			(
-					SELECT to_jsonb(data)
+					SELECT to_json(data)
 					FROM (
 						SELECT rt.*
 						FROM result_types AS rt
@@ -113,7 +128,7 @@ func (db *DB) GetJobsData(cursor uint32) ([]*types.JobData, error) {
 					) data
 			) AS result_types,
 			(
-					SELECT coalesce(to_jsonb(data), '{}'::jsonb)
+					SELECT coalesce(json_agg(data), '[{}]'::json)->>0 as results
 					FROM (
 						SELECT r.*
 						FROM results AS r
@@ -219,23 +234,6 @@ func (db *DB) GetJob(jobID string) (*types.JobData, error) {
 	}
 
 	err = json.Unmarshal([]byte(results), &data.Results)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
-}
-
-func (db *DB) GetBackend(backendName string) (*types.BackendData, error) {
-	logger.LogAction(fmt.Sprintf("Getting backend with name: %s", backendName))
-
-	row := db.connection.QueryRow(`
-		SELECT * FROM backends WHERE backend_name=$1
-	`, backendName)
-
-	data := &types.BackendData{}
-	err := row.Scan(&data.Name, &data.ID, &data.Pointer, &data.Plugin)
-
 	if err != nil {
 		return nil, err
 	}

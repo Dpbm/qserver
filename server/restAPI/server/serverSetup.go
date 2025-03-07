@@ -39,6 +39,10 @@ func SetupServer(dbInstance *db.DB) *gin.Engine {
 
 		backend := v1.Group("/backend")
 		{
+			// for some reason, when acessing /api/v1/backend it
+			// automatically redirects to the same page
+			// using this one we force it to return 404
+			backend.GET("/", routes.Page404)
 			backend.GET("/:name", routes.GetBackend)
 		}
 

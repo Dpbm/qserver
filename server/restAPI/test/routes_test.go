@@ -1,21 +1,21 @@
 package test
 
 import (
+	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	constnats "github.com/Dpbm/quantumRestAPI/constants"
+	constants "github.com/Dpbm/quantumRestAPI/constants"
 	"github.com/Dpbm/quantumRestAPI/db"
 	"github.com/Dpbm/quantumRestAPI/server"
+	"github.com/Dpbm/quantumRestAPI/types"
 	dbDefinition "github.com/Dpbm/shared/db"
 	"github.com/stretchr/testify/assert"
 )
-
-// TEST DELETE PLUGIN (WITHOUT ANY JOB ASSIGNED TO IT, on HISTORY)
-// TEST DELETE WITH JOBS USING IT
 
 const dbHost = ""
 const dbPort = 0
@@ -69,14 +69,14 @@ func TestAddPluginSuccess(t *testing.T) {
 	mock.ExpectExec("INSERT INTO backends").WithArgs("aer", "aer-plugin").WillReturnResult(sqlmock.NewResult(1, 1))
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/api/v1/plugin/%s", constnats.TEST_PLUGIN), nil)
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/api/v1/plugin/%s", constants.TEST_PLUGIN), nil)
 
 	server.ServeHTTP(writer, req)
 
 	assert.Equal(t, 201, writer.Code)
 }
 
-// ------- ADD PLUGIN -------
+// ------- DELETE PLUGIN -------
 
 func TestDeletePluginFailedNoPluginName(t *testing.T) {
 	dbInstance := db.DB{}
@@ -128,6 +128,76 @@ func TestDeletePluginSuccess(t *testing.T) {
 	server.ServeHTTP(writer, req)
 
 	assert.Equal(t, 200, writer.Code)
+}
+
+// ------- GET BACKEND -------
+
+func TestGetBackendFailedNoBackendName(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/v1/backend/", nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 404, writer.Code)
+}
+
+func TestGetBackendFailedNoBackendWithThisName(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	mock.ExpectQuery("FROM backends").WithArgs("invalid-backend").WillReturnError(sql.ErrNoRows)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/v1/backend/invalid-backend", nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 404, writer.Code)
+}
+
+func TestGetBackendSuccess(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	rows := mock.NewRows([]string{"backend_name", "id", "plugin", "pointer"}).AddRow("aer", "1", constants.TEST_PLUGIN, 1)
+	mock.ExpectQuery("FROM backends").WithArgs(constants.TEST_PLUGIN).WillReturnRows(rows)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/v1/backend/%s", constants.TEST_PLUGIN), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 200, writer.Code)
+
+	var body types.BackendData
+	json.NewDecoder(writer.Result().Body).Decode(&body)
+
+	assert.Equal(t, body.ID, "1")
+	assert.Equal(t, body.Name, "aer")
+	assert.Equal(t, body.Plugin, constants.TEST_PLUGIN)
+	assert.Equal(t, body.Pointer, uint32(1))
 }
 
 /*
