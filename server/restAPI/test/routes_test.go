@@ -105,7 +105,7 @@ func TestDeletePluginFailedNotFoundInstalledPlugin(t *testing.T) {
 
 	server.ServeHTTP(writer, req)
 
-	assert.Equal(t, 404, writer.Code)
+	assert.Equal(t, 500, writer.Code)
 }
 
 func TestDeletePluginSuccess(t *testing.T) {

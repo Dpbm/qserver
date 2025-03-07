@@ -20,7 +20,6 @@ import (
 // @Success 201 {object} map[string]string
 // @Failure 400 {object} map[string]string "Invalid Name parameter"
 // @Failure 500 {object} map[string]string "Couldn't connect to database or get the plugin info from github"
-// @Failure 404 {object} map[string]string "No results for this name"
 // @Router /plugin/{name} [post]
 func AddPlugin(context *gin.Context) {
 	var plugin types.PluginByName
@@ -68,8 +67,7 @@ func AddPlugin(context *gin.Context) {
 // @Produce json
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string "Invalid Name parameter"
-// @Failure 500 {object} map[string]string "Failed during DB connection"
-// @Failure 404 {object} map[string]string "No results for this Name"
+// @Failure 500 {object} map[string]string "Failed during DB connection or No results for this name"
 // @Router /plugin/{name} [delete]
 func DeletePlugin(context *gin.Context) {
 	var plugin types.PluginByName
@@ -91,7 +89,7 @@ func DeletePlugin(context *gin.Context) {
 	err = db.DeletePlugin(plugin.Name)
 	if err != nil {
 		logger.LogError(err)
-		context.JSON(404, map[string]string{"msg": "Failed on delete your plugin data. Remeber to wait your pending and running jobs to finished before deleting a plugin!"})
+		context.JSON(500, map[string]string{"msg": "Failed on delete your plugin data. Remeber to wait your pending and running jobs to finished before deleting a plugin!"})
 		return
 	}
 

@@ -77,6 +77,6 @@ test_header 1 "Delete plugin with no job created with it"
 run_test_1
 has_passed
 
-test_header 2 "Delete plugin with no job created with it"
+test_header 2 "Delete plugin with a job created with it (should raise an error)"
 run_test_2
 has_passed
