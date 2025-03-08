@@ -83,6 +83,82 @@ func (db *DB) GetBackends(cursor uint32) ([]*types.BackendData, error) {
 
 }
 
+func (db *DB) GetJob(jobID string) (*types.JobData, error) {
+	logger.LogAction(fmt.Sprintf("Getting job with ID: %s", jobID))
+
+	row := db.connection.QueryRow(`
+		SELECT 
+			j.id,
+			j.pointer,
+			j.target_simulator,
+			j.qasm,
+			j.status,
+			j.submission_date,
+			j.start_time,
+			j.finish_time,
+			j.metadata, 
+			(
+					SELECT to_json(data)
+					FROM (
+						SELECT rt.*
+						FROM result_types AS rt
+						WHERE rt.job_id = j.id
+					) data
+			) AS result_types,
+			(
+					SELECT coalesce(json_agg(data), '[{}]'::json)->>0 as results 
+					FROM (
+						SELECT r.*
+						FROM results AS r
+						WHERE r.job_id = j.id
+					) data
+			) AS results
+		FROM 
+			jobs AS j
+		WHERE
+			j.id = $1
+	`, jobID)
+
+	data := &types.JobData{}
+	var metadata string
+	var resultTypes string
+	var results string
+
+	err := row.Scan(
+		&data.ID,
+		&data.Pointer,
+		&data.TargetSimulator,
+		&data.Qasm,
+		&data.Status,
+		&data.SubmissionDate,
+		&data.StartTime,
+		&data.FinishTime,
+		&metadata,
+		&resultTypes,
+		&results)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal([]byte(metadata), &data.Metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal([]byte(resultTypes), &data.ResultTypes)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal([]byte(results), &data.Results)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
 func (db *DB) GetJobResult(jobID string) (*types.JobResultData, error) {
 	logger.LogAction(fmt.Sprintf("Get Job Data for id: %s", jobID))
 
@@ -213,63 +289,6 @@ func (db *DB) GetJobsData(cursor uint32) ([]*types.JobData, error) {
 
 	return rowsData, nil
 
-}
-
-func (db *DB) GetJob(jobID string) (*types.JobData, error) {
-	logger.LogAction(fmt.Sprintf("Getting job with ID: %s", jobID))
-
-	row := db.connection.QueryRow(`
-		SELECT 
-			j.*, 
-			(
-					SELECT to_jsonb(data)
-					FROM (
-						SELECT rt.*
-						FROM result_types AS rt
-						WHERE rt.job_id = j.id
-					) data
-			) AS result_types,
-			(
-					SELECT coalesce(to_jsonb(data), '{}'::jsonb)
-					FROM (
-						SELECT r.*
-						FROM results AS r
-						WHERE r.job_id = j.id
-					) data
-			) AS results
-		FROM 
-			jobs AS j
-		WHERE
-			j.id = $1
-	`, jobID)
-
-	data := &types.JobData{}
-	var metadata string
-	var resultTypes string
-	var results string
-
-	err := row.Scan(&data.ID, &data.Pointer, &data.TargetSimulator, &data.Qasm, &data.Status, &data.SubmissionDate, &data.StartTime, &data.FinishTime, &metadata, &resultTypes, &results)
-
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal([]byte(metadata), &data.Metadata)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal([]byte(resultTypes), &data.ResultTypes)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal([]byte(results), &data.Results)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
 }
 
 func (db *DB) CancelJob(jobID string) error {

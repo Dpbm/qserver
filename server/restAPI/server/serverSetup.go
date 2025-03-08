@@ -20,6 +20,11 @@ func SetupServer(dbInstance *db.DB) *gin.Engine {
 	{
 		job := v1.Group("/job")
 		{
+			// when acessing /api/v1/job it automatically
+			// redirects to the same page.
+			// So, using this one, we force it to return 404
+			job.GET("/", routes.Page404)
+
 			job.GET("/:id", routes.GetJob)
 			job.GET("/result/:id", routes.GetJobResult)
 			job.PUT("/cancel/:id", routes.CancelJob)
@@ -29,6 +34,11 @@ func SetupServer(dbInstance *db.DB) *gin.Engine {
 		jobs := v1.Group("/jobs")
 		{
 			jobs.GET("/", routes.GetJobs)
+		}
+
+		history := v1.Group("/history")
+		{
+			history.GET("/", routes.GetHistory)
 		}
 
 		plugin := v1.Group("/plugin")
@@ -51,10 +61,6 @@ func SetupServer(dbInstance *db.DB) *gin.Engine {
 			backends.GET("/", routes.GetBackends)
 		}
 
-		history := v1.Group("/history")
-		{
-			history.GET("/", routes.GetHistory)
-		}
 	}
 
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

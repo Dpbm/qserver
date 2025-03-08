@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	constants "github.com/Dpbm/quantumRestAPI/constants"
@@ -265,4 +266,92 @@ func TestOneBackends(t *testing.T) {
 	assert.Equal(t, body[0].Name, constants.TEST_BACKEND)
 	assert.Equal(t, body[0].Plugin, constants.TEST_PLUGIN)
 	assert.Equal(t, body[0].Pointer, uint32(1))
+}
+
+// ------- GET JOB -------
+
+func TestGetJobWithoutPassingJobID(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/v1/job/", nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 404, writer.Code)
+}
+
+func TestGetJobIDNotFound(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/v1/job/%s", constants.TEST_JOB_ID), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 404, writer.Code)
+}
+
+func TestGetJobSuccess(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	now := time.Now().UTC().Local()
+
+	rows := mock.NewRows([]string{
+		"id",
+		"pointer",
+		"target_simulator",
+		"qasm",
+		"status",
+		"submission_date",
+		"start_time",
+		"finish_time",
+		"metadata",
+		"result_types",
+		"results",
+	}).AddRow(constants.TEST_JOB_ID, 1, constants.TEST_BACKEND, "nothing", "pending", now, now, now, "{}", "{}", "{}")
+	mock.ExpectQuery("FROM jobs").WithArgs(constants.TEST_JOB_ID).WillReturnRows(rows)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/v1/job/%s", constants.TEST_JOB_ID), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 200, writer.Code)
+
+	expectedMetadata := map[string]any{}
+	expectedResultTypes := types.JobResultTypes{ID: "", JobId: "", Counts: false, QuasiDist: false, Expval: false}
+	expectedResults := types.JobResultData{ID: "", JobId: "", Counts: map[string]float32(nil), QuasiDist: map[int32]float32(nil), Expval: []float32(nil)}
+
+	var data types.JobData
+	json.NewDecoder(writer.Result().Body).Decode(&data)
+
+	assert.Equal(t, data.ID, constants.TEST_JOB_ID)
+	assert.Equal(t, data.FinishTime.Time.String(), now.String())
+	assert.Equal(t, data.Metadata, expectedMetadata)
+	assert.Equal(t, data.Pointer, uint32(1))
+	assert.Equal(t, data.Qasm, "nothing")
+	assert.Equal(t, data.ResultTypes, expectedResultTypes)
+	assert.Equal(t, data.Results, expectedResults)
+	assert.Equal(t, data.StartTime.Time.String(), now.String())
+	assert.Equal(t, data.Status, "pending")
+	assert.Equal(t, data.SubmissionDate.String(), now.String())
+	assert.Equal(t, data.TargetSimulator, constants.TEST_BACKEND)
 }
