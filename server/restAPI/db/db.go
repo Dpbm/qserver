@@ -300,12 +300,12 @@ func (db *DB) CancelJob(jobID string) error {
 		return err
 	}
 
-	if data.Status == "running" {
-		return errors.New("job is already running")
+	if data.Status != "pending" {
+		return errors.New("job is not pending")
 	}
 
 	_, err = db.connection.Exec(`
-		UPDATE jobs SET status=canceled WHERE id=$1
+		UPDATE jobs SET status='canceled' WHERE id=$1
 	`, jobID)
 
 	return err

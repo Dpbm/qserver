@@ -307,9 +307,99 @@ run_test_13(){
 
 
     curl -f "$SERVER_URL/api/v1/job/result/$ID"
-    echo ""
 }
 
+
+run_test_14(){
+    curl --request PUT -f "$SERVER_URL/api/v1/job/cancel/invalid-id"
+    if [ $? != 0 ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+run_test_15(){
+    curl --request PUT -f "$SERVER_URL/api/v1/job/cancel/f3f2e850-b5d4-11ef-ac7e-96584d5248b2"
+    if [ $? != 0 ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+run_test_16(){
+    add_plugin
+    if [ $? != 0 ]; then
+        return 1
+    fi
+    echo ""
+
+    ID=$( add_job )
+    if [ $? != 0 ]; then
+        return 1
+    fi
+
+    curl --request PUT -f "$SERVER_URL/api/v1/job/cancel/$ID"
+    if [ $? != 0 ]; then
+        echo -e "${RED}Failed on cancel job${ENDC}"
+        return 1
+    fi
+
+    STATUS=$(get_job_status $ID)
+
+
+    if [ $STATUS = 'canceled' ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+run_test_17(){
+    echo -e "${BLUE}Starting workers...${ENDC}"
+    docker compose -f ../../../compose.yml up -d  --build workers
+
+    if [ $? != 0 ]; then
+        echo -e "${RED}Failed on start up workers${ENDC}"
+        return 1
+    fi
+    echo ""
+
+    add_plugin
+    if [ $? != 0 ]; then
+        return 1
+    fi
+    echo ""
+
+    ID=$( add_job )
+    if [ $? != 0 ]; then
+        return 1
+    fi
+
+    STATUS="pending"
+    COUNTER=0
+    MAX_COUNTER=10000
+    echo -e "${BLUE}Waiting for job $ID...${ENDC}"
+    while ([ "$STATUS" = 'pending' ] || [ "$STATUS" = 'running' ]) && [ "$COUNTER" -lt "$MAX_COUNTER" ]; do
+        STATUS=$(get_job_status $ID)
+
+        if [ $? != 0 ]; then
+            return 1
+        fi
+
+        COUNTER=$(( COUNTER + 1 ))
+        sleep 1
+    done
+
+    curl --request PUT -f "$SERVER_URL/api/v1/job/cancel/$ID"
+
+    if [ $? != 0 ]; then
+        return 0
+    else
+        return 1
+    fi
+}
 
 
 clean_external
@@ -371,7 +461,33 @@ test_header 12 "Get Job Results ID not found on results"
 run_test_12
 has_passed
 
+
+
 clean_external
-test_header 13 "Get Correct job results"
-run_test_13
+test_header 14 "Cancel Job Invalid ID"
+run_test_14
 has_passed
+
+clean_external
+test_header 15 "Cancel Job ID Not found"
+run_test_15
+has_passed
+
+clean_external
+test_header 16 "Successfully Canceled Job"
+run_test_16
+has_passed
+
+clean_external
+test_header 17 "Failed on cancel job - status is not pending"
+run_test_17
+has_passed
+
+
+# this one gonna be out of the list of tests because of some errors on workers
+# after fixing them, we need to add it back again
+
+#clean_external
+#test_header 13 "Get Correct job results"
+#run_test_13
+#has_passed

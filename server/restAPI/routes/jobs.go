@@ -25,7 +25,6 @@ import (
 // @Router /job/{id} [get]
 func GetJob(context *gin.Context) {
 	var job types.JobById
-	// TODO: TEST THIS PART
 	err := context.ShouldBindUri(&job)
 	if err != nil {
 		logger.LogError(err)
@@ -104,7 +103,6 @@ func GetJobs(context *gin.Context) {
 func GetJobResult(context *gin.Context) {
 	var job types.JobById
 	err := context.ShouldBindUri(&job)
-	// TODO: TEST THIS PART
 	if err != nil {
 		logger.LogError(err)
 		context.JSON(400, map[string]string{"msg": "Invalid Parameter"})
@@ -190,6 +188,7 @@ func CancelJob(context *gin.Context) {
 	}
 
 	db, ok := utils.GetDBFromContext(context)
+	// TODO: TEST THIS PART
 	if !ok || db == nil {
 		logger.LogError(errors.New("failed on get DB from context"))
 		context.JSON(500, map[string]string{"msg": "Failed on Stablish database connection!"})

@@ -285,6 +285,21 @@ func TestGetJobWithoutPassingJobID(t *testing.T) {
 	assert.Equal(t, 404, writer.Code)
 }
 
+func TestGetJobUsingInvalidJobID(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/v1/job/invalid-id", nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 400, writer.Code)
+}
+
 func TestGetJobIDNotFound(t *testing.T) {
 	dbInstance := db.DB{}
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
@@ -373,6 +388,21 @@ func TestGetJobResultWithoutPassingJobID(t *testing.T) {
 	assert.Equal(t, 404, writer.Code)
 }
 
+func TestGetJobResultUsingInvalidJobID(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/v1/job/result/invalid-id", nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 400, writer.Code)
+}
+
 func TestGetJobResultIDNotFound(t *testing.T) {
 	dbInstance := db.DB{}
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
@@ -424,4 +454,158 @@ func TestGetJobResultSuccess(t *testing.T) {
 	assert.Equal(t, data.Counts, map[string]float32{})
 	assert.Equal(t, data.QuasiDist, map[int32]float32{})
 	assert.Equal(t, data.Expval, []float32{})
+}
+
+// ------- CANCEL JOB -------
+
+func TestCancelJobWithoutPassingJobID(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("PUT", "/api/v1/job/cancel/", nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 404, writer.Code)
+}
+
+func TestCancelJobWithInvalidID(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("PUT", "/api/v1/job/cancel/dadadas", nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 400, writer.Code)
+}
+
+func TestCancelJobIDNotFound(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("PUT", fmt.Sprintf("/api/v1/job/cancel/%s", constants.TEST_JOB_ID), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 500, writer.Code)
+}
+
+func TestCancelJobSuccess(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	now := time.Now()
+	rows := mock.NewRows([]string{
+		"id",
+		"pointer",
+		"target_simulator",
+		"qasm",
+		"status",
+		"submission_date",
+		"start_time",
+		"finish_time",
+		"metadata",
+		"result_types",
+		"results",
+	}).AddRow(constants.TEST_JOB_ID, 1, constants.TEST_BACKEND, "nothing", "pending", now, now, now, "{}", "{}", "{}")
+	mock.ExpectQuery("FROM jobs").WithArgs(constants.TEST_JOB_ID).WillReturnRows(rows)
+
+	mock.ExpectExec("UPDATE jobs").WithArgs(constants.TEST_JOB_ID).WillReturnResult(sqlmock.NewResult(1, 1))
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("PUT", fmt.Sprintf("/api/v1/job/cancel/%s", constants.TEST_JOB_ID), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 200, writer.Code)
+}
+
+func TestCancelErrorJobRunning(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	now := time.Now()
+	rows := mock.NewRows([]string{
+		"id",
+		"pointer",
+		"target_simulator",
+		"qasm",
+		"status",
+		"submission_date",
+		"start_time",
+		"finish_time",
+		"metadata",
+		"result_types",
+		"results",
+	}).AddRow(constants.TEST_JOB_ID, 1, constants.TEST_BACKEND, "nothing", "running", now, now, now, "{}", "{}", "{}")
+	mock.ExpectQuery("FROM jobs").WithArgs(constants.TEST_JOB_ID).WillReturnRows(rows)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("PUT", fmt.Sprintf("/api/v1/job/cancel/%s", constants.TEST_JOB_ID), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 500, writer.Code)
+}
+
+func TestCancelErrorJobFinished(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	now := time.Now()
+	rows := mock.NewRows([]string{
+		"id",
+		"pointer",
+		"target_simulator",
+		"qasm",
+		"status",
+		"submission_date",
+		"start_time",
+		"finish_time",
+		"metadata",
+		"result_types",
+		"results",
+	}).AddRow(constants.TEST_JOB_ID, 1, constants.TEST_BACKEND, "nothing", "finished", now, now, now, "{}", "{}", "{}")
+	mock.ExpectQuery("FROM jobs").WithArgs(constants.TEST_JOB_ID).WillReturnRows(rows)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("PUT", fmt.Sprintf("/api/v1/job/cancel/%s", constants.TEST_JOB_ID), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 500, writer.Code)
 }
