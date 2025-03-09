@@ -168,7 +168,7 @@ func (db *DB) GetJobResult(jobID string) (*types.JobResultData, error) {
 	var expval string
 
 	err := db.connection.QueryRow(`
-	SELECT coalesce(json_agg(results), '[{}]'::json)->>0 as results 
+	SELECT id, job_id, counts, quasi_dist, expval
 	FROM results 
 	WHERE job_id=$1`, jobID).Scan(&data.ID, &data.JobId, &counts, &quasiDist, &expval)
 

@@ -78,8 +78,6 @@ services:
             context: ./server/worker/
             dockerfile: Dockerfile
         depends_on:
-            - db
-            - queue-handler
             - jobs-server
         deploy:
             mode: replicated

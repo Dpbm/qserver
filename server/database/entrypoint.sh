@@ -84,8 +84,8 @@ CREATE TABLE IF NOT EXISTS history (
 	qasm VARCHAR(80) NOT NULL,
 	status VARCHAR(8) NOT NULL,
 	submission_date timestamptz NOT NULL,
-	start_time timestamptz NOT NULL,
-	finish_time timestamptz NOT NULL,
+	start_time timestamptz,
+	finish_time timestamptz,
 	metadata json NOT NULL DEFAULT '{}'::json,
 	result_types json NOT NULL,
 	results json NOT NULL DEFAULT '{}'::json

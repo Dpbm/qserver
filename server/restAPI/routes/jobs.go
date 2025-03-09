@@ -99,11 +99,12 @@ func GetJobs(context *gin.Context) {
 // @Success 200 {object} types.JobResultData
 // @Failure 400 {object} map[string]string "Invalid ID parameter"
 // @Failure 500 {object} map[string]string "Failed during DB connection"
-// @Failure 404 {object} map[string]string "No results for this ID"
+// @Failure 404 {object} map[string]string "No results for this ID or an issue occoured"
 // @Router /job/result/{id} [get]
 func GetJobResult(context *gin.Context) {
 	var job types.JobById
 	err := context.ShouldBindUri(&job)
+	// TODO: TEST THIS PART
 	if err != nil {
 		logger.LogError(err)
 		context.JSON(400, map[string]string{"msg": "Invalid Parameter"})
@@ -111,6 +112,7 @@ func GetJobResult(context *gin.Context) {
 	}
 
 	db, ok := utils.GetDBFromContext(context)
+	// TODO: TEST THIS PART TOO
 	if !ok || db == nil {
 		logger.LogError(errors.New("failed on get DB from context"))
 		context.JSON(500, map[string]string{"msg": "Failed on Stablish database connection!"})
@@ -120,7 +122,7 @@ func GetJobResult(context *gin.Context) {
 	result, err := db.GetJobResult(job.ID)
 	if err != nil {
 		logger.LogError(err)
-		context.JSON(404, map[string]string{"msg": "Results Data not found!"})
+		context.JSON(404, map[string]string{"msg": "Results Data not found, Or a problem occured during the execution!"})
 		return
 	}
 

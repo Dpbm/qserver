@@ -355,3 +355,73 @@ func TestGetJobSuccess(t *testing.T) {
 	assert.Equal(t, data.SubmissionDate.String(), now.String())
 	assert.Equal(t, data.TargetSimulator, constants.TEST_BACKEND)
 }
+
+// ------- GET JOB RESULT -------
+
+func TestGetJobResultWithoutPassingJobID(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/v1/job/result/", nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 404, writer.Code)
+}
+
+func TestGetJobResultIDNotFound(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/v1/job/result/%s", constants.TEST_JOB_ID), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 404, writer.Code)
+}
+
+func TestGetJobResultSuccess(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	rows := mock.NewRows([]string{
+		"id",
+		"job_id",
+		"counts",
+		"quasi_dist",
+		"expval",
+	}).AddRow("1", constants.TEST_JOB_ID, "{}", "{}", "[]")
+	mock.ExpectQuery("FROM results").WithArgs(constants.TEST_JOB_ID).WillReturnRows(rows)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/v1/job/result/%s", constants.TEST_JOB_ID), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 200, writer.Code)
+
+	var data types.JobResultData
+	json.NewDecoder(writer.Result().Body).Decode(&data)
+
+	assert.Equal(t, data.ID, "1")
+	assert.Equal(t, data.JobId, constants.TEST_JOB_ID)
+	assert.Equal(t, data.Counts, map[string]float32{})
+	assert.Equal(t, data.QuasiDist, map[int32]float32{})
+	assert.Equal(t, data.Expval, []float32{})
+}

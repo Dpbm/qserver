@@ -27,13 +27,18 @@ def callback(ch, method, body, db_instance):
         if(status == Statuses.CANCELED):
             raise CanceledJob()
 
-        db_instance.update_job_status("running", job_id)
         db_instance.update_job_start_time_to_now(job_id)
+        db_instance.update_job_status("running", job_id)
 
         # the plugin name is first checked by the api to see if it's official
         # however, the user may try to bypass that
         # so be aware with potential threads here
-        plugin_name = db_instance.get_plugin(target_backend)
+        row = db_instance.get_plugin(target_backend)
+
+        if len(row) != 1:
+            raise ValueError("Failed on get plugin Name")
+
+        plugin_name = row[0]
         plugin = Plugin(plugin_name)
 
         for result_type, active in result_types.items():
@@ -46,15 +51,16 @@ def callback(ch, method, body, db_instance):
             print("Saving results...")
             db_instance.save_results(result_type, results, job_id)
 
+        db_instance.update_job_finish_time_to_now(job_id)
         db_instance.update_job_status("finished", job_id)
 
     # pylint: disable=broad-exception-caught
     except Exception as error:
+        db_instance.update_job_finish_time_to_now(job_id)
         db_instance.update_job_status("failed", job_id)
         print(f"failed on worker callback: {str(error)}")
 
     finally:
-        db_instance.update_job_finish_time_to_now(job_id)
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
 

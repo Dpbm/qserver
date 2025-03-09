@@ -16,14 +16,17 @@ func SetupServer(dbInstance *db.DB) *gin.Engine {
 
 	server.Use(middlewares.DB(dbInstance))
 
+	// some routes, for a reason that I don't know
+	// redirect the request to the same page if a
+	// path parameter isn't passed. To solve that,
+	// I forced a / path to return a 404 error
+
 	v1 := server.Group("/api/v1")
 	{
 		job := v1.Group("/job")
 		{
-			// when acessing /api/v1/job it automatically
-			// redirects to the same page.
-			// So, using this one, we force it to return 404
 			job.GET("/", routes.Page404)
+			job.GET("/result/", routes.Page404)
 
 			job.GET("/:id", routes.GetJob)
 			job.GET("/result/:id", routes.GetJobResult)
@@ -49,10 +52,8 @@ func SetupServer(dbInstance *db.DB) *gin.Engine {
 
 		backend := v1.Group("/backend")
 		{
-			// for some reason, when acessing /api/v1/backend it
-			// automatically redirects to the same page
-			// using this one we force it to return 404
 			backend.GET("/", routes.Page404)
+
 			backend.GET("/:name", routes.GetBackend)
 		}
 
