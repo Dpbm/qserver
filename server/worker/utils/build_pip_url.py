@@ -5,8 +5,9 @@ def build_pip_url(package):
     """
     return f"git+https://github.com/quantum-plugin/{package}.git@main"
 
+
 def pipfy_name(name):
     """
     Fix name to match with the requirements that Pip has
     """
-    return name.replace('-', '_')
+    return name.replace("-", "_")

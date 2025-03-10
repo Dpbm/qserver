@@ -11,20 +11,34 @@ QasmFilePath = str
 DBRow = RealDictRow | None
 
 
-def port_to_int(port:str) -> Optional[int]:
+def port_to_int(port: Optional[str]) -> Optional[int]:
+    """
+    Convert incoming port env to an int.
+    """
+
+    if port is None:
+        return None
+
     try:
+
         int_port = int(port)
 
-        if(int_port < 0):
+        if int_port < 0:
             raise ValueError("Invalid Port")
 
         return int_port
-    except:
+    # pylint: disable=broad-exception-caught
+    except Exception:
         return None
 
+
 class Statuses(Enum):
-    PENDING="pending"
-    RUNNING="running" 
-    FINISHED="finished"
-    CANCELED="canceled" 
-    FAILED="failed"
+    """
+    Possible status that a job can have.
+    """
+
+    PENDING = "pending"
+    RUNNING = "running"
+    FINISHED = "finished"
+    CANCELED = "canceled"
+    FAILED = "failed"

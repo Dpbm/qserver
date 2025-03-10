@@ -24,7 +24,7 @@ def callback(ch, method, body, db_instance):
         metadata = data["metadata"]
         status = data["status"]
 
-        if(status == Statuses.CANCELED):
+        if status == Statuses.CANCELED:
             raise CanceledJob()
 
         db_instance.update_job_start_time_to_now(job_id)
