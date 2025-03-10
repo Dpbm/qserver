@@ -323,7 +323,7 @@ func (db *DB) GetHistoryData(cursor uint32) ([]*types.Historydata, error) {
 	logger.LogAction(fmt.Sprintf("Getting History from cursor: %d", cursor))
 
 	rows, err := db.connection.Query(`
-		SELECT *
+		SELECT id, job_id, target_simulator, qasm, status, submission_date, start_time, finish_time, metadata, result_types, results
 		FROM history
 		WHERE id > $1 AND id <= $1 + 20
 	`, cursor)

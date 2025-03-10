@@ -30,6 +30,7 @@ func GetHistory(context *gin.Context) {
 	}
 
 	db, ok := utils.GetDBFromContext(context)
+	// TODO: TEST THIS PART
 	if !ok || db == nil {
 		logger.LogError(errors.New("failed on get DB from context"))
 		context.JSON(500, map[string]string{"msg": "Failed on Stablish database connection!"})
@@ -39,7 +40,7 @@ func GetHistory(context *gin.Context) {
 	result, err := db.GetHistoryData(cursorValue)
 	if err != nil {
 		logger.LogError(err)
-		context.JSON(200, map[any]any{})
+		context.JSON(200, map[string]any{})
 		return
 	}
 

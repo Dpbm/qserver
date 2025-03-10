@@ -21,7 +21,7 @@ delete_plugin(){
     TOTAL_BACKENDS=$(curl -f "$SERVER_URL/api/v1/backends/" | jq length)
     echo ""
 
-    if [ $TOTAL_BACKENDS = 0 ]; then
+    if [ "$TOTAL_BACKEND" = "0" ]; then
         echo -e "${GREEN}No plugins to delete${ENDC}"
         return 0
     fi
@@ -45,6 +45,7 @@ delete_job(){
         return 1
     fi
 }
+
 
 stop_workers(){
     echo -e "${GREEN}Stopping workers...${GREEN}"
@@ -349,7 +350,7 @@ run_test_16(){
     STATUS=$(get_job_status $ID)
 
 
-    if [ $STATUS = 'canceled' ]; then
+    if [ "$STATUS" = "canceled" ]; then
         return 0
     else
         return 1
@@ -449,7 +450,7 @@ run_test_21(){
         return 1
     fi
 
-    if [ $TOTAL_JOBS = 0 ]; then
+    if [ "$TOTAL_JOBS" = "0" ]; then
         return 0
     else 
         return 1
@@ -474,7 +475,7 @@ run_test_22(){
         return 1
     fi
 
-    if [ $TOTAL_JOBS = 1 ]; then
+    if [ "$TOTAL_JOBS" = "1" ]; then
         return 0
     else 
         return 1
@@ -499,12 +500,109 @@ run_test_23(){
         return 1
     fi
 
-    if [ $TOTAL_JOBS = 0 ]; then
+    if [ "$TOTAL_JOBS" = "0" ]; then
         return 0
     else 
         return 1
     fi
 }
+
+run_test_24(){
+    TOTAL_JOBS=$(curl -f "$SERVER_URL/api/v1/history/" | jq length)
+    if [ $? != 0 ]; then
+        echo -e "${RED}Failed on get history${ENDC}"
+        return 1
+    fi
+
+    if [ "$TOTAL_JOBS" = "0" ]; then
+        return 0
+    else 
+        return 1
+    fi
+}
+
+run_test_25(){
+    add_plugin
+    if [ $? != 0 ]; then
+        return 1
+    fi
+    echo ""
+
+    ID=$( add_job )
+    if [ $? != 0 ]; then
+        return 1
+    fi
+
+    curl --request PUT -f "$SERVER_URL/api/v1/job/cancel/$ID"
+    if [ $? != 0 ]; then
+        echo -e "${RED}Failed on cancel job $ID${ENDC}"
+        return 1
+    fi
+
+    TOTAL_JOBS=$(curl -f "$SERVER_URL/api/v1/history/" | jq length)
+    if [ $? != 0 ]; then
+        echo -e "${RED}Failed on get jobs${ENDC}"
+        return 1
+    fi
+
+    if [ "$TOTAL_JOBS" = "1" ]; then
+        return 0
+    else 
+        return 1
+    fi
+}
+
+run_test_26(){
+    add_plugin
+    if [ $? != 0 ]; then
+        return 1
+    fi
+    echo ""
+
+    ID=$( add_job )
+    if [ $? != 0 ]; then
+        return 1
+    fi
+
+    curl --request PUT -f "$SERVER_URL/api/v1/job/cancel/$ID"
+    if [ $? != 0 ]; then
+        echo -e "${RED}Failed on cancel job $ID${ENDC}"
+        return 1
+    fi
+
+    TOTAL_JOBS=$(curl -f "$SERVER_URL/api/v1/history/?cursor=10000000" | jq length)
+    if [ $? != 0 ]; then
+        echo -e "${RED}Failed on get jobs${ENDC}"
+        return 1
+    fi
+
+    if [ "$TOTAL_JOBS" = "0" ]; then
+        return 0
+    else 
+        return 1
+    fi
+}
+
+
+
+# HISTORY TESTS MUST COME FIRST
+clean_external
+test_header 24 "Test Get history without having any job in it"
+run_test_24
+has_passed
+
+clean_external
+test_header 25 "Test Get history having one being added previously"
+run_test_25
+has_passed
+
+clean_external
+test_header 26 "Test Get History with a big cursor"
+run_test_26
+has_passed
+
+
+
 
 clean_external
 test_header 1 "Delete plugin with no job created with it"
@@ -582,17 +680,17 @@ run_test_16
 has_passed
 
 clean_external
-test_header 17 "Failed on cancel job - status is not pending"
+test_header 17 "Failed on cancel job status is not pending"
 run_test_17
 has_passed
 
 clean_external
-test_header 18 "Delete Job - Invalid ID"
+test_header 18 "Delete Job Invalid ID"
 run_test_18
 has_passed
 
 clean_external
-test_header 19 "Delete Job - ID NOT FOUND"
+test_header 19 "Delete Job ID NOT FOUND"
 run_test_19
 has_passed
 
@@ -619,7 +717,10 @@ has_passed
 
 
 
+
+
 # TODO: TEST ADDING 20 JOBS/BACKENDS/HISTORY AND GETTING THE NEXT PAGE
+
 
 
 # this one gonna be out of the list of tests because of some errors on workers
