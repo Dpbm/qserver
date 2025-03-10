@@ -137,8 +137,7 @@ func GetJobResult(context *gin.Context) {
 // @Produce json
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string "Invalid ID parameter"
-// @Failure 500 {object} map[string]string "Failed during DB connection"
-// @Failure 404 {object} map[string]string "No results for this ID"
+// @Failure 500 {object} map[string]string "Failed during DB connection or error during deletion"
 // @Router /job/{id} [delete]
 func DeleteJob(context *gin.Context) {
 	var job types.JobById
@@ -150,6 +149,7 @@ func DeleteJob(context *gin.Context) {
 	}
 
 	db, ok := utils.GetDBFromContext(context)
+	// TODO: TEST THIS PART
 	if !ok || db == nil {
 		logger.LogError(errors.New("failed on get DB from context"))
 		context.JSON(500, map[string]string{"msg": "Failed on Stablish database connection!"})
@@ -159,7 +159,7 @@ func DeleteJob(context *gin.Context) {
 	err = db.DeleteJobData(job.ID)
 	if err != nil {
 		logger.LogError(err)
-		context.JSON(404, map[string]string{"msg": "Failed on delete your job data!"})
+		context.JSON(500, map[string]string{"msg": "Failed on delete your job data!"})
 		return
 	}
 

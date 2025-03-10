@@ -609,3 +609,71 @@ func TestCancelErrorJobFinished(t *testing.T) {
 
 	assert.Equal(t, 500, writer.Code)
 }
+
+// ------- DELETE JOB -------
+
+func TestDeleteJobWithoutPassingJobID(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("DELETE", "/api/v1/job/", nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 404, writer.Code)
+}
+
+func TestDeleteJobPassingInvalidID(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("DELETE", "/api/v1/job/invalid-id", nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 400, writer.Code)
+}
+
+func TestDeleteJobIDNotFound(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/api/v1/job/%s", constants.TEST_JOB_ID), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 500, writer.Code)
+}
+
+func TestDeleteSuccess(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	mock.ExpectExec("DELETE FROM jobs").WithArgs(constants.TEST_JOB_ID).WillReturnResult(sqlmock.NewResult(1, 1))
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/api/v1/job/%s", constants.TEST_JOB_ID), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 200, writer.Code)
+}

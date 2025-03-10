@@ -401,6 +401,46 @@ run_test_17(){
     fi
 }
 
+run_test_18(){
+    curl --request DELETE -f "$SERVER_URL/api/v1/job/invalid-id"
+    if [ $? != 0 ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+run_test_19(){
+    curl --request DELETE -f "$SERVER_URL/api/v1/job/f3f2e850-b5d4-11ef-ac7e-96584d5248b2"
+}
+
+
+run_test_20(){
+    add_plugin
+    if [ $? != 0 ]; then
+        return 1
+    fi
+    echo ""
+
+    ID=$( add_job )
+    if [ $? != 0 ]; then
+        return 1
+    fi
+
+    curl --request DELETE -f "$SERVER_URL/api/v1/job/$ID"
+    if [ $? != 0 ]; then
+        echo -e "${RED}Failed on cancel job${ENDC}"
+        return 1
+    fi
+
+
+    curl -f "$SERVER_URL/api/v1/job/$ID"
+    if [ $? != 0 ]; then
+        return 0
+    else
+        return 1
+    fi
+}
 
 clean_external
 test_header 1 "Delete plugin with no job created with it"
@@ -462,7 +502,6 @@ run_test_12
 has_passed
 
 
-
 clean_external
 test_header 14 "Cancel Job Invalid ID"
 run_test_14
@@ -482,6 +521,22 @@ clean_external
 test_header 17 "Failed on cancel job - status is not pending"
 run_test_17
 has_passed
+
+clean_external
+test_header 18 "Delete Job - Invalid ID"
+run_test_18
+has_passed
+
+clean_external
+test_header 19 "Delete Job - ID NOT FOUND"
+run_test_19
+has_passed
+
+clean_external
+test_header 20 "Successfully Deleted Job"
+run_test_20
+has_passed
+
 
 
 # this one gonna be out of the list of tests because of some errors on workers
