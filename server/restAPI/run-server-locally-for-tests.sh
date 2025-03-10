@@ -1,5 +1,9 @@
 #!/bin/bash
 
+set +e
+
+source ../../colors.sh
+
 export PORT=3000
 export GIN_MODE=debug
 
@@ -9,5 +13,8 @@ export DB_USERNAME=hello
 export DB_PASSWORD=test
 export DB_NAME=quantum
 
+echo -e "${BLUE}Stop already running API...${ENDC}"
 docker stop api
+
+echo -e "${GREEN}Starting server...${ENDC}"
 go run server.go

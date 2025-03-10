@@ -12,21 +12,27 @@ PLUGINS_SERVER="http://0.0.0.0:3000"
 run_test_1(){
     grpcurl -plaintext -d "" $SERVER Jobs/AddJob
     if [ $? != 0 ]; then
-        return 0;
+        return 0
+    else 
+        return 1
     fi
 }
 
 run_test_2(){
     grpcurl -plaintext -d '{"qasmChunk":"AAAA"}' $SERVER Jobs/AddJob
     if [ $? != 0 ]; then
-        return 0;
+        return 0
+    else 
+        return 1
     fi
 }
 
 run_test_3(){
     grpcurl -plaintext -d '{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":false, "resultTypeExpVal":false, "targetSimulator":"aer"}}' $SERVER Jobs/AddJob
     if [ $? != 0 ]; then
-        return 0;
+        return 0
+    else 
+        return 1
     fi
 }
 
@@ -34,14 +40,18 @@ run_test_3(){
 run_test_4(){
     grpcurl -plaintext -d '{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":""}}' $SERVER Jobs/AddJob
     if [ $? != 0 ]; then
-        return 0;
+        return 0
+    else 
+        return 1
     fi
 }
 
 run_test_5(){
     grpcurl -plaintext -d '{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"aer", "metadata":""}}' $SERVER Jobs/AddJob
     if [ $? != 0 ]; then
-        return 0;
+        return 0
+    else 
+        return 1
     fi
 }
 
@@ -53,7 +63,9 @@ EOM
 )
     grpcurl -plaintext -d "$DATA" $SERVER Jobs/AddJob
     if [ $? != 0 ]; then
-        return 0;
+        return 0
+    else 
+        return 1
     fi
 }
 
@@ -63,6 +75,8 @@ run_test_7(){
     if [ $? != 0 ]; then
         echo -e "${RED}Failed on add plugin${ENDC}"
         return 1
+    else 
+        return 0
     fi
 
     DATA=$(cat <<EOM
@@ -74,8 +88,10 @@ EOM
     echo "\n"
     grpcurl -plaintext -d "$DATA" $SERVER Jobs/AddJob
 
-     if [ $? != 0 ]; then
+    if [ $? != 0 ]; then
         return 1
+    else 
+        return 0
     fi
 }
 

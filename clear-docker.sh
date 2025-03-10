@@ -2,8 +2,7 @@
 
 #https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
 
-BLUE='\033[0;34m'
-ENDC='\033[0m'
+source ./colors.sh
 
 
 for id in "postgres-db" "rabbitmq" "jobs-server" "api" "proxy"; do
