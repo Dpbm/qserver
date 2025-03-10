@@ -37,6 +37,7 @@
         "pylint",
         "pylintrc",
         "pyrightconfig",
+        "pytest",
         "qasm",
         "qexec",
         "qiskit",

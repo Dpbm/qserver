@@ -1,5 +1,5 @@
 requires = ["tox>=4"]
-env_list = ["lint", "types", "py3.12", "py3.11", "py3.10"]
+env_list = ["lint", "types", "tests", "py3.12", "py3.11", "py3.10"]
 
 [env.lint]
 description = "lint code"
@@ -12,3 +12,9 @@ description = "check types"
 skip_install = false
 deps = ["mypy", "types-psycopg2"]
 commands = [["mypy", { replace = "posargs", default = [".", "--exclude", ".tox"], extend = true} ]]
+
+[env.tests]
+description = "run tests"
+skip_install = false
+deps = ["pytest", "pika", "psycopg2-binary"]
+commands = [["python", "-m", "pytest", "-vv", "-s"]]

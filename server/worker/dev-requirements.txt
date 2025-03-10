@@ -3,3 +3,4 @@ mypy
 black
 pylint
 types-psycopg2
+pytest

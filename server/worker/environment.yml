@@ -12,3 +12,4 @@ dependencies:
           - pylint
           - mypy
           - types-psycopg2
+          - pytest

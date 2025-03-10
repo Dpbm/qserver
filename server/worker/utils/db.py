@@ -1,7 +1,7 @@
 from datetime import datetime
 import psycopg2 as pg
 import psycopg2.extras as pgextras
-from .types import Results, ResultType, Backend, DBRow
+from .types import Results, ResultType, Backend, DBRow, Statuses
 
 
 class DB:
@@ -44,48 +44,58 @@ class DB:
         )  # get all data from job and create a json with the result types the user selected
         return self._cursor.fetchone()
 
-    def update_job_status(self, status: str, job_id: str):
+    def update_job_status(self, status: Statuses, job_id: str):
         """
         Method used to update a job status by an arbitrary one.
-
-        TODO: Must be reconsidered changing status to an enumerate
         """
 
-        self._cursor.execute(
-            "UPDATE jobs SET status=%s WHERE id=%s",
-            (
-                status,
-                job_id,
-            ),
-        )
-        self._commit()
+        try:
+            self._cursor.execute(
+                "UPDATE jobs SET status=%s WHERE id=%s",
+                (
+                    status,
+                    job_id,
+                ),
+            )
+            self._commit()
+        # pylint: disable=broad-exception-caught
+        except Exception:
+            self._rollback()
 
     def update_job_start_time_to_now(self, job_id: str):
         """
         Update job starting time to this very moment.
         """
 
-        self._cursor.execute(
-            "UPDATE jobs SET start_time=%s WHERE id=%s",
-            (
-                datetime.now(),
-                job_id,
-            ),
-        )
-        self._commit()
+        try:
+            self._cursor.execute(
+                "UPDATE jobs SET start_time=%s WHERE id=%s",
+                (
+                    datetime.now(),
+                    job_id,
+                ),
+            )
+            self._commit()
+        # pylint: disable=broad-exception-caught
+        except Exception:
+            self._rollback()
 
     def update_job_finish_time_to_now(self, job_id: str):
         """
         Update job finishing time to this very moment.
         """
-        self._cursor.execute(
-            "UPDATE jobs SET finish_time=%s WHERE id=%s",
-            (
-                datetime.now(),
-                job_id,
-            ),
-        )
-        self._commit()
+        try:
+            self._cursor.execute(
+                "UPDATE jobs SET finish_time=%s WHERE id=%s",
+                (
+                    datetime.now(),
+                    job_id,
+                ),
+            )
+            self._commit()
+        # pylint: disable=broad-exception-caught
+        except Exception:
+            self._rollback()
 
     def _was_results_table_initialized_by_the_job(self, job_id: str) -> bool:
         """
@@ -101,8 +111,12 @@ class DB:
         """
         Add a row to results table to this specific job
         """
-        self._cursor.execute("INSERT INTO results(job_id) VALUES(%s)", (job_id,))
-        self._commit()
+        try:
+            self._cursor.execute("INSERT INTO results(job_id) VALUES(%s)", (job_id,))
+            self._commit()
+        # pylint: disable=broad-exception-caught
+        except Exception:
+            self._rollback()
 
     def save_results(self, result_type: ResultType, results: Results, job_id: str):
         """
@@ -117,21 +131,32 @@ class DB:
         if not self._was_results_table_initialized_by_the_job(job_id):
             self._initialize_results_table_for_job(job_id)
 
-        self._cursor.execute(
-            "UPDATE results SET %s=%s WHERE job_id=%s",
-            (
-                column,
-                results,
-                job_id,
-            ),
-        )
-        self._commit()
+        try:
+            self._cursor.execute(
+                "UPDATE results SET %s=%s WHERE job_id=%s",
+                (
+                    column,
+                    results,
+                    job_id,
+                ),
+            )
+            self._commit()
+
+        # pylint: disable=broad-exception-caught
+        except Exception:
+            self._rollback()
 
     def _commit(self):
         """
         Make database changes definitive.
         """
         self._connection.commit()
+
+    def _rollback(self):
+        """
+        Undo database changes.
+        """
+        self._connection.rollback()
 
     def close(self):
         """

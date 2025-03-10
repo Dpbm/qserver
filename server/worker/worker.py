@@ -3,10 +3,23 @@ import sys
 import pika
 from utils import DB, Plugin
 from utils.types import port_to_int, Statuses
-from utils.exceptions import CanceledJob
+from utils.exceptions import (
+    CanceledJob,
+    IdNotFound,
+    InvalidResultTypes,
+    InvalidQasmFile,
+    InvalidBackend,
+    InvalidStatus,
+)
+from utils.checks import (
+    valid_result_types,
+    valid_data_for_id,
+    valid_qasm,
+    valid_backend,
+)
 
 
-# pylint: disable=too-many-locals
+# pylint: disable=too-many-locals,too-many-branches,too-many-statements
 def callback(ch, method, body, db_instance):
     """
     Handles the incoming data from queue
@@ -17,18 +30,34 @@ def callback(ch, method, body, db_instance):
         print(f"Processing job {job_id}")
 
         data = db_instance.get_job_data(job_id)
+        if not valid_data_for_id(data):
+            raise IdNotFound()
 
         result_types = data["selected_result_types"]
-        qasm_file = data["qasm"]
-        target_backend = data["target_simulator"]
-        metadata = data["metadata"]
-        status = data["status"]
+        if not valid_result_types(result_types):
+            raise InvalidResultTypes()
 
+        qasm_file = data["qasm"]
+        if not valid_qasm(qasm_file):
+            raise InvalidQasmFile()
+
+        target_backend = data["target_simulator"]
+        if not valid_backend(target_backend):
+            raise InvalidBackend()
+
+        metadata = {}
+        if data.get("metadata") is not None:
+            metadata = data["metadata"]
+
+        status = data["status"]
         if status == Statuses.CANCELED:
             raise CanceledJob()
 
+        if status != Statuses.PENDING:
+            raise InvalidStatus()
+
         db_instance.update_job_start_time_to_now(job_id)
-        db_instance.update_job_status("running", job_id)
+        db_instance.update_job_status(Statuses.RUNNING, job_id)
 
         # the plugin name is first checked by the api to see if it's official
         # however, the user may try to bypass that
@@ -52,12 +81,22 @@ def callback(ch, method, body, db_instance):
             db_instance.save_results(result_type, results, job_id)
 
         db_instance.update_job_finish_time_to_now(job_id)
-        db_instance.update_job_status("finished", job_id)
+        db_instance.update_job_status(Statuses.FINISHED, job_id)
+
+    except IdNotFound:
+        print("Job Id Not Found")
+
+    except InvalidStatus:
+        print("Job was already executed")
+
+    except CanceledJob:
+        db_instance.update_job_finish_time_to_now(job_id)
+        print("Job Was Canceled")
 
     # pylint: disable=broad-exception-caught
     except Exception as error:
         db_instance.update_job_finish_time_to_now(job_id)
-        db_instance.update_job_status("failed", job_id)
+        db_instance.update_job_status(Statuses.FAILED, job_id)
         print(f"failed on worker callback: {str(error)}")
 
     finally:
