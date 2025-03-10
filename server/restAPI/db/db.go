@@ -57,7 +57,7 @@ func (db *DB) GetBackends(cursor uint32) ([]*types.BackendData, error) {
 
 	rows, err := db.connection.Query(`
 		SELECT backend_name, id, pointer, plugin FROM backends
-		WHERE pointer > $1 AND pointer < $1 + 20;
+		WHERE pointer > $1 AND pointer <= $1 + 20;
 	`, cursor)
 
 	if err != nil {
@@ -225,7 +225,15 @@ func (db *DB) GetJobsData(cursor uint32) ([]*types.JobData, error) {
 
 	rows, err := db.connection.Query(`
 		SELECT 
-			j.*, 
+			j.id,
+			j.pointer,
+			j.target_simulator,
+			j.qasm,
+			j.status,
+			j.submission_date,
+			j.start_time,
+			j.finish_time,
+			j.metadata,
 			(
 					SELECT to_json(data)
 					FROM (
@@ -245,7 +253,7 @@ func (db *DB) GetJobsData(cursor uint32) ([]*types.JobData, error) {
 		FROM 
 			jobs AS j
 		WHERE
-			j.pointer > $1 AND j.pointer < $1 + 20
+			j.pointer > $1 AND j.pointer <= $1 + 20
 	`, cursor)
 
 	if err != nil {
@@ -317,7 +325,7 @@ func (db *DB) GetHistoryData(cursor uint32) ([]*types.Historydata, error) {
 	rows, err := db.connection.Query(`
 		SELECT *
 		FROM history
-		WHERE id > $1 AND id < $1 + 20
+		WHERE id > $1 AND id <= $1 + 20
 	`, cursor)
 
 	if err != nil {

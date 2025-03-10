@@ -442,6 +442,70 @@ run_test_20(){
     fi
 }
 
+run_test_21(){
+    TOTAL_JOBS=$(curl -f "$SERVER_URL/api/v1/jobs/" | jq length)
+    if [ $? != 0 ]; then
+        echo -e "${RED}Failed on get jobs${ENDC}"
+        return 1
+    fi
+
+    if [ $TOTAL_JOBS = 0 ]; then
+        return 0
+    else 
+        return 1
+    fi
+}
+
+run_test_22(){
+    add_plugin
+    if [ $? != 0 ]; then
+        return 1
+    fi
+    echo ""
+
+    add_job
+    if [ $? != 0 ]; then
+        return 1
+    fi
+
+    TOTAL_JOBS=$(curl -f "$SERVER_URL/api/v1/jobs/" | jq length)
+    if [ $? != 0 ]; then
+        echo -e "${RED}Failed on get jobs${ENDC}"
+        return 1
+    fi
+
+    if [ $TOTAL_JOBS = 1 ]; then
+        return 0
+    else 
+        return 1
+    fi
+}
+
+run_test_23(){
+    add_plugin
+    if [ $? != 0 ]; then
+        return 1
+    fi
+    echo ""
+
+    add_job
+    if [ $? != 0 ]; then
+        return 1
+    fi
+
+    TOTAL_JOBS=$(curl -f "$SERVER_URL/api/v1/jobs/?cursor=100000" | jq length)
+    if [ $? != 0 ]; then
+        echo -e "${RED}Failed on get jobs${ENDC}"
+        return 1
+    fi
+
+    if [ $TOTAL_JOBS = 0 ]; then
+        return 0
+    else 
+        return 1
+    fi
+}
+
 clean_external
 test_header 1 "Delete plugin with no job created with it"
 run_test_1
@@ -537,6 +601,25 @@ test_header 20 "Successfully Deleted Job"
 run_test_20
 has_passed
 
+clean_external
+test_header 21 "Test Get jobs without having any"
+run_test_21
+has_passed
+
+clean_external
+test_header 22 "Test Get jobs having one being added previously"
+run_test_22
+has_passed
+
+clean_external
+test_header 23 "Test Get jobs with a big cursor"
+run_test_23
+has_passed
+
+
+
+
+# TODO: TEST ADDING 20 JOBS/BACKENDS/HISTORY AND GETTING THE NEXT PAGE
 
 
 # this one gonna be out of the list of tests because of some errors on workers

@@ -677,3 +677,94 @@ func TestDeleteSuccess(t *testing.T) {
 
 	assert.Equal(t, 200, writer.Code)
 }
+
+// ------- GET JOBS -------
+
+func TestNoJobs(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	mock.ExpectQuery("FROM backends").WillReturnError(sql.ErrNoRows)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/v1/jobs/", nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 200, writer.Code)
+
+	var body []types.BackendData
+	json.NewDecoder(writer.Result().Body).Decode(&body)
+
+	assert.Equal(t, len(body), 0)
+}
+
+func TestOneJob(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	now := time.Now().UTC().Local()
+	values := [][]driver.Value{
+		{
+			"1",
+			1,
+			constants.TEST_BACKEND,
+			"AAAA",
+			"pending",
+			now,
+			now,
+			now,
+			"{}",
+			"{}",
+			"{}",
+		},
+	}
+	rows := mock.NewRows([]string{"id", "pointer", "target_simulator", "qasm", "status", "submission_date", "start_time", "finish_time", "metadata", "result_types", "results"}).AddRows(values...)
+	mock.ExpectQuery("FROM jobs").WillReturnRows(rows)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/v1/jobs/", nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 200, writer.Code)
+
+	var body []types.JobData
+	json.NewDecoder(writer.Result().Body).Decode(&body)
+
+	expectedMetadata := map[string]any{}
+	expectedResultTypes := types.JobResultTypes{ID: "", JobId: "", Counts: false, QuasiDist: false, Expval: false}
+	expectedResults := types.JobResultData{ID: "", JobId: "", Counts: map[string]float32(nil), QuasiDist: map[int32]float32(nil), Expval: []float32(nil)}
+
+	assert.Equal(t, len(body), 1)
+	assert.Equal(t, body[0].ID, "1")
+	assert.Equal(t, body[0].Pointer, uint32(1))
+	assert.Equal(t, body[0].TargetSimulator, constants.TEST_BACKEND)
+	assert.Equal(t, body[0].Qasm, "AAAA")
+	assert.Equal(t, body[0].Status, "pending")
+	assert.Equal(t, body[0].SubmissionDate.String(), now.String())
+	assert.Equal(t, body[0].StartTime.Time.String(), now.String())
+	assert.Equal(t, body[0].FinishTime.Time.String(), now.String())
+	assert.Equal(t, body[0].Metadata, expectedMetadata)
+	assert.Equal(t, body[0].ResultTypes, expectedResultTypes)
+	assert.Equal(t, body[0].Results, expectedResults)
+}
+
+// TODO: TEST ADDING 20 JOBS/BACKENDS/HISTORY AND GETTING THE NEXT PAGE
+// ADD A FAKE PLUGIN FOR THAT (use instead of aer)
