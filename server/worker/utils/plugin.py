@@ -13,8 +13,10 @@ class Plugin:
     """
 
     def __init__(self, name: str):
+        imported_plugin = None
+
         try:
-            self._plugin = __import__(pipfy_name(name))
+            imported_plugin = __import__(pipfy_name(name))
         except ModuleNotFoundError:
             print(f"module {name} not found, attempting to install using pip....")
 
@@ -29,7 +31,12 @@ class Plugin:
             # injection directly, once we're not directly spawning terminal commands
             command = pip.main if (hasattr(pip, "main")) else pip._internal.main  # type: ignore
             command(["install", package_url])
-            self._plugin = __import__(pipfy_name(name))
+            imported_plugin = __import__(pipfy_name(name))
+
+        if imported_plugin is None:
+            raise ValueError("Invalid plugin")
+
+        self._plugin = imported_plugin.Plugin()
 
     def run(
         self,

@@ -1,6 +1,11 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 from worker import callback
-from utils.types import Statuses
+from utils.types import Statuses, Results, ResultType
+
+# pylint: disable=fixme
+# TODO: It must be changed to a fake backend in the future
+FAKE_BACKEND_PLUGIN = "aer-plugin"
+FAKE_BACKEND = "aer"
 
 
 class TestWorker:
@@ -101,6 +106,46 @@ class TestWorker:
 
         assert db.get_status() == Statuses.FINISHED
 
+    def test_invalid_plugin(self):
+        """
+        Test if the job starts running but an error is raised due
+        to an invalid plugin return.
+        """
+
+        job_id = "job-valid-id"
+        db = DB(
+            result_types={"counts": True, "quasi_dist": False, "expval": False},
+            qasm="./tests/qasm_test.qasm",
+            backend="test",
+        )
+        channel = Channel()
+        method = Method()
+        body = Body(job_id)
+
+        callback(channel, method, body, db)
+
+        assert db.get_status() == Statuses.FAILED
+
+    def test_valid_plugin(self):
+        """
+        Test if the job starts running after adding a valid plugin.
+        """
+
+        job_id = "job-valid-id"
+        db = DB(
+            result_types={"counts": True, "quasi_dist": False, "expval": False},
+            qasm="./tests/qasm_test.qasm",
+            backend=FAKE_BACKEND,
+            plugin=FAKE_BACKEND_PLUGIN,
+        )
+        channel = Channel()
+        method = Method()
+        body = Body(job_id)
+
+        callback(channel, method, body, db)
+
+        assert db.get_status() == Statuses.FINISHED
+
 
 class Body:
     """
@@ -142,15 +187,24 @@ class DB:
     """
 
     # pylint: disable=dangerous-default-value
-    def __init__(self, result_types: Dict = {}, qasm: str = "", backend: str = ""):
+    def __init__(
+        self,
+        result_types: Dict = {},
+        qasm: str = "",
+        backend: str = "",
+        plugin: str = "",
+    ):
         self._data = {
             "id": "job-valid-id",
             "status": Statuses.PENDING,
             "finish_time": None,
+            "start_time": None,
             "qasm": qasm,
             "selected_result_types": result_types,
             "target_simulator": backend,
+            "plugin": plugin,
         }
+        self._results: Any = {}
 
     def _is_the_correct_id(self, job_id: str) -> bool:
         """
@@ -182,8 +236,33 @@ class DB:
 
         self._data["finish_time"] = "now"
 
+    def update_job_start_time_to_now(self, job_id: str):
+        """
+        Update job start time
+        """
+        if not self._is_the_correct_id(job_id):
+            return
+
+        self._data["start_time"] = "now"
+
     def get_status(self) -> Statuses:
         """
         Get current job status
         """
         return Statuses(self._data["status"])
+
+    # pylint: disable=unused-argument
+    def get_plugin(self, _: str) -> List[str]:
+        """
+        Get backend plugin
+        """
+        return [self._data["plugin"]]  # type: ignore
+
+    def save_results(self, result_type: ResultType, results: Results, job_id: str):
+        """
+        Get and save results in a given result type format after running a job.
+        """
+
+        print(f"[*] {job_id}: {result_type} = {results}")
+
+        self._results[result_type] = results
