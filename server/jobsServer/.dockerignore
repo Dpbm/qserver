@@ -1,4 +1,0 @@
-*.sh
-proto/jobs.proto
-probo/jobs_grpc.pb.go
-qasm/

@@ -47,7 +47,7 @@ services:
             - '5672:5672'
             - '15672:15672'
         networks:
-            qnet: {}
+            - qnet
 
     jobs-server:
         container_name: jobs-server
@@ -67,29 +67,13 @@ services:
             HOST: 0.0.0.0
             PORT: 50051
             QASM_PATH: /qasm
+            LOG_FILE_PATH: /logs/jobs-server/logs.log
         restart: always
         volumes:
             - qasm:/qasm
+            - logs:/logs
         networks:
-            qnet: {}
-
-    workers:
-        build:
-            context: ./server/worker/
-            dockerfile: Dockerfile
-        depends_on:
-            - jobs-server
-        deploy:
-            mode: replicated
-            replicas: 4
-        restart: always
-        env_file:
-            - ./rabbitmq.env
-            - ./db.env
-        volumes:
-            - qasm:/qasm
-        networks:
-            qnet: {}
+            - qnet
 
     api:
         container_name: api
@@ -106,9 +90,30 @@ services:
         environment:
             GIN_MODE: release
             PORT: 3000
+            LOG_FILE_PATH: /logs/api/logs.log
         restart: always
+        volumes:
+            - logs:/logs
         networks:
-            qnet: {}
+            - qnet
+
+    workers:
+        build:
+            context: ./server/worker/
+            dockerfile: Dockerfile
+        depends_on:
+            - jobs-server
+        deploy:
+            mode: replicated
+            replicas: 4
+        env_file:
+            - ./rabbitmq.env
+            - ./db.env
+        restart: always
+        volumes:
+            - qasm:/qasm
+        networks:
+            - qnet
 
 volumes:
     data:

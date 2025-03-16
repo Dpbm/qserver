@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	internalDB "github.com/Dpbm/jobsServer/db"
@@ -14,6 +15,15 @@ import (
 )
 
 func main() {
+
+	//-----LOGS------------------------------------------------------------------------------------------------------
+	logFilePath := os.Getenv("LOG_FILE_PATH")
+	var logFile *logger.LogFile = nil
+	if logFilePath != "" {
+		logFile = &logger.LogFile{}
+		logFile.CreateLogFile(logFilePath) // it must execute os.Exit(1) if an error occours
+		log.SetOutput(logFile.File)
+	}
 
 	//-----RABBITMQ---------------------------------------------------------------------------------------------------
 
@@ -62,4 +72,8 @@ func main() {
 
 	logger.LogAction(fmt.Sprintf("Listening on host: %s", server.TCPServer.ServerURL))
 	server.Listen()
+
+	if logFile != nil {
+		logFile.CloseLogFile()
+	}
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/Dpbm/quantumRestAPI/db"
@@ -9,9 +10,18 @@ import (
 
 	"github.com/Dpbm/quantumRestAPI/server"
 	"github.com/Dpbm/shared/format"
+	logger "github.com/Dpbm/shared/log"
 )
 
 func main() {
+	logFilePath := os.Getenv("LOG_FILE_PATH")
+	var logFile *logger.LogFile = nil
+	if logFilePath != "" {
+		logFile = &logger.LogFile{}
+		logFile.CreateLogFile(logFilePath) // it must execute os.Exit(1) if an error occours
+		log.SetOutput(logFile.File)
+	}
+
 	port := format.PortEnvToInt(os.Getenv("PORT")) // it must execute os.Exit(1) if the port is invalid
 
 	dbHost := os.Getenv("DB_HOST")
@@ -28,4 +38,8 @@ func main() {
 
 	portString := fmt.Sprintf(":%d", port)
 	server.Run(portString)
+
+	if logFile != nil {
+		logFile.CloseLogFile()
+	}
 }
