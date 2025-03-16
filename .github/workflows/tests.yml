@@ -64,7 +64,7 @@ jobs:
                   max_attempts: 3
                   command: cd ./server/jobsServer && chmod +x test.sh && PATH=$HOME/go-binaries/bin:$PATH HOST="0.0.0.0" ./test.sh
 
-    api:
+    api-go-tests:
         runs-on: ubuntu-24.04
 
         steps:
@@ -88,6 +88,12 @@ jobs:
             - name: Run Golang tests
               working-directory: ./server/restAPI
               run: go test ./test
+
+    api-usage-tests:
+        runs-on: ubuntu-24.04
+
+        steps:
+            - uses: actions/checkout@v4
 
             - name: setup api usage tests
               run: |
