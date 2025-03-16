@@ -12,7 +12,7 @@ type TCPServer struct {
 	Listener  net.Listener
 }
 
-func (server *TCPServer) Listen(host string, port uint32) {
+func (server *TCPServer) Listen(host string, port uint16) {
 	serverURL := fmt.Sprintf("%s:%d", host, port)
 	listen, err := net.Listen("tcp", serverURL)
 	if err != nil {

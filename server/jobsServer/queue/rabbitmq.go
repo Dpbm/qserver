@@ -71,7 +71,7 @@ func (connection *RabbitMQConnection) CreateChannel() QueueChannel {
 	return &RabbitMQChannel{Channel: channel}
 }
 
-func (queue *RabbitMQ) ConnectQueue(username string, password string, host string, port uint32) QueueConnection {
+func (queue *RabbitMQ) ConnectQueue(username string, password string, host string, port uint16) QueueConnection {
 	rabbitmqServerUrl := fmt.Sprintf("amqp://%s:%s@%s:%d", username, password, host, port)
 	connection, err := amqp.Dial(rabbitmqServerUrl)
 

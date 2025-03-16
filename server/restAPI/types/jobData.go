@@ -10,9 +10,9 @@ type Metada = map[string]any
 type JobResultData struct {
 	ID        string             `json:"id"`
 	JobId     string             `json:"job_id"`
-	Counts    map[string]float32 `json:"counts"`
-	QuasiDist map[int32]float32  `json:"quasi_dist"`
-	Expval    []float32          `json:"expval"`
+	Counts    map[string]float64 `json:"counts"`
+	QuasiDist map[int64]float64  `json:"quasi_dist"`
+	Expval    []float64          `json:"expval"`
 }
 
 type JobResultTypes struct {
@@ -25,7 +25,7 @@ type JobResultTypes struct {
 
 type JobData struct {
 	ID              string         `json:"id"`
-	Pointer         uint32         `json:"pointer"`
+	Pointer         uint64         `json:"pointer"`
 	TargetSimulator string         `json:"target_simulator"`
 	Qasm            string         `json:"qasm"`
 	Status          string         `json:"status"`
@@ -38,7 +38,7 @@ type JobData struct {
 }
 
 type Historydata struct {
-	ID              uint32         `json:"id"`
+	ID              uint64         `json:"id"`
 	JobId           string         `json:"job_id"`
 	TargetSimulator string         `json:"target_simulator"`
 	Qasm            string         `json:"qasm"`

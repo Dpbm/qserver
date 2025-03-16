@@ -12,7 +12,7 @@ type GRPC struct {
 	GRPCServer *grpc.Server
 }
 
-func (server *GRPC) Create(host string, port uint32, jobServerDefinition *JobsServer) {
+func (server *GRPC) Create(host string, port uint16, jobServerDefinition *JobsServer) {
 	tcpServer := &TCPServer{}
 	tcpServer.Listen(host, port)
 

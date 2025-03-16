@@ -12,7 +12,7 @@ type DB struct {
 	connection *sql.DB
 }
 
-func (db *DB) Connect(model externalDB.Model, username string, password string, host string, port uint32, dbname string) {
+func (db *DB) Connect(model externalDB.Model, username string, password string, host string, port uint16, dbname string) {
 	dbConnection, _ := model.ConnectDB(username, password, host, port, dbname) // it will exit if an error occour
 
 	db.connection = dbConnection

@@ -17,7 +17,7 @@ type DB struct {
 	Extra      any
 }
 
-func (db *DB) Connect(model dbDefinition.Model, host string, port uint32, username string, password string, dbname string) {
+func (db *DB) Connect(model dbDefinition.Model, host string, port uint16, username string, password string, dbname string) {
 	dbConnection, extra := model.ConnectDB(username, password, host, port, dbname) // it will exit if an error occour
 
 	db.connection = dbConnection
@@ -52,7 +52,7 @@ func (db *DB) GetBackend(backendName string) (*types.BackendData, error) {
 	return data, nil
 }
 
-func (db *DB) GetBackends(cursor uint32) ([]*types.BackendData, error) {
+func (db *DB) GetBackends(cursor uint64) ([]*types.BackendData, error) {
 	logger.LogAction(fmt.Sprintf("Getting backends from cursor: %d", cursor))
 
 	rows, err := db.connection.Query(`
@@ -220,7 +220,7 @@ func (db *DB) DeleteJobData(jobId string) error {
 
 }
 
-func (db *DB) GetJobsData(cursor uint32) ([]*types.JobData, error) {
+func (db *DB) GetJobsData(cursor uint64) ([]*types.JobData, error) {
 	logger.LogAction(fmt.Sprintf("Getting jobs from cursor: %d", cursor))
 
 	rows, err := db.connection.Query(`
@@ -319,7 +319,7 @@ func (db *DB) CancelJob(jobID string) error {
 	return err
 }
 
-func (db *DB) GetHistoryData(cursor uint32) ([]*types.Historydata, error) {
+func (db *DB) GetHistoryData(cursor uint64) ([]*types.Historydata, error) {
 	logger.LogAction(fmt.Sprintf("Getting History from cursor: %d", cursor))
 
 	rows, err := db.connection.Query(`

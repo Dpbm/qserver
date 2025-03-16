@@ -199,7 +199,7 @@ func TestGetBackendSuccess(t *testing.T) {
 	assert.Equal(t, body.ID, "1")
 	assert.Equal(t, body.Name, constants.TEST_BACKEND)
 	assert.Equal(t, body.Plugin, constants.TEST_PLUGIN)
-	assert.Equal(t, body.Pointer, uint32(1))
+	assert.Equal(t, body.Pointer, uint64(1))
 }
 
 // ------- GET BACKENDS -------
@@ -265,7 +265,7 @@ func TestOneBackends(t *testing.T) {
 	assert.Equal(t, body[0].ID, "1")
 	assert.Equal(t, body[0].Name, constants.TEST_BACKEND)
 	assert.Equal(t, body[0].Plugin, constants.TEST_PLUGIN)
-	assert.Equal(t, body[0].Pointer, uint32(1))
+	assert.Equal(t, body[0].Pointer, uint64(1))
 }
 
 // ------- GET JOB -------
@@ -353,7 +353,7 @@ func TestGetJobSuccess(t *testing.T) {
 
 	expectedMetadata := map[string]any{}
 	expectedResultTypes := types.JobResultTypes{ID: "", JobId: "", Counts: false, QuasiDist: false, Expval: false}
-	expectedResults := types.JobResultData{ID: "", JobId: "", Counts: map[string]float32(nil), QuasiDist: map[int32]float32(nil), Expval: []float32(nil)}
+	expectedResults := types.JobResultData{ID: "", JobId: "", Counts: map[string]float64(nil), QuasiDist: map[int64]float64(nil), Expval: []float64(nil)}
 
 	var data types.JobData
 	json.NewDecoder(writer.Result().Body).Decode(&data)
@@ -361,7 +361,7 @@ func TestGetJobSuccess(t *testing.T) {
 	assert.Equal(t, data.ID, constants.TEST_JOB_ID)
 	assert.Equal(t, data.FinishTime.Time.String(), now.String())
 	assert.Equal(t, data.Metadata, expectedMetadata)
-	assert.Equal(t, data.Pointer, uint32(1))
+	assert.Equal(t, data.Pointer, uint64(1))
 	assert.Equal(t, data.Qasm, "nothing")
 	assert.Equal(t, data.ResultTypes, expectedResultTypes)
 	assert.Equal(t, data.Results, expectedResults)
@@ -451,9 +451,9 @@ func TestGetJobResultSuccess(t *testing.T) {
 
 	assert.Equal(t, data.ID, "1")
 	assert.Equal(t, data.JobId, constants.TEST_JOB_ID)
-	assert.Equal(t, data.Counts, map[string]float32{})
-	assert.Equal(t, data.QuasiDist, map[int32]float32{})
-	assert.Equal(t, data.Expval, []float32{})
+	assert.Equal(t, data.Counts, map[string]float64{})
+	assert.Equal(t, data.QuasiDist, map[int64]float64{})
+	assert.Equal(t, data.Expval, []float64{})
 }
 
 // ------- CANCEL JOB -------
@@ -750,11 +750,11 @@ func TestOneJob(t *testing.T) {
 
 	expectedMetadata := map[string]any{}
 	expectedResultTypes := types.JobResultTypes{ID: "", JobId: "", Counts: false, QuasiDist: false, Expval: false}
-	expectedResults := types.JobResultData{ID: "", JobId: "", Counts: map[string]float32(nil), QuasiDist: map[int32]float32(nil), Expval: []float32(nil)}
+	expectedResults := types.JobResultData{ID: "", JobId: "", Counts: map[string]float64(nil), QuasiDist: map[int64]float64(nil), Expval: []float64(nil)}
 
 	assert.Equal(t, len(body), 1)
 	assert.Equal(t, body[0].ID, "1")
-	assert.Equal(t, body[0].Pointer, uint32(1))
+	assert.Equal(t, body[0].Pointer, uint64(1))
 	assert.Equal(t, body[0].TargetSimulator, constants.TEST_BACKEND)
 	assert.Equal(t, body[0].Qasm, "AAAA")
 	assert.Equal(t, body[0].Status, "pending")
@@ -838,10 +838,10 @@ func TestOneHistoryJob(t *testing.T) {
 
 	expectedMetadata := map[string]any{}
 	expectedResultTypes := types.JobResultTypes{ID: "", JobId: "", Counts: false, QuasiDist: false, Expval: false}
-	expectedResults := types.JobResultData{ID: "", JobId: "", Counts: map[string]float32(nil), QuasiDist: map[int32]float32(nil), Expval: []float32(nil)}
+	expectedResults := types.JobResultData{ID: "", JobId: "", Counts: map[string]float64(nil), QuasiDist: map[int64]float64(nil), Expval: []float64(nil)}
 
 	assert.Equal(t, len(body), 1)
-	assert.Equal(t, body[0].ID, uint32(1))
+	assert.Equal(t, body[0].ID, uint64(1))
 	assert.Equal(t, body[0].JobId, constants.TEST_JOB_ID)
 	assert.Equal(t, body[0].TargetSimulator, constants.TEST_BACKEND)
 	assert.Equal(t, body[0].Qasm, "AAAA")

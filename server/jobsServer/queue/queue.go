@@ -11,5 +11,5 @@ type QueueConnection interface {
 }
 
 type Queue interface {
-	ConnectQueue(username string, password string, host string, port uint32) QueueConnection
+	ConnectQueue(username string, password string, host string, port uint16) QueueConnection
 }
