@@ -78,7 +78,8 @@ services:
             - qasm:/qasm
             - logs:/logs
         networks:
-            - qnet
+            qnet:
+                ipv4_address: 172.18.0.29
 
     api:
         container_name: api
@@ -100,7 +101,8 @@ services:
         volumes:
             - logs:/logs
         networks:
-            - qnet
+            qnet:
+                ipv4_address: 172.18.0.28
 
     workers:
         build:

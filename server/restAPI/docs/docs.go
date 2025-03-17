@@ -111,6 +111,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/health": {
+            "get": {
+                "description": "healthcheck, a route to test if everything is ok (like a ping command)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "get health",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/history": {
             "get": {
                 "description": "get jobs history",
@@ -237,7 +260,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "No results for this ID",
+                        "description": "No results for this ID or an issue occoured",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -349,17 +372,8 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "404": {
-                        "description": "No results for this ID",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
                     "500": {
-                        "description": "Failed during DB connection",
+                        "description": "Failed during DB connection or error during deletion",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -448,15 +462,6 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "404": {
-                        "description": "No results for this name",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
                     "500": {
                         "description": "Couldn't connect to database or get the plugin info from github",
                         "schema": {
@@ -505,17 +510,8 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "404": {
-                        "description": "No results for this Name",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
                     "500": {
-                        "description": "Failed during DB connection",
+                        "description": "Failed during DB connection or No results for this name",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -558,8 +554,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "metadata": {
-                    "type": "object",
-                    "additionalProperties": {}
+                    "$ref": "#/definitions/types.Metada"
                 },
                 "qasm": {
                     "type": "string"
@@ -594,8 +589,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "metadata": {
-                    "type": "object",
-                    "additionalProperties": {}
+                    "$ref": "#/definitions/types.Metada"
                 },
                 "pointer": {
                     "type": "integer"
@@ -671,6 +665,10 @@ const docTemplate = `{
                     "type": "boolean"
                 }
             }
+        },
+        "types.Metada": {
+            "type": "object",
+            "additionalProperties": {}
         }
     }
 }`

@@ -62,6 +62,11 @@ func SetupServer(dbInstance *db.DB) *gin.Engine {
 			backends.GET("/", routes.GetBackends)
 		}
 
+		healthcheck := v1.Group("/health")
+		{
+			healthcheck.GET("/", routes.GetHealth)
+		}
+
 	}
 
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

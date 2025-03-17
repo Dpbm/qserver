@@ -19,8 +19,7 @@ definitions:
       job_id:
         type: string
       metadata:
-        additionalProperties: {}
-        type: object
+        $ref: '#/definitions/types.Metada'
       qasm:
         type: string
       result_types:
@@ -43,8 +42,7 @@ definitions:
       id:
         type: string
       metadata:
-        additionalProperties: {}
-        type: object
+        $ref: '#/definitions/types.Metada'
       pointer:
         type: integer
       qasm:
@@ -93,6 +91,9 @@ definitions:
         type: string
       quasi_dist:
         type: boolean
+    type: object
+  types.Metada:
+    additionalProperties: {}
     type: object
 info:
   contact: {}
@@ -160,6 +161,21 @@ paths:
       summary: get all backends
       tags:
       - backends
+  /health:
+    get:
+      description: healthcheck, a route to test if everything is ok (like a ping command)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: get health
+      tags:
+      - health
   /history:
     get:
       description: get jobs history
@@ -210,14 +226,8 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "404":
-          description: No results for this ID
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "500":
-          description: Failed during DB connection
+          description: Failed during DB connection or error during deletion
           schema:
             additionalProperties:
               type: string
@@ -317,7 +327,7 @@ paths:
               type: string
             type: object
         "404":
-          description: No results for this ID
+          description: No results for this ID or an issue occoured
           schema:
             additionalProperties:
               type: string
@@ -381,14 +391,8 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "404":
-          description: No results for this Name
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "500":
-          description: Failed during DB connection
+          description: Failed during DB connection or No results for this name
           schema:
             additionalProperties:
               type: string
@@ -415,12 +419,6 @@ paths:
             type: object
         "400":
           description: Invalid Name parameter
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: No results for this name
           schema:
             additionalProperties:
               type: string

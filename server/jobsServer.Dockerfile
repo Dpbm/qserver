@@ -12,9 +12,10 @@ RUN go build -o serverExec .
 
 RUN mkdir -p /qasm
 
-FROM scratch
+FROM busybox:1.37.0
 COPY --from=build /go/src/server/serverExec /server
 COPY --from=build /qasm /qasm
+
 
 EXPOSE 50051
 
