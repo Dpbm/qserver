@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Jobs_AddJob_FullMethodName = "/Jobs/AddJob"
+	Jobs_AddJob_FullMethodName      = "/Jobs/AddJob"
+	Jobs_HealthCheck_FullMethodName = "/Jobs/HealthCheck"
 )
 
 // JobsClient is the client API for Jobs service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type JobsClient interface {
 	AddJob(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[JobData, PendingJob], error)
+	HealthCheck(ctx context.Context, in *HealthCheckInput, opts ...grpc.CallOption) (*Health, error)
 }
 
 type jobsClient struct {
@@ -50,11 +52,22 @@ func (c *jobsClient) AddJob(ctx context.Context, opts ...grpc.CallOption) (grpc.
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Jobs_AddJobClient = grpc.ClientStreamingClient[JobData, PendingJob]
 
+func (c *jobsClient) HealthCheck(ctx context.Context, in *HealthCheckInput, opts ...grpc.CallOption) (*Health, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Health)
+	err := c.cc.Invoke(ctx, Jobs_HealthCheck_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JobsServer is the server API for Jobs service.
 // All implementations must embed UnimplementedJobsServer
 // for forward compatibility.
 type JobsServer interface {
 	AddJob(grpc.ClientStreamingServer[JobData, PendingJob]) error
+	HealthCheck(context.Context, *HealthCheckInput) (*Health, error)
 	mustEmbedUnimplementedJobsServer()
 }
 
@@ -67,6 +80,9 @@ type UnimplementedJobsServer struct{}
 
 func (UnimplementedJobsServer) AddJob(grpc.ClientStreamingServer[JobData, PendingJob]) error {
 	return status.Errorf(codes.Unimplemented, "method AddJob not implemented")
+}
+func (UnimplementedJobsServer) HealthCheck(context.Context, *HealthCheckInput) (*Health, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HealthCheck not implemented")
 }
 func (UnimplementedJobsServer) mustEmbedUnimplementedJobsServer() {}
 func (UnimplementedJobsServer) testEmbeddedByValue()              {}
@@ -96,13 +112,36 @@ func _Jobs_AddJob_Handler(srv interface{}, stream grpc.ServerStream) error {
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Jobs_AddJobServer = grpc.ClientStreamingServer[JobData, PendingJob]
 
+func _Jobs_HealthCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HealthCheckInput)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobsServer).HealthCheck(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Jobs_HealthCheck_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobsServer).HealthCheck(ctx, req.(*HealthCheckInput))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Jobs_ServiceDesc is the grpc.ServiceDesc for Jobs service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Jobs_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "Jobs",
 	HandlerType: (*JobsServer)(nil),
-	Methods:     []grpc.MethodDesc{},
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "HealthCheck",
+			Handler:    _Jobs_HealthCheck_Handler,
+		},
+	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "AddJob",

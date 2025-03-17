@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -102,4 +103,8 @@ func (server *JobsServer) AddJob(request jobsServerProto.Jobs_AddJobServer) erro
 	}
 
 	return request.SendAndClose(&jobsServerProto.PendingJob{Id: jobId})
+}
+
+func (server *JobsServer) HealthCheck(ctx context.Context, request *jobsServerProto.HealthCheckInput) (*jobsServerProto.Health, error) {
+	return &jobsServerProto.Health{Status: "OK"}, nil
 }

@@ -4,6 +4,7 @@ option go_package = "github.com/Dpbm/jobs_server";
 
 service Jobs{
 	rpc AddJob (stream JobData) returns (PendingJob) {}
+	rpc HealthCheck (HealthCheckInput) returns (Health) {}
 }
 
 message JobProperties{
@@ -24,4 +25,10 @@ message JobData{
 
 message PendingJob{
 	string id = 1;
+}
+
+message HealthCheckInput{}
+
+message Health{
+	string status = 1;
 }

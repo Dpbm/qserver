@@ -11,11 +11,19 @@ RUN go mod download && go mod verify
 RUN go build -o serverExec .
 
 RUN mkdir -p /qasm
+RUN mkdir -p /bin-tmp
 
-FROM busybox:1.37.0
+WORKDIR /bin-tmp
+RUN wget https://github.com/fullstorydev/grpcurl/releases/download/v1.9.2/grpcurl_1.9.2_linux_x86_64.tar.gz && \
+    tar -xvf grpcurl_1.9.2_linux_x86_64.tar.gz
+
+FROM scratch
 COPY --from=build /go/src/server/serverExec /server
 COPY --from=build /qasm /qasm
+COPY --from=build /bin-tmp/grpcurl /grpcurl
 
+HEALTHCHECK --interval=1m --timeout=10s --start-period=5s --retries=3 \
+    CMD ["/grpcurl", "-plaintext", "172.18.0.29:50051", "Jobs/HealthCheck"]
 
 EXPOSE 50051
 

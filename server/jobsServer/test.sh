@@ -87,12 +87,10 @@ EOM
 
     echo "\n"
     grpcurl -plaintext -d "$DATA" $SERVER Jobs/AddJob
+}
 
-    if [ $? != 0 ]; then
-        return 1
-    else 
-        return 0
-    fi
+run_test_8(){
+    grpcurl -plaintext $SERVER Jobs/HealthCheck
 }
 
 
@@ -122,4 +120,8 @@ has_passed
 
 test_header 7 "Valid Data"
 run_test_7
+has_passed
+
+test_header 8 "Healthcheck"
+run_test_8
 has_passed
