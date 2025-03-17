@@ -1,9 +1,9 @@
 import os
 import sys
 import datetime
-import pika
 import uuid
 import logging
+import pika
 from utils import DB, Plugin
 from utils.types import port_to_int, Statuses
 from utils.exceptions import (
@@ -25,6 +25,7 @@ from utils.log_files import create_path
 logger = logging.getLogger(__name__)
 logging.getLogger("pika").setLevel(logging.WARNING)
 
+
 # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 def callback(ch, method, body, db_instance):
     """
@@ -33,7 +34,7 @@ def callback(ch, method, body, db_instance):
     try:
         job_id = body.decode()
 
-        logger.debug(f"Processing job {job_id}")
+        logger.debug("Processing job %s", job_id)
 
         data = db_instance.get_job_data(job_id)
         if not valid_data_for_id(data):
@@ -80,7 +81,7 @@ def callback(ch, method, body, db_instance):
             if not active:
                 continue
 
-            logger.debug(f"executing for {result_type} results")
+            logger.debug("executing for %s results", result_type)
             results = plugin.run(target_backend, qasm_file, metadata, result_type)
 
             logger.debug("Saving results...")
@@ -103,7 +104,7 @@ def callback(ch, method, body, db_instance):
     except Exception as error:
         db_instance.update_job_finish_time_to_now(job_id)
         db_instance.update_job_status(Statuses.FAILED, job_id)
-        logger.error(f"failed on worker callback: {str(error)}")
+        logger.error("failed on worker callback: %s", str(error))
 
     finally:
         ch.basic_ack(delivery_tag=method.delivery_tag)
@@ -113,12 +114,13 @@ if __name__ == "__main__":
 
     logs_path = os.getenv("LOGS_PATH")
     if logs_path:
-        filename = os.path.join(logs_path, f'{str(datetime.datetime.now())}-{str(uuid.uuid4())}.log')
+        filename = os.path.join(
+            logs_path, f"{str(datetime.datetime.now())}-{str(uuid.uuid4())}.log"
+        )
         create_path(filename)
         logging.basicConfig(level=logging.DEBUG, filename=filename)
     else:
         logging.basicConfig(level=logging.DEBUG)
-
 
     rabbitmq_host = os.getenv("RABBITMQ_HOST")
     rabbitmq_port = port_to_int(os.getenv("RABBITMQ_PORT"))
@@ -144,7 +146,7 @@ if __name__ == "__main__":
     )
 
     if None in variables:
-        logger.error(f"Invalid environment variables!: {variables}")
+        logger.error("Invalid environment variables!: %s", str(variables))
         sys.exit(1)
 
     credentials = pika.PlainCredentials(rabbitmq_user, rabbitmq_password)
