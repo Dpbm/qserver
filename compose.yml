@@ -42,6 +42,11 @@ services:
         container_name: rabbitmq
         hostname: rabbitmqInstance
         image: rabbitmq:4.0.5-alpine
+        healthcheck:
+            test: rabbitmq-diagnostics check_port_connectivity
+            interval: 5s
+            timeout: 10s
+            retries: 3
         restart: always
         ports:
             - '5672:5672'
