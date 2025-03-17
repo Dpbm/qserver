@@ -24,7 +24,7 @@ class TestWorker:
 
         callback(channel, method, body, db)
 
-        assert db.get_status() == Statuses.PENDING
+        assert db.get_status() == Statuses.PENDING.value
 
     def test_invalid_result_types(self):
         """
@@ -37,7 +37,7 @@ class TestWorker:
 
         callback(channel, method, body, db)
 
-        assert db.get_status() == Statuses.FAILED
+        assert db.get_status() == Statuses.FAILED.value
 
     def test_invalid_qasm(self):
         """
@@ -50,7 +50,7 @@ class TestWorker:
 
         callback(channel, method, body, db)
 
-        assert db.get_status() == Statuses.FAILED
+        assert db.get_status() == Statuses.FAILED.value
 
     def test_invalid_backend(self):
         """
@@ -66,7 +66,7 @@ class TestWorker:
 
         callback(channel, method, body, db)
 
-        assert db.get_status() == Statuses.FAILED
+        assert db.get_status() == Statuses.FAILED.value
 
     def test_canceled_job(self):
         """
@@ -78,14 +78,14 @@ class TestWorker:
             qasm="./tests/qasm_test.qasm",
             backend="test",
         )
-        db.update_job_status(Statuses.CANCELED, job_id)
+        db.update_job_status(Statuses.CANCELED.value, job_id)
         channel = Channel()
         method = Method()
         body = Body(job_id)
 
         callback(channel, method, body, db)
 
-        assert db.get_status() == Statuses.CANCELED
+        assert db.get_status() == Statuses.CANCELED.value
 
     def test_invalid_status(self):
         """
@@ -97,14 +97,14 @@ class TestWorker:
             qasm="./tests/qasm_test.qasm",
             backend="test",
         )
-        db.update_job_status(Statuses.FINISHED, job_id)
+        db.update_job_status(Statuses.FINISHED.value, job_id)
         channel = Channel()
         method = Method()
         body = Body(job_id)
 
         callback(channel, method, body, db)
 
-        assert db.get_status() == Statuses.FINISHED
+        assert db.get_status() == Statuses.FINISHED.value
 
     def test_invalid_plugin(self):
         """
@@ -124,7 +124,7 @@ class TestWorker:
 
         callback(channel, method, body, db)
 
-        assert db.get_status() == Statuses.FAILED
+        assert db.get_status() == Statuses.FAILED.value
 
     def test_valid_plugin(self):
         """
@@ -144,7 +144,7 @@ class TestWorker:
 
         callback(channel, method, body, db)
 
-        assert db.get_status() == Statuses.FINISHED
+        assert db.get_status() == Statuses.FINISHED.value
 
 
 class Body:
@@ -196,7 +196,7 @@ class DB:
     ):
         self._data = {
             "id": "job-valid-id",
-            "status": Statuses.PENDING,
+            "status": Statuses.PENDING.value,
             "finish_time": None,
             "start_time": None,
             "qasm": qasm,
@@ -218,7 +218,7 @@ class DB:
         """
         return self._data if self._is_the_correct_id(job_id) else None
 
-    def update_job_status(self, status: Statuses, job_id: str):
+    def update_job_status(self, status: str, job_id: str):
         """
         Update job status for an arbitrary one
         """
@@ -245,11 +245,11 @@ class DB:
 
         self._data["start_time"] = "now"
 
-    def get_status(self) -> Statuses:
+    def get_status(self) -> str:
         """
         Get current job status
         """
-        return Statuses(self._data["status"])
+        return Statuses(self._data["status"]).value
 
     # pylint: disable=unused-argument
     def get_plugin(self, _: str) -> List[str]:

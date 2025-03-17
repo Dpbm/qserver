@@ -1,10 +1,13 @@
+from typing import Any
+
+
 class CanceledJob(Exception):
     """
     An error for when a job is canceled by user.
     """
 
-    def __init__(self):
-        super().__init__("Job was canceled")
+    def __init__(self, job_id: str):
+        super().__init__(f"Job was canceled. JOB ID={job_id}")
 
 
 class IdNotFound(Exception):
@@ -13,8 +16,8 @@ class IdNotFound(Exception):
     an invalid or not stored in database ID
     """
 
-    def __init__(self):
-        super().__init__("Job ID not found")
+    def __init__(self, data: Any):
+        super().__init__(f"Job ID not found. Got Data: {data}")
 
 
 class InvalidResultTypes(Exception):
@@ -23,8 +26,8 @@ class InvalidResultTypes(Exception):
     invalid data for result types
     """
 
-    def __init__(self):
-        super().__init__("Invalid Result Types")
+    def __init__(self, types: Any):
+        super().__init__(f"Invalid Result Types. Got: {types}")
 
 
 class InvalidQasmFile(Exception):
@@ -33,9 +36,10 @@ class InvalidQasmFile(Exception):
     invalid qasm file
     """
 
-    def __init__(self):
+    def __init__(self, qasm: Any):
         super().__init__(
-            "Invalid QASM. You must provide the correct path for your code!"
+            "Invalid QASM. You must provide the correct path for your code! "
+            + f"Got: {qasm}"
         )
 
 
@@ -45,8 +49,8 @@ class InvalidBackend(Exception):
     invalid Backend name
     """
 
-    def __init__(self):
-        super().__init__("Invalid backend")
+    def __init__(self, backend: Any):
+        super().__init__(f"Invalid backend. Got: {backend}")
 
 
 class InvalidStatus(Exception):
@@ -55,5 +59,5 @@ class InvalidStatus(Exception):
     a status different of pending
     """
 
-    def __init__(self):
-        super().__init__("Invalid Status")
+    def __init__(self, status: Any):
+        super().__init__(f"Invalid Status. Got: {status}")

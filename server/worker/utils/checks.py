@@ -24,12 +24,7 @@ def valid_qasm(qasm: Any) -> bool:
     """
     check if the qasm file path is valid and the file exists
     """
-    return (
-        isinstance(qasm, str)
-        and len(qasm) >= 10
-        and len(qasm) <= 40
-        and os.path.exists(qasm)
-    )
+    return isinstance(qasm, str) and len(qasm) > 10 and os.path.exists(qasm)
 
 
 def valid_backend(backend: Any) -> bool:

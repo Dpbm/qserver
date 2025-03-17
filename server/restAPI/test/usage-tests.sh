@@ -99,7 +99,7 @@ add_plugin(){
 add_job(){
         DATA=$(cat <<EOM
 {"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"aer", "metadata":"{}"}}
-{"qasmChunk":"OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[1];\nx q[0];"}
+{"qasmChunk":"OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[1];\ncreg c[1];\nx q[0];\nmeasure q -> c;"}
 EOM
 )
     grpcurl -plaintext -d "$DATA" "$GRPC_SERVER" Jobs/AddJob | jq '.id' | sed 's/\"//g'
@@ -293,7 +293,7 @@ run_test_13(){
 
     STATUS="pending"
     COUNTER=0
-    MAX_COUNTER=10000
+    MAX_COUNTER=20
     echo -e "${BLUE}Waiting for job $ID...${ENDC}"
     while ([ "$STATUS" = 'pending' ] || [ "$STATUS" = 'running' ]) && [ "$COUNTER" -lt "$MAX_COUNTER" ]; do
         STATUS=$(get_job_status $ID)
@@ -305,6 +305,11 @@ run_test_13(){
         COUNTER=$(( COUNTER + 1 ))
         sleep 1
     done
+
+    if [ "$STATUS" = 'pending' ] || [ "$STATUS" = 'running' ] || [ "$STATUS" = 'failed' ]; then
+        echo -e "${RED}Failed status${ENDC}"
+        return 1
+    fi
 
 
     curl -f "$SERVER_URL/api/v1/job/result/$ID"
@@ -380,7 +385,7 @@ run_test_17(){
 
     STATUS="pending"
     COUNTER=0
-    MAX_COUNTER=10000
+    MAX_COUNTER=20
     echo -e "${BLUE}Waiting for job $ID...${ENDC}"
     while ([ "$STATUS" = 'pending' ] || [ "$STATUS" = 'running' ]) && [ "$COUNTER" -lt "$MAX_COUNTER" ]; do
         STATUS=$(get_job_status $ID)
@@ -392,6 +397,11 @@ run_test_17(){
         COUNTER=$(( COUNTER + 1 ))
         sleep 1
     done
+
+    if [ "$STATUS" = 'pending' ] || [ "$STATUS" = 'running' ]; then
+        echo -e "${RED}Failed status${ENDC}"
+        return 1
+    fi
 
     curl --request PUT -f "$SERVER_URL/api/v1/job/cancel/$ID"
 

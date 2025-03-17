@@ -38,33 +38,33 @@ def callback(ch, method, body, db_instance):
 
         data = db_instance.get_job_data(job_id)
         if not valid_data_for_id(data):
-            raise IdNotFound()
+            raise IdNotFound(data)
 
         result_types = data["selected_result_types"]
         if not valid_result_types(result_types):
-            raise InvalidResultTypes()
+            raise InvalidResultTypes(result_types)
 
         qasm_file = data["qasm"]
         if not valid_qasm(qasm_file):
-            raise InvalidQasmFile()
+            raise InvalidQasmFile(qasm_file)
 
         target_backend = data["target_simulator"]
         if not valid_backend(target_backend):
-            raise InvalidBackend()
+            raise InvalidBackend(target_backend)
 
         metadata = {}
         if data.get("metadata") is not None:
             metadata = data["metadata"]
 
         status = data["status"]
-        if status == Statuses.CANCELED:
-            raise CanceledJob()
+        if status == Statuses.CANCELED.value:
+            raise CanceledJob(job_id)
 
-        if status != Statuses.PENDING:
-            raise InvalidStatus()
+        if status != Statuses.PENDING.value:
+            raise InvalidStatus(status)
 
         db_instance.update_job_start_time_to_now(job_id)
-        db_instance.update_job_status(Statuses.RUNNING, job_id)
+        db_instance.update_job_status(Statuses.RUNNING.value, job_id)
 
         # the plugin name is first checked by the api to see if it's official
         # however, the user may try to bypass that
@@ -88,13 +88,15 @@ def callback(ch, method, body, db_instance):
             db_instance.save_results(result_type, results, job_id)
 
         db_instance.update_job_finish_time_to_now(job_id)
-        db_instance.update_job_status(Statuses.FINISHED, job_id)
+        db_instance.update_job_status(Statuses.FINISHED.value, job_id)
 
-    except IdNotFound:
+    except IdNotFound as error:
         logger.error("Job Id Not Found")
+        logger.error(str(error))
 
-    except InvalidStatus:
+    except InvalidStatus as error:
         logger.error("Job was already executed")
+        logger.error(str(error))
 
     except CanceledJob:
         db_instance.update_job_finish_time_to_now(job_id)
@@ -103,7 +105,7 @@ def callback(ch, method, body, db_instance):
     # pylint: disable=broad-exception-caught
     except Exception as error:
         db_instance.update_job_finish_time_to_now(job_id)
-        db_instance.update_job_status(Statuses.FAILED, job_id)
+        db_instance.update_job_status(Statuses.FAILED.value, job_id)
         logger.error("failed on worker callback: %s", str(error))
 
     finally:
