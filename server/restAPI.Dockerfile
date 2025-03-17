@@ -12,6 +12,7 @@ WORKDIR /go/src/api
 RUN go mod download && go mod verify
 RUN go build -o serverExec .
 
+# TODO: In the future, get rid of busy box and do a clever way to apply healthcheck.
 FROM busybox:1.37.0
 # https://stackoverflow.com/questions/52969195/docker-container-running-golang-http-client-getting-error-certificate-signed-by
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/

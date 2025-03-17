@@ -194,7 +194,11 @@ func TestGetBackendSuccess(t *testing.T) {
 	assert.Equal(t, 200, writer.Code)
 
 	var body types.BackendData
-	json.NewDecoder(writer.Result().Body).Decode(&body)
+	err := json.NewDecoder(writer.Result().Body).Decode(&body)
+
+	if err != nil {
+		t.FailNow()
+	}
 
 	assert.Equal(t, body.ID, "1")
 	assert.Equal(t, body.Name, constants.TEST_BACKEND)
@@ -226,7 +230,11 @@ func TestNoBackends(t *testing.T) {
 	assert.Equal(t, 200, writer.Code)
 
 	var body []types.BackendData
-	json.NewDecoder(writer.Result().Body).Decode(&body)
+	err := json.NewDecoder(writer.Result().Body).Decode(&body)
+
+	if err != nil {
+		t.FailNow()
+	}
 
 	assert.Equal(t, len(body), 0)
 }
@@ -259,7 +267,11 @@ func TestOneBackends(t *testing.T) {
 	assert.Equal(t, 200, writer.Code)
 
 	var body []types.BackendData
-	json.NewDecoder(writer.Result().Body).Decode(&body)
+	err := json.NewDecoder(writer.Result().Body).Decode(&body)
+
+	if err != nil {
+		t.FailNow()
+	}
 
 	assert.Equal(t, len(body), 1)
 	assert.Equal(t, body[0].ID, "1")
@@ -356,7 +368,11 @@ func TestGetJobSuccess(t *testing.T) {
 	expectedResults := types.JobResultData{ID: "", JobId: "", Counts: map[string]float64(nil), QuasiDist: map[int64]float64(nil), Expval: []float64(nil)}
 
 	var data types.JobData
-	json.NewDecoder(writer.Result().Body).Decode(&data)
+	err := json.NewDecoder(writer.Result().Body).Decode(&data)
+
+	if err != nil {
+		t.FailNow()
+	}
 
 	assert.Equal(t, data.ID, constants.TEST_JOB_ID)
 	assert.Equal(t, data.FinishTime.Time.String(), now.String())
@@ -447,7 +463,11 @@ func TestGetJobResultSuccess(t *testing.T) {
 	assert.Equal(t, 200, writer.Code)
 
 	var data types.JobResultData
-	json.NewDecoder(writer.Result().Body).Decode(&data)
+	err := json.NewDecoder(writer.Result().Body).Decode(&data)
+
+	if err != nil {
+		t.FailNow()
+	}
 
 	assert.Equal(t, data.ID, "1")
 	assert.Equal(t, data.JobId, constants.TEST_JOB_ID)
@@ -702,7 +722,11 @@ func TestNoJobs(t *testing.T) {
 	assert.Equal(t, 200, writer.Code)
 
 	var body []types.BackendData
-	json.NewDecoder(writer.Result().Body).Decode(&body)
+	err := json.NewDecoder(writer.Result().Body).Decode(&body)
+
+	if err != nil {
+		t.FailNow()
+	}
 
 	assert.Equal(t, len(body), 0)
 }
@@ -746,7 +770,11 @@ func TestOneJob(t *testing.T) {
 	assert.Equal(t, 200, writer.Code)
 
 	var body []types.JobData
-	json.NewDecoder(writer.Result().Body).Decode(&body)
+	err := json.NewDecoder(writer.Result().Body).Decode(&body)
+
+	if err != nil {
+		t.FailNow()
+	}
 
 	expectedMetadata := map[string]any{}
 	expectedResultTypes := types.JobResultTypes{ID: "", JobId: "", Counts: false, QuasiDist: false, Expval: false}
@@ -790,7 +818,11 @@ func TestNoHistory(t *testing.T) {
 	assert.Equal(t, 200, writer.Code)
 
 	var body []types.BackendData
-	json.NewDecoder(writer.Result().Body).Decode(&body)
+	err := json.NewDecoder(writer.Result().Body).Decode(&body)
+
+	if err != nil {
+		t.FailNow()
+	}
 
 	assert.Equal(t, len(body), 0)
 }
@@ -834,7 +866,11 @@ func TestOneHistoryJob(t *testing.T) {
 	assert.Equal(t, 200, writer.Code)
 
 	var body []types.Historydata
-	json.NewDecoder(writer.Result().Body).Decode(&body)
+	err := json.NewDecoder(writer.Result().Body).Decode(&body)
+
+	if err != nil {
+		t.FailNow()
+	}
 
 	expectedMetadata := map[string]any{}
 	expectedResultTypes := types.JobResultTypes{ID: "", JobId: "", Counts: false, QuasiDist: false, Expval: false}
@@ -856,3 +892,4 @@ func TestOneHistoryJob(t *testing.T) {
 
 // TODO: TEST ADDING 20 JOBS/BACKENDS/HISTORY AND GETTING THE NEXT PAGE
 // ADD A FAKE PLUGIN FOR THAT (use instead of aer)
+// TEST HEALTHCHECK

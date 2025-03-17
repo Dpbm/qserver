@@ -97,7 +97,15 @@ func (server *JobsServer) AddJob(request jobsServerProto.Jobs_AddJobServer) erro
 	err = server.QueueChannel.AddJob(server.QueueName, jobId)
 	if err != nil {
 		logger.LogError(err)
-		server.Database.RemoveJob(jobId)
+
+		if server.Database != nil {
+			err = server.Database.RemoveJob(jobId)
+
+			if err != nil {
+				logger.LogError(err)
+				return err
+			}
+		}
 		qasmFile.RemoveFile()
 		return err
 	}

@@ -40,8 +40,25 @@ jobs:
                   chmod +x check-postgres-status-for-ci.sh && \
                   ./check-postgres-status-for-ci.sh
 
-    jobsServer:
+    jobs-server-lint:
+      runs-on: ubuntu-24.04
+      steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go 1.23.5
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.5'
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64
+          working-directory: ./server/jobsServer
+
+    jobs-server-tests:
         runs-on: ubuntu-24.04
+        needs: jobs-server-lint
 
         steps:
             - uses: actions/checkout@v4
@@ -64,8 +81,25 @@ jobs:
                   max_attempts: 3
                   command: cd ./server/jobsServer && chmod +x test.sh && PATH=$HOME/go-binaries/bin:$PATH HOST="0.0.0.0" ./test.sh
 
+    api-lint:
+      runs-on: ubuntu-24.04
+      steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go 1.23.5
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.5'
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64
+          working-directory: ./server/restAPI
+
     api-go-tests:
         runs-on: ubuntu-24.04
+        needs: api-lint
 
         steps:
             - uses: actions/checkout@v4
@@ -91,6 +125,7 @@ jobs:
 
     api-usage-tests:
         runs-on: ubuntu-24.04
+        needs: api-lint
 
         steps:
             - uses: actions/checkout@v4

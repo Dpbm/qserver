@@ -67,11 +67,11 @@ func main() {
 	}
 
 	server := &serverDefinition.GRPC{}
-	server.Create(serverHost, serverPort, jobServerDefinition)
+	server.Create(serverHost, serverPort, jobServerDefinition) // in case of error it runs os.Exit(1)
 	defer server.Close()
 
 	logger.LogAction(fmt.Sprintf("Listening on host: %s", server.TCPServer.ServerURL))
-	server.Listen()
+	server.Listen() // in case of error it runs os.Exit(1)
 
 	if logFile != nil {
 		logFile.CloseLogFile()

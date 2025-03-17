@@ -12,6 +12,7 @@
         "genproto",
         "github",
         "GOBIN",
+        "golangci",
         "gonic",
         "grpcurl",
         "healthcheck",

@@ -37,7 +37,13 @@ func main() {
 	server := server.SetupServer(&dbInstance)
 
 	portString := fmt.Sprintf(":%d", port)
-	server.Run(portString)
+	err := server.Run(portString)
+
+	if err != nil {
+		logger.LogError(err)
+		logFile.CloseLogFile()
+		os.Exit(1)
+	}
 
 	if logFile != nil {
 		logFile.CloseLogFile()
