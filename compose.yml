@@ -109,9 +109,12 @@ services:
         env_file:
             - ./rabbitmq.env
             - ./db.env
+        environment:
+            LOGS_PATH: /logs/worker/
         restart: always
         volumes:
             - qasm:/qasm
+            - logs:/logs
         networks:
             - qnet
 

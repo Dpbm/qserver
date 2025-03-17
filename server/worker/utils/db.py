@@ -17,7 +17,6 @@ class DB:
         )
         # cursor_factory: https://www.geeksforgeeks.org/psycopg2-return-dictionary-like-values/
         self._cursor = self._connection.cursor(cursor_factory=pgextras.RealDictCursor)
-        print("Initialized DB")
 
     def get_job_data(self, job_id: str) -> DBRow:
         """

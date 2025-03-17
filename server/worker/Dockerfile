@@ -1,5 +1,7 @@
 FROM python:3.12.9-alpine3.21
 
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /server
 COPY requirements.txt .
 

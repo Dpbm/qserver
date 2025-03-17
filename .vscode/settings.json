@@ -38,6 +38,7 @@
         "pylintrc",
         "pyrightconfig",
         "pytest",
+        "PYTHONUNBUFFERED",
         "qasm",
         "qexec",
         "qiskit",

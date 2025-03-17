@@ -1,6 +1,9 @@
 import os
 import sys
+import datetime
 import pika
+import uuid
+import logging
 from utils import DB, Plugin
 from utils.types import port_to_int, Statuses
 from utils.exceptions import (
@@ -17,7 +20,10 @@ from utils.checks import (
     valid_qasm,
     valid_backend,
 )
+from utils.log_files import create_path
 
+logger = logging.getLogger(__name__)
+logging.getLogger("pika").setLevel(logging.WARNING)
 
 # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 def callback(ch, method, body, db_instance):
@@ -27,7 +33,7 @@ def callback(ch, method, body, db_instance):
     try:
         job_id = body.decode()
 
-        print(f"Processing job {job_id}")
+        logger.debug(f"Processing job {job_id}")
 
         data = db_instance.get_job_data(job_id)
         if not valid_data_for_id(data):
@@ -74,36 +80,46 @@ def callback(ch, method, body, db_instance):
             if not active:
                 continue
 
-            print(f"executing for {result_type} results")
+            logger.debug(f"executing for {result_type} results")
             results = plugin.run(target_backend, qasm_file, metadata, result_type)
 
-            print("Saving results...")
+            logger.debug("Saving results...")
             db_instance.save_results(result_type, results, job_id)
 
         db_instance.update_job_finish_time_to_now(job_id)
         db_instance.update_job_status(Statuses.FINISHED, job_id)
 
     except IdNotFound:
-        print("Job Id Not Found")
+        logger.error("Job Id Not Found")
 
     except InvalidStatus:
-        print("Job was already executed")
+        logger.error("Job was already executed")
 
     except CanceledJob:
         db_instance.update_job_finish_time_to_now(job_id)
-        print("Job Was Canceled")
+        logger.warning("Job Was Canceled")
 
     # pylint: disable=broad-exception-caught
     except Exception as error:
         db_instance.update_job_finish_time_to_now(job_id)
         db_instance.update_job_status(Statuses.FAILED, job_id)
-        print(f"failed on worker callback: {str(error)}")
+        logger.error(f"failed on worker callback: {str(error)}")
 
     finally:
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 if __name__ == "__main__":
+
+    logs_path = os.getenv("LOGS_PATH")
+    if logs_path:
+        filename = os.path.join(logs_path, f'{str(datetime.datetime.now())}-{str(uuid.uuid4())}.log')
+        create_path(filename)
+        logging.basicConfig(level=logging.DEBUG, filename=filename)
+    else:
+        logging.basicConfig(level=logging.DEBUG)
+
+
     rabbitmq_host = os.getenv("RABBITMQ_HOST")
     rabbitmq_port = port_to_int(os.getenv("RABBITMQ_PORT"))
     rabbitmq_queue_name = os.getenv("RABBITMQ_QUEUE_NAME")
@@ -116,7 +132,7 @@ if __name__ == "__main__":
     db_user = os.getenv("DB_USERNAME")
     db_password = os.getenv("DB_PASSWORD")
 
-    if None in (
+    variables = (
         rabbitmq_host,
         rabbitmq_port,
         rabbitmq_queue_name,
@@ -125,15 +141,17 @@ if __name__ == "__main__":
         db_name,
         db_user,
         db_password,
-    ):
-        print("Invalid environment variables!")
+    )
+
+    if None in variables:
+        logger.error(f"Invalid environment variables!: {variables}")
         sys.exit(1)
 
     credentials = pika.PlainCredentials(rabbitmq_user, rabbitmq_password)
     # pylint: disable=invalid-name
     connection = None
 
-    print("Waiting for connection...")
+    logger.debug("Waiting for connection...")
     while connection is None:
         try:
             connection = pika.BlockingConnection(
@@ -142,20 +160,28 @@ if __name__ == "__main__":
         # pylint: disable=broad-exception-caught
         except Exception:
             pass
-    print("Connection Stablished!")
+    logger.debug("Connection Stablished!")
 
     channel = connection.channel()
 
     channel.queue_declare(queue=rabbitmq_queue_name, durable=True)
-    print("Waiting for jobs...")
+    logger.debug("Waiting for jobs...")
 
-    db = DB(
-        host=db_host,  # type: ignore
-        port=db_port,  # type: ignore
-        db_name=db_name,  # type: ignore
-        user=db_user,  # type: ignore
-        password=db_password,  # type: ignore
-    )
+    db = None
+    while db is None:
+        try:
+            db = DB(
+                host=db_host,  # type: ignore
+                port=db_port,  # type: ignore
+                db_name=db_name,  # type: ignore
+                user=db_user,  # type: ignore
+                password=db_password,  # type: ignore
+            )
+
+        # pylint: disable=broad-exception-caught
+        except Exception:
+            pass
+    logger.debug("Connected to DB!")
 
     channel.basic_qos(
         prefetch_count=1
