@@ -6,6 +6,7 @@ source ../../colors.sh
 
 export PORT=3000
 export GIN_MODE=debug
+export TRUSTED_PROXY=
 
 export DB_HOST=0.0.0.0
 export DB_PORT=5432

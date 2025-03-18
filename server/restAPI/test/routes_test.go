@@ -26,6 +26,7 @@ const dbPort = 0
 const dbUsername = ""
 const dbPassword = ""
 const dbName = ""
+const proxy = ""
 
 // ------- ADD PLUGIN -------
 func TestAddPluginFailedNoPluginName(t *testing.T) {
@@ -33,7 +34,7 @@ func TestAddPluginFailedNoPluginName(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", "/api/v1/plugin/", nil)
@@ -48,7 +49,7 @@ func TestAddPluginFailedInvalidPlugin(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", "/api/v1/plugin/invalid-plugin-test-it-should-not-work", nil)
@@ -63,7 +64,7 @@ func TestAddPluginSuccess(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
@@ -87,7 +88,7 @@ func TestDeletePluginFailedNoPluginName(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("DELETE", "/api/v1/plugin/", nil)
@@ -102,7 +103,7 @@ func TestDeletePluginFailedNotFoundInstalledPlugin(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("DELETE", "/api/v1/plugin/doesnt-exists", nil)
@@ -117,7 +118,7 @@ func TestDeletePluginSuccess(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
@@ -141,7 +142,7 @@ func TestGetBackendFailedNoBackendName(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/v1/backend/", nil)
@@ -156,7 +157,7 @@ func TestGetBackendFailedNoBackendWithThisName(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
@@ -178,7 +179,7 @@ func TestGetBackendSuccess(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
@@ -215,7 +216,7 @@ func TestNoBackends(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
@@ -246,7 +247,7 @@ func TestOneBackends(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
@@ -289,7 +290,7 @@ func TestGetJobWithoutPassingJobID(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/v1/job/", nil)
@@ -304,7 +305,7 @@ func TestGetJobUsingInvalidJobID(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/v1/job/invalid-id", nil)
@@ -319,7 +320,7 @@ func TestGetJobIDNotFound(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/v1/job/%s", constants.TEST_JOB_ID), nil)
@@ -334,7 +335,7 @@ func TestGetJobSuccess(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
@@ -396,7 +397,7 @@ func TestGetJobResultWithoutPassingJobID(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/v1/job/result/", nil)
@@ -411,7 +412,7 @@ func TestGetJobResultUsingInvalidJobID(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/v1/job/result/invalid-id", nil)
@@ -426,7 +427,7 @@ func TestGetJobResultIDNotFound(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/v1/job/result/%s", constants.TEST_JOB_ID), nil)
@@ -441,7 +442,7 @@ func TestGetJobResultSuccess(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
@@ -485,7 +486,7 @@ func TestCancelJobWithoutPassingJobID(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("PUT", "/api/v1/job/cancel/", nil)
@@ -500,7 +501,7 @@ func TestCancelJobWithInvalidID(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("PUT", "/api/v1/job/cancel/dadadas", nil)
@@ -515,7 +516,7 @@ func TestCancelJobIDNotFound(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("PUT", fmt.Sprintf("/api/v1/job/cancel/%s", constants.TEST_JOB_ID), nil)
@@ -530,7 +531,7 @@ func TestCancelJobSuccess(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
 		t.Fatal("Failed on parse mock")
@@ -567,7 +568,7 @@ func TestCancelErrorJobRunning(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
 		t.Fatal("Failed on parse mock")
@@ -602,7 +603,7 @@ func TestCancelErrorJobFinished(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
 		t.Fatal("Failed on parse mock")
@@ -639,7 +640,7 @@ func TestDeleteJobWithoutPassingJobID(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("DELETE", "/api/v1/job/", nil)
@@ -654,7 +655,7 @@ func TestDeleteJobPassingInvalidID(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("DELETE", "/api/v1/job/invalid-id", nil)
@@ -669,7 +670,7 @@ func TestDeleteJobIDNotFound(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/api/v1/job/%s", constants.TEST_JOB_ID), nil)
@@ -684,7 +685,7 @@ func TestDeleteSuccess(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
 		t.Fatal("Failed on parse mock")
@@ -707,7 +708,7 @@ func TestNoJobs(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
@@ -738,7 +739,7 @@ func TestOneJob(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
@@ -803,7 +804,7 @@ func TestNoHistory(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
@@ -834,7 +835,7 @@ func TestOneHistoryJob(t *testing.T) {
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
 	if !ok {
@@ -894,12 +895,12 @@ func TestOneHistoryJob(t *testing.T) {
 
 // ------- GET HEALTH -------
 
-func Testhealth(t *testing.T) {
+func TestHealth(t *testing.T) {
 	dbInstance := db.DB{}
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	server := server.SetupServer(&dbInstance, proxy)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/v1/health/", nil)

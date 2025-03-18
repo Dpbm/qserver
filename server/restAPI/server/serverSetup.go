@@ -1,17 +1,31 @@
 package server
 
 import (
+	"os"
+
 	"github.com/Dpbm/quantumRestAPI/db"
 	docs "github.com/Dpbm/quantumRestAPI/docs"
 	"github.com/Dpbm/quantumRestAPI/middlewares"
 	routes "github.com/Dpbm/quantumRestAPI/routes"
+	logger "github.com/Dpbm/shared/log"
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func SetupServer(dbInstance *db.DB) *gin.Engine {
+func SetupServer(dbInstance *db.DB, trustedProxy string) *gin.Engine {
 	server := gin.Default()
+
+	// to ensure it must be an url/ip
+	if len(trustedProxy) > 4 {
+		err := server.SetTrustedProxies([]string{trustedProxy})
+
+		if err != nil {
+			logger.LogFatal(err)
+			os.Exit(1) // just to ensure the program will exit
+		}
+	}
+
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
 	server.Use(middlewares.DB(dbInstance))

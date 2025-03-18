@@ -34,7 +34,8 @@ func main() {
 	dbInstance.Connect(&dbDefinition.Postgres{}, dbHost, dbPort, dbUsername, dbPassword, dbName) // on error it should exit the program with return code 1
 	defer dbInstance.CloseConnection()
 
-	server := server.SetupServer(&dbInstance)
+	proxy := os.Getenv("TRUSTED_PROXY")
+	server := server.SetupServer(&dbInstance, proxy) // if an error occours it will exit with status 1
 
 	portString := fmt.Sprintf(":%d", port)
 	err := server.Run(portString)
