@@ -47,6 +47,8 @@ services:
             interval: 5s
             timeout: 10s
             retries: 3
+        env_file:
+            - ./rabbitmq.env
         restart: always
         ports:
             - '5672:5672'
@@ -67,7 +69,7 @@ services:
             - queue-handler
         env_file:
             - ./db.env
-            - ./rabbitmq.env
+            - ./queue.env
         environment:
             HOST: 0.0.0.0
             PORT: 50051
@@ -116,7 +118,7 @@ services:
             mode: replicated
             replicas: 4
         env_file:
-            - ./rabbitmq.env
+            - ./queue.env
             - ./db.env
         environment:
             LOGS_PATH: /logs/worker/
