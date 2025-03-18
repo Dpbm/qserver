@@ -40,6 +40,8 @@ def callback(ch, method, body, db_instance):
         if not valid_data_for_id(data):
             raise IdNotFound(data)
 
+        logger.debug("Got data: %s", data)
+
         result_types = data["selected_result_types"]
         if not valid_result_types(result_types):
             raise InvalidResultTypes(result_types)
@@ -70,13 +72,16 @@ def callback(ch, method, body, db_instance):
         # however, the user may try to bypass that
         # so be aware with potential threads here
         row = db_instance.get_plugin(target_backend)
-
+        logger.debug("Got plugin row:  %s", row)
         if len(row) != 1:
             raise ValueError("Failed on get plugin Name")
 
-        plugin_name = row[0]
+        plugin_name = row["plugin"]
+        logger.debug("using plugin: %s", plugin_name)
+
         plugin = Plugin(plugin_name)
 
+        logger.debug("mapping through result types: %s", result_types.items())
         for result_type, active in result_types.items():
             if not active:
                 continue

@@ -293,7 +293,7 @@ run_test_13(){
 
     STATUS="pending"
     COUNTER=0
-    MAX_COUNTER=20
+    MAX_COUNTER=1000
     echo -e "${BLUE}Waiting for job $ID...${ENDC}"
     while ([ "$STATUS" = 'pending' ] || [ "$STATUS" = 'running' ]) && [ "$COUNTER" -lt "$MAX_COUNTER" ]; do
         STATUS=$(get_job_status $ID)
@@ -303,11 +303,12 @@ run_test_13(){
         fi
 
         COUNTER=$(( COUNTER + 1 ))
-        sleep 1
+        sleep 10
     done
 
     if [ "$STATUS" = 'pending' ] || [ "$STATUS" = 'running' ] || [ "$STATUS" = 'failed' ]; then
-        echo -e "${RED}Failed status${ENDC}"
+        echo -e "${RED}Failed on check status${ENDC}"
+        echo -e "${RED}status=${STATUS}${ENDC}"
         return 1
     fi
 
@@ -385,7 +386,7 @@ run_test_17(){
 
     STATUS="pending"
     COUNTER=0
-    MAX_COUNTER=20
+    MAX_COUNTER=1000
     echo -e "${BLUE}Waiting for job $ID...${ENDC}"
     while ([ "$STATUS" = 'pending' ] || [ "$STATUS" = 'running' ]) && [ "$COUNTER" -lt "$MAX_COUNTER" ]; do
         STATUS=$(get_job_status $ID)
@@ -395,7 +396,7 @@ run_test_17(){
         fi
 
         COUNTER=$(( COUNTER + 1 ))
-        sleep 1
+        sleep 10
     done
 
     if [ "$STATUS" = 'pending' ] || [ "$STATUS" = 'running' ]; then
@@ -593,6 +594,10 @@ run_test_26(){
     fi
 }
 
+run_test_27(){
+    curl -f "$SERVER_URL/api/v1/health"
+}
+
 
 
 # HISTORY TESTS MUST COME FIRST
@@ -611,8 +616,10 @@ test_header 26 "Test Get History with a big cursor"
 run_test_26
 has_passed
 
-
-
+clean_external
+test_header 27 "Testing healthcheck"
+run_test_27
+has_passed
 
 clean_external
 test_header 1 "Delete plugin with no job created with it"
@@ -673,6 +680,10 @@ test_header 12 "Get Job Results ID not found on results"
 run_test_12
 has_passed
 
+clean_external
+test_header 13 "Get Correct job results"
+run_test_13
+has_passed
 
 clean_external
 test_header 14 "Cancel Job Invalid ID"
@@ -728,17 +739,7 @@ has_passed
 
 
 
-
 # TODO: TEST ADDING 20 JOBS/BACKENDS/HISTORY AND GETTING THE NEXT PAGE
 # TEST HEALTHCHECK
 
-
-
-# this one gonna be out of the list of tests because of some errors on workers
-# after fixing them, we need to add it back again
-
-#clean_external
-#test_header 13 "Get Correct job results"
-#run_test_13
-#has_passed
 

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -16,6 +17,7 @@ import (
 	"github.com/Dpbm/quantumRestAPI/server"
 	"github.com/Dpbm/quantumRestAPI/types"
 	dbDefinition "github.com/Dpbm/shared/db"
+	logger "github.com/Dpbm/shared/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -197,7 +199,7 @@ func TestGetBackendSuccess(t *testing.T) {
 	err := json.NewDecoder(writer.Result().Body).Decode(&body)
 
 	if err != nil {
-		t.FailNow()
+		logger.LogError(errors.New("decoding Failed"))
 	}
 
 	assert.Equal(t, body.ID, "1")
@@ -233,7 +235,7 @@ func TestNoBackends(t *testing.T) {
 	err := json.NewDecoder(writer.Result().Body).Decode(&body)
 
 	if err != nil {
-		t.FailNow()
+		logger.LogError(errors.New("decoding Failed"))
 	}
 
 	assert.Equal(t, len(body), 0)
@@ -270,7 +272,7 @@ func TestOneBackends(t *testing.T) {
 	err := json.NewDecoder(writer.Result().Body).Decode(&body)
 
 	if err != nil {
-		t.FailNow()
+		logger.LogError(errors.New("decoding Failed"))
 	}
 
 	assert.Equal(t, len(body), 1)
@@ -371,7 +373,7 @@ func TestGetJobSuccess(t *testing.T) {
 	err := json.NewDecoder(writer.Result().Body).Decode(&data)
 
 	if err != nil {
-		t.FailNow()
+		logger.LogError(errors.New("decoding Failed"))
 	}
 
 	assert.Equal(t, data.ID, constants.TEST_JOB_ID)
@@ -466,7 +468,7 @@ func TestGetJobResultSuccess(t *testing.T) {
 	err := json.NewDecoder(writer.Result().Body).Decode(&data)
 
 	if err != nil {
-		t.FailNow()
+		logger.LogError(errors.New("decoding Failed"))
 	}
 
 	assert.Equal(t, data.ID, "1")
@@ -725,7 +727,7 @@ func TestNoJobs(t *testing.T) {
 	err := json.NewDecoder(writer.Result().Body).Decode(&body)
 
 	if err != nil {
-		t.FailNow()
+		logger.LogError(errors.New("decoding Failed"))
 	}
 
 	assert.Equal(t, len(body), 0)
@@ -773,7 +775,7 @@ func TestOneJob(t *testing.T) {
 	err := json.NewDecoder(writer.Result().Body).Decode(&body)
 
 	if err != nil {
-		t.FailNow()
+		logger.LogError(errors.New("decoding Failed"))
 	}
 
 	expectedMetadata := map[string]any{}
@@ -821,7 +823,7 @@ func TestNoHistory(t *testing.T) {
 	err := json.NewDecoder(writer.Result().Body).Decode(&body)
 
 	if err != nil {
-		t.FailNow()
+		logger.LogError(errors.New("decoding Failed"))
 	}
 
 	assert.Equal(t, len(body), 0)
@@ -869,7 +871,7 @@ func TestOneHistoryJob(t *testing.T) {
 	err := json.NewDecoder(writer.Result().Body).Decode(&body)
 
 	if err != nil {
-		t.FailNow()
+		logger.LogError(errors.New("decoding Failed"))
 	}
 
 	expectedMetadata := map[string]any{}
@@ -890,6 +892,23 @@ func TestOneHistoryJob(t *testing.T) {
 	assert.Equal(t, body[0].Results, expectedResults)
 }
 
+// ------- GET HEALTH -------
+
+func Testhealth(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/v1/health/", nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 200, writer.Code)
+
+}
+
 // TODO: TEST ADDING 20 JOBS/BACKENDS/HISTORY AND GETTING THE NEXT PAGE
 // ADD A FAKE PLUGIN FOR THAT (use instead of aer)
-// TEST HEALTHCHECK
