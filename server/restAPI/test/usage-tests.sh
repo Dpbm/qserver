@@ -293,7 +293,7 @@ run_test_13(){
 
     STATUS="pending"
     COUNTER=0
-    MAX_COUNTER=1000
+    MAX_COUNTER=20
     echo -e "${BLUE}Waiting for job $ID...${ENDC}"
     while ([ "$STATUS" = 'pending' ] || [ "$STATUS" = 'running' ]) && [ "$COUNTER" -lt "$MAX_COUNTER" ]; do
         STATUS=$(get_job_status $ID)
@@ -386,7 +386,7 @@ run_test_17(){
 
     STATUS="pending"
     COUNTER=0
-    MAX_COUNTER=1000
+    MAX_COUNTER=20
     echo -e "${BLUE}Waiting for job $ID...${ENDC}"
     while ([ "$STATUS" = 'pending' ] || [ "$STATUS" = 'running' ]) && [ "$COUNTER" -lt "$MAX_COUNTER" ]; do
         STATUS=$(get_job_status $ID)

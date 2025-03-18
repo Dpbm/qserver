@@ -48,6 +48,7 @@
         "referer",
         "timestamptz",
         "uuid",
-        "VARCHAR"
+        "VARCHAR",
+        "venv"
     ]
 }

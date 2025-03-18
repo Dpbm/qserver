@@ -8,8 +8,8 @@ export PORT=50051
 export RABBITMQ_HOST=0.0.0.0
 export RABBITMQ_PORT=5672
 export RABBITMQ_QUEUE_NAME=qexec
-export RABBITMQ_USER=guest
-export RABBITMQ_PASSWORD=guest
+export RABBITMQ_USER=test
+export RABBITMQ_PASSWORD=test
 
 
 export DB_HOST=0.0.0.0
