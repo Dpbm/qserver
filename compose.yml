@@ -73,9 +73,6 @@ services:
             PORT: 50051
             QASM_PATH: /qasm
             LOG_FILE_PATH: /logs/jobs-server/logs.log
-            # uncomment this for deploy
-            # TRUSTED_PROXY: 172.18.0.30
-            # GIN_MODE: release
         restart: always
         volumes:
             - qasm:/qasm
@@ -100,6 +97,8 @@ services:
             GIN_MODE: release
             PORT: 3000
             LOG_FILE_PATH: /logs/api/logs.log
+            # uncomment this for deploy
+            # TRUSTED_PROXY: 172.18.0.30
         restart: always
         volumes:
             - logs:/logs
