@@ -1,8 +1,11 @@
 from datetime import datetime
+import logging
+import json
 import psycopg2 as pg
 import psycopg2.extras as pgextras
 from .types import Results, ResultType, Backend, DBRow, Statuses
 
+logger = logging.getLogger(__name__)
 
 class DB:
     """
@@ -58,8 +61,12 @@ class DB:
             )
             self._commit()
         # pylint: disable=broad-exception-caught
-        except Exception:
+        except Exception as error:
+            logger.error("failed on update job status: %s for %s", status, job_id)
+            logger.error("error: %s", str(error))
             self._rollback()
+
+            raise error
 
     def update_job_start_time_to_now(self, job_id: str):
         """
@@ -76,8 +83,12 @@ class DB:
             )
             self._commit()
         # pylint: disable=broad-exception-caught
-        except Exception:
+        except Exception as error:
+            logger.error("failed on update start time to now for job %s", job_id)
+            logger.error("error: %s", str(error))
             self._rollback()
+            raise error
+
 
     def update_job_finish_time_to_now(self, job_id: str):
         """
@@ -93,8 +104,12 @@ class DB:
             )
             self._commit()
         # pylint: disable=broad-exception-caught
-        except Exception:
+        except Exception as error:
+            logger.error("failed on update finish time to now for job %s", job_id)
+            logger.error("error: %s", str(error))
             self._rollback()
+            raise error
+
 
     def _was_results_table_initialized_by_the_job(self, job_id: str) -> bool:
         """
@@ -114,8 +129,81 @@ class DB:
             self._cursor.execute("INSERT INTO results(job_id) VALUES(%s)", (job_id,))
             self._commit()
         # pylint: disable=broad-exception-caught
-        except Exception:
+        except Exception as error:
+            logger.error("failed on intialize results table for job %s", job_id)
+            logger.error("error: %s", str(error))
             self._rollback()
+            raise error
+
+
+    def _save_counts(self, results:Results, job_id:str):
+        """
+        Update results row inserting counts for this id
+        """
+
+        try:
+            self._cursor.execute(
+                "UPDATE results SET counts=%s WHERE job_id=%s",
+                (
+                    results,
+                    job_id,
+                ),
+            )
+            self._commit()
+
+        # pylint: disable=broad-exception-caught
+        except Exception as error:
+            logger.error("failed on save counts for job: %s; counts=%s", job_id, results)
+            logger.error("error: %s", str(error))
+            self._rollback()
+            raise error
+
+
+    def _save_quasi_dist(self, results:Results, job_id:str):
+        """
+        Update results row inserting quasi_dist for this id
+        """
+
+        try:
+            self._cursor.execute(
+                "UPDATE results SET quasi_dist=%s WHERE job_id=%s",
+                (
+                    results,
+                    job_id,
+                ),
+            )
+            self._commit()
+
+        # pylint: disable=broad-exception-caught
+        except Exception as error:
+            logger.error("failed on save quasi_dist for job: %s; dist=%s", job_id, results)
+            logger.error("error: %s", str(error))
+            self._rollback()
+            raise error
+
+
+    def _save_expval(self, results:Results, job_id:str):
+        """
+        Update results row inserting expval for this id
+        """
+
+        try:
+            self._cursor.execute(
+                "UPDATE results SET expval=%s WHERE job_id=%s",
+                (
+                    results,
+                    job_id,
+                ),
+            )
+            self._commit()
+
+        # pylint: disable=broad-exception-caught
+        except Exception as error:
+            logger.error("failed on save expval for job: %s; values=%s", job_id, results)
+            logger.error("error: %s", str(error))
+            self._rollback()
+            raise error
+
 
     def save_results(self, result_type: ResultType, results: Results, job_id: str):
         """
@@ -130,20 +218,17 @@ class DB:
         if not self._was_results_table_initialized_by_the_job(job_id):
             self._initialize_results_table_for_job(job_id)
 
-        try:
-            self._cursor.execute(
-                "UPDATE results SET %s=%s WHERE job_id=%s",
-                (
-                    column,
-                    results,
-                    job_id,
-                ),
-            )
-            self._commit()
+        helpers = {
+            'counts': self._save_counts,
+            'quasi_dist': self._save_quasi_dist,
+            'expval': self._save_expval
+        }
 
-        # pylint: disable=broad-exception-caught
-        except Exception:
-            self._rollback()
+        assert (result_type in list(helpers.keys())), 'Invalid result type'
+
+        save_func = helpers[result_type]
+        save_func(json.dumps(results), job_id)
+        
 
     def _commit(self):
         """

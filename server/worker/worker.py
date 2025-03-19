@@ -90,6 +90,7 @@ def callback(ch, method, body, db_instance):
             results = plugin.run(target_backend, qasm_file, metadata, result_type)
 
             logger.debug("Saving results...")
+            logger.debug("type=%s results=%s", result_type, results)
             db_instance.save_results(result_type, results, job_id)
 
         db_instance.update_job_finish_time_to_now(job_id)

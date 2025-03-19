@@ -270,6 +270,7 @@ run_test_12(){
     fi
 }
 
+
 run_test_13(){
     echo -e "${BLUE}Starting workers...${ENDC}"
     docker compose -f ../../../compose.yml up -d  --build workers
@@ -412,6 +413,7 @@ run_test_17(){
         return 1
     fi
 }
+
 
 run_test_18(){
     curl --request DELETE -f "$SERVER_URL/api/v1/job/invalid-id"
@@ -685,6 +687,7 @@ test_header 13 "Get Correct job results"
 run_test_13
 has_passed
 
+
 clean_external
 test_header 14 "Cancel Job Invalid ID"
 run_test_14
@@ -704,6 +707,7 @@ clean_external
 test_header 17 "Failed on cancel job status is not pending"
 run_test_17
 has_passed
+
 
 clean_external
 test_header 18 "Delete Job Invalid ID"
@@ -734,7 +738,6 @@ clean_external
 test_header 23 "Test Get jobs with a big cursor"
 run_test_23
 has_passed
-
 
 
 

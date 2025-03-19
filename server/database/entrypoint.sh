@@ -70,9 +70,9 @@ psql -U $DB_USERNAME -d $DB_NAME -c "
 CREATE TABLE IF NOT EXISTS results (
 	id uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
 	job_id uuid NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
-	counts jsonb,
-	quasi_dist jsonb,
-	expval jsonb
+	counts json NOT NULL DEFAULT '{}'::json,
+	quasi_dist json NOT NULL DEFAULT '{}'::json,
+	expval json NOT NULL DEFAULT '[]'::json
 );
 "
 
