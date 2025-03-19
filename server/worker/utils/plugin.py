@@ -7,6 +7,7 @@ from .sanitize import sanitize_pip_name
 
 logger = logging.getLogger(__name__)
 
+
 class Plugin:
     """
     The Plugin class is meant to be a wrapper to the internally
@@ -39,10 +40,10 @@ class Plugin:
             logger.error("%s", str(error))
             has_module = False
 
+        # pylint: disable=broad-exception-caught
         except Exception as error:
             logger.error("Another error occoured during first import")
             logger.error("%s", str(error))
-            
 
         if not has_module:
             try:
@@ -51,7 +52,7 @@ class Plugin:
                 package_url = build_pip_url(sanitized_name)
                 logger.debug("installing plugin from: %s", package_url)
 
-                subprocess.check_call(['python', '-m', 'pip', 'install', package_url])
+                subprocess.check_call(["python", "-m", "pip", "install", package_url])
                 logger.debug("plugin was installed successfuly!")
 
                 imported_plugin = importlib.import_module(import_name)
@@ -70,10 +71,10 @@ class Plugin:
                 logger.error("failed on second import (import error)")
                 logger.error(str(error))
 
+            # pylint: disable=broad-exception-caught
             except Exception as error:
                 logger.error("Another error occoured during installation/second import")
                 logger.error("%s", str(error))
-
 
         if imported_plugin is None:
             raise ValueError("Invalid plugin")

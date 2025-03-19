@@ -164,7 +164,13 @@ if __name__ == "__main__":
     while connection is None:
         try:
             connection = pika.BlockingConnection(
-                pika.ConnectionParameters(host=rabbitmq_host,  port=rabbitmq_port, credentials=pika.credentials.PlainCredentials(username=rabbitmq_user, password=rabbitmq_password))
+                pika.ConnectionParameters(
+                    host=rabbitmq_host,
+                    port=rabbitmq_port,
+                    credentials=pika.credentials.PlainCredentials(
+                        username=rabbitmq_user, password=rabbitmq_password
+                    ),
+                )
             )
         # pylint: disable=broad-exception-caught
         except Exception:

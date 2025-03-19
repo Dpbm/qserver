@@ -1,4 +1,4 @@
-from typing import Dict, Any, List
+from typing import Dict, Any
 from worker import callback
 from utils.types import Statuses, Results, ResultType
 
@@ -6,6 +6,8 @@ from utils.types import Statuses, Results, ResultType
 # TODO: It must be changed to a fake backend in the future
 FAKE_BACKEND_PLUGIN = "aer-plugin"
 FAKE_BACKEND = "aer"
+
+PluginRow = Dict[str, str]
 
 
 class TestWorker:
@@ -252,11 +254,12 @@ class DB:
         return Statuses(self._data["status"]).value
 
     # pylint: disable=unused-argument
-    def get_plugin(self, _: str) -> List[str]:
+    def get_plugin(self, _: str) -> PluginRow:
         """
         Get backend plugin
         """
-        return [self._data["plugin"]]  # type: ignore
+
+        return {"plugin": str(self._data["plugin"])}
 
     def save_results(self, result_type: ResultType, results: Results, job_id: str):
         """
