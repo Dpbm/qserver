@@ -3,9 +3,10 @@ import logging
 import json
 import psycopg2 as pg
 import psycopg2.extras as pgextras
-from .types import Results, ResultType, Backend, DBRow, Statuses
+from .types import Results, ResultType, Backend, DBRow, Statuses, HelperMethods
 
 logger = logging.getLogger(__name__)
+
 
 class DB:
     """
@@ -89,7 +90,6 @@ class DB:
             self._rollback()
             raise error
 
-
     def update_job_finish_time_to_now(self, job_id: str):
         """
         Update job finishing time to this very moment.
@@ -109,7 +109,6 @@ class DB:
             logger.error("error: %s", str(error))
             self._rollback()
             raise error
-
 
     def _was_results_table_initialized_by_the_job(self, job_id: str) -> bool:
         """
@@ -135,8 +134,7 @@ class DB:
             self._rollback()
             raise error
 
-
-    def _save_counts(self, results:Results, job_id:str):
+    def _save_counts(self, results: Results, job_id: str):
         """
         Update results row inserting counts for this id
         """
@@ -145,7 +143,7 @@ class DB:
             self._cursor.execute(
                 "UPDATE results SET counts=%s WHERE job_id=%s",
                 (
-                    results,
+                    json.dumps(results),
                     job_id,
                 ),
             )
@@ -153,13 +151,14 @@ class DB:
 
         # pylint: disable=broad-exception-caught
         except Exception as error:
-            logger.error("failed on save counts for job: %s; counts=%s", job_id, results)
+            logger.error(
+                "failed on save counts for job: %s; counts=%s", job_id, results
+            )
             logger.error("error: %s", str(error))
             self._rollback()
             raise error
 
-
-    def _save_quasi_dist(self, results:Results, job_id:str):
+    def _save_quasi_dist(self, results: Results, job_id: str):
         """
         Update results row inserting quasi_dist for this id
         """
@@ -168,7 +167,7 @@ class DB:
             self._cursor.execute(
                 "UPDATE results SET quasi_dist=%s WHERE job_id=%s",
                 (
-                    results,
+                    json.dumps(results),
                     job_id,
                 ),
             )
@@ -176,13 +175,14 @@ class DB:
 
         # pylint: disable=broad-exception-caught
         except Exception as error:
-            logger.error("failed on save quasi_dist for job: %s; dist=%s", job_id, results)
+            logger.error(
+                "failed on save quasi_dist for job: %s; dist=%s", job_id, results
+            )
             logger.error("error: %s", str(error))
             self._rollback()
             raise error
 
-
-    def _save_expval(self, results:Results, job_id:str):
+    def _save_expval(self, results: Results, job_id: str):
         """
         Update results row inserting expval for this id
         """
@@ -191,7 +191,7 @@ class DB:
             self._cursor.execute(
                 "UPDATE results SET expval=%s WHERE job_id=%s",
                 (
-                    results,
+                    json.dumps(results),
                     job_id,
                 ),
             )
@@ -199,36 +199,31 @@ class DB:
 
         # pylint: disable=broad-exception-caught
         except Exception as error:
-            logger.error("failed on save expval for job: %s; values=%s", job_id, results)
+            logger.error(
+                "failed on save expval for job: %s; values=%s", job_id, results
+            )
             logger.error("error: %s", str(error))
             self._rollback()
             raise error
-
 
     def save_results(self, result_type: ResultType, results: Results, job_id: str):
         """
         Retrieve results and store them on database
         """
-
-        # It may be seen as a SQL Injection vulnerable code.
-        # But theorectically, it's safe. Once we retrieved the data directly from database
-        # and the user had no access of what result_type name actually is
-        column = result_type
-
         if not self._was_results_table_initialized_by_the_job(job_id):
             self._initialize_results_table_for_job(job_id)
 
-        helpers = {
-            'counts': self._save_counts,
-            'quasi_dist': self._save_quasi_dist,
-            'expval': self._save_expval
+        helpers: HelperMethods = {
+            "counts": self._save_counts,
+            "quasi_dist": self._save_quasi_dist,
+            "expval": self._save_expval,
         }
 
-        assert (result_type in list(helpers.keys())), 'Invalid result type'
+        # pylint: disable=consider-iterating-dictionary
+        assert result_type in list(helpers.keys()), "Invalid result type"
 
         save_func = helpers[result_type]
-        save_func(json.dumps(results), job_id)
-        
+        save_func(results, job_id)
 
     def _commit(self):
         """

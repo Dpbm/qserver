@@ -1,14 +1,15 @@
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Literal, Callable
 from enum import Enum
 from psycopg2.extras import RealDictRow
 
 Backend = str
 Results = Dict[int | str, float] | List[float]
 Metadata = Dict[Any, Any]
-ResultType = str
+ResultType = Literal["counts", "quasi_dist", "expval"]
 QasmFilePath = str
 
 DBRow = RealDictRow | None
+HelperMethods = Dict[ResultType, Callable]
 
 
 def port_to_int(port: Optional[str]) -> Optional[int]:
