@@ -219,8 +219,7 @@ class DB:
             "expval": self._save_expval,
         }
 
-        # pylint: disable=consider-iterating-dictionary
-        assert result_type in list(helpers.keys()), "Invalid result type"
+        assert helpers.get(result_type) is None, "Invalid result type"
 
         save_func = helpers[result_type]
         save_func(results, job_id)
