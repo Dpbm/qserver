@@ -73,7 +73,8 @@ def callback(ch, method, body, db_instance):
         # so be aware with potential threads here
         row = db_instance.get_plugin(target_backend)
         logger.debug("Got plugin row:  %s", row)
-        if len(row) != 1:
+
+        if row is None or len(row) != 1:
             raise ValueError("Failed on get plugin Name")
 
         plugin_name = row["plugin"]

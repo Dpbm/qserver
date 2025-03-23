@@ -11,7 +11,7 @@ commands = [["black", { replace = "posargs", default = ["."], extend = true} ], 
 description = "check types"
 skip_install = false
 deps = ["mypy", "types-psycopg2"]
-commands = [["mypy", { replace = "posargs", default = [".", "--exclude", ".tox"], extend = true} ]]
+commands = [["mypy", { replace = "posargs", default = ["."], extend = true} ]]
 
 [env.tests]
 description = "run tests"
