@@ -12,6 +12,16 @@ on:
                 type: string
                 description: 'The name of your Dockerfile'
                 default: 'Dockerfile'
+        secrets:
+            DOCKER_USERNAME:
+                description: 'Your docker hub username'
+                required: true
+            DOCKER_PASSWORD:
+                description: 'Your docker hub password/key'
+                required: true
+            DOCKERHUB_NAMESPACE:
+                description: 'Your docker hub namespace'
+                required: true
 
 jobs:
     push_image:
