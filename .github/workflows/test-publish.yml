@@ -21,3 +21,4 @@ jobs:
       with:
           image_name: 'qproxy'
           context: './proxy'
+          file: './proxy/Dockerfile'

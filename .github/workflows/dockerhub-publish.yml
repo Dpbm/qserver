@@ -10,8 +10,7 @@ on:
                 description: 'The directory of your Dockerfile'
             file:
                 type: string
-                description: 'The name of your Dockerfile'
-                default: 'Dockerfile'
+                description: 'The path to your Dockerfile'
         secrets:
             DOCKER_USERNAME:
                 description: 'Your docker hub username'
