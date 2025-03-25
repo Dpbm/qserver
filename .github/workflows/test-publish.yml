@@ -1,0 +1,23 @@
+name: (Test) Publish workflows
+on:
+  push:
+    branches: 
+      - 'testing-actions'
+
+jobs:
+    push_proxy:
+
+      permissions:
+          packages: write
+          contents: read
+          attestations: write
+          id-token: write
+
+      uses: ./.github/workflows/dockerhub-publish.yml
+      secrets: 
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ secrets.DOCKERHUB_NAMESPACE }}
+      with:
+          image_name: 'qproxy'
+          context: './proxy'
