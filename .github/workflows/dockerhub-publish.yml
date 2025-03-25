@@ -5,19 +5,27 @@ on:
             image_name:
                 type: string
                 description: 'The name of your image to be built'
+                required: true
+
             context:
                 type: string
                 description: 'The directory of your Dockerfile'
+                required: true
+
             file:
                 type: string
                 description: 'The path to your Dockerfile'
+                required: true
+
         secrets:
             DOCKER_USERNAME:
                 description: 'Your docker hub username'
                 required: true
+
             DOCKER_PASSWORD:
                 description: 'Your docker hub password/key'
                 required: true
+                
             DOCKERHUB_NAMESPACE:
                 description: 'Your docker hub namespace'
                 required: true

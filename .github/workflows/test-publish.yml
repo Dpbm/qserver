@@ -5,7 +5,7 @@ on:
       - 'testing-actions'
 
 jobs:
-    push_proxy:
+    push_proxy_dockerhub:
       permissions:
           packages: write
           contents: read
@@ -22,7 +22,28 @@ jobs:
           context: './proxy'
           file: './proxy/Dockerfile'
 
-    push_database:
+    push_proxy_ghcr:
+      permissions:
+        contents: read
+        packages: write
+        attestations: write
+        id-token: write
+
+      uses: ./.github/workflows/ghcr-publish.yml
+      secrets: 
+          GITHUB_TOKEN:: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          image_name: 'qproxy'
+          context: './proxy'
+          file: './proxy/Dockerfile'
+
+
+
+
+
+
+
+    push_database_dockerhub:
       permissions:
           packages: write
           contents: read
@@ -39,7 +60,27 @@ jobs:
           context: './server/database'
           file: './server/database/Dockerfile'
 
-    push_jobs_server:
+    push_database_ghcr:
+      permissions:
+        contents: read
+        packages: write
+        attestations: write
+        id-token: write
+
+      uses: ./.github/workflows/ghcr-publish.yml
+      secrets: 
+          GITHUB_TOKEN:: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          image_name: 'qdb'
+          context: './server/database'
+          file: './server/database/Dockerfile'
+
+
+
+
+
+
+    push_jobs_server_dockerhub:
       permissions:
           packages: write
           contents: read
@@ -56,7 +97,26 @@ jobs:
           context: './server'
           file: './server/jobsServer.Dockerfile'
 
-    push_api:
+    push_jobs_server_ghcr:
+      permissions:
+        contents: read
+        packages: write
+        attestations: write
+        id-token: write
+
+      uses: ./.github/workflows/ghcr-publish.yml
+      secrets: 
+          GITHUB_TOKEN:: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          image_name: 'qJobsServer'
+          context: './server'
+          file: './server/jobsServer.Dockerfile'
+
+
+
+
+
+    push_api_dockerhub:
       permissions:
           packages: write
           contents: read
@@ -73,7 +133,26 @@ jobs:
           context: './server'
           file: './server/restAPI.Dockerfile'
 
-    push_worker:
+    push_api_ghcr:
+      permissions:
+        contents: read
+        packages: write
+        attestations: write
+        id-token: write
+
+      uses: ./.github/workflows/ghcr-publish.yml
+      secrets: 
+          GITHUB_TOKEN:: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          image_name: 'qApi'
+          context: './server'
+          file: './server/restAPI.Dockerfile'
+
+
+
+
+
+    push_worker_dockerhub:
       permissions:
           packages: write
           contents: read
@@ -89,3 +168,19 @@ jobs:
           image_name: 'qWorker'
           context: './server/worker'
           file: './server/worker/Dockerfile'
+
+    push_worker_ghcr:
+      permissions:
+        contents: read
+        packages: write
+        attestations: write
+        id-token: write
+
+      uses: ./.github/workflows/ghcr-publish.yml
+      secrets: 
+          GITHUB_TOKEN:: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          image_name: 'qWorker'
+          context: './server/worker'
+          file: './server/worker/Dockerfile'
+
