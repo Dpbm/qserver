@@ -6,7 +6,6 @@ on:
 
 jobs:
     push_proxy:
-
       permissions:
           packages: write
           contents: read
@@ -22,3 +21,71 @@ jobs:
           image_name: 'qproxy'
           context: './proxy'
           file: './proxy/Dockerfile'
+
+    push_database:
+      permissions:
+          packages: write
+          contents: read
+          attestations: write
+          id-token: write
+
+      uses: ./.github/workflows/dockerhub-publish.yml
+      secrets: 
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ secrets.DOCKERHUB_NAMESPACE }}
+      with:
+          image_name: 'qdb'
+          context: './server/database'
+          file: './server/database/Dockerfile'
+
+    push_jobs_server:
+      permissions:
+          packages: write
+          contents: read
+          attestations: write
+          id-token: write
+
+      uses: ./.github/workflows/dockerhub-publish.yml
+      secrets: 
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ secrets.DOCKERHUB_NAMESPACE }}
+      with:
+          image_name: 'qJobsServer'
+          context: './server'
+          file: './server/jobsServer.Dockerfile'
+
+    push_api:
+      permissions:
+          packages: write
+          contents: read
+          attestations: write
+          id-token: write
+
+      uses: ./.github/workflows/dockerhub-publish.yml
+      secrets: 
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ secrets.DOCKERHUB_NAMESPACE }}
+      with:
+          image_name: 'qApi'
+          context: './server'
+          file: './server/restAPI.Dockerfile'
+
+    push_worker:
+      permissions:
+          packages: write
+          contents: read
+          attestations: write
+          id-token: write
+
+      uses: ./.github/workflows/dockerhub-publish.yml
+      secrets: 
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ secrets.DOCKERHUB_NAMESPACE }}
+      with:
+          image_name: 'qWorker'
+          context: './server/worker'
+          file: './server/worker/Dockerfile'
