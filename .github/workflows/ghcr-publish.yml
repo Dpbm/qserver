@@ -23,6 +23,7 @@ on:
 
 env:
     REGISTRY: ghcr.io
+    GH_USERNAME: Dpbm
 
 jobs:
   build-and-push-image:
@@ -51,7 +52,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: ${{ env.REGISTRY }}/${{ inputs.image_name }}
+          images: ${{ env.REGISTRY }}/${{ env.GH_USERNAME }}/${{ inputs.image_name }}
 
       - name: Build and push Docker image
         id: push
