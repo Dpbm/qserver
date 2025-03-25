@@ -17,7 +17,7 @@ on:
                 required: true
 
         secrets:
-          GITHUB_TOKEN:
+          GH_TOKEN:
             description: 'Your github access token'
             required: true
 
@@ -26,6 +26,8 @@ env:
 
 jobs:
   build-and-push-image:
+    name: Push Docker image (${{ inputs.image_name }})
+
     runs-on: ubuntu-24.04
 
     permissions:
@@ -35,6 +37,7 @@ jobs:
       id-token: write
 
     steps:
+    
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Log in to the Container registry
@@ -42,7 +45,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GH_TOKEN }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta

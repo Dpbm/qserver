@@ -31,7 +31,7 @@ jobs:
 
       uses: ./.github/workflows/ghcr-publish.yml
       secrets: 
-          GITHUB_TOKEN:: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
           image_name: 'qproxy'
           context: './proxy'
@@ -69,7 +69,7 @@ jobs:
 
       uses: ./.github/workflows/ghcr-publish.yml
       secrets: 
-          GITHUB_TOKEN:: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
           image_name: 'qdb'
           context: './server/database'
@@ -106,7 +106,7 @@ jobs:
 
       uses: ./.github/workflows/ghcr-publish.yml
       secrets: 
-          GITHUB_TOKEN:: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
           image_name: 'qJobsServer'
           context: './server'
@@ -142,7 +142,7 @@ jobs:
 
       uses: ./.github/workflows/ghcr-publish.yml
       secrets: 
-          GITHUB_TOKEN:: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
           image_name: 'qApi'
           context: './server'
@@ -178,7 +178,7 @@ jobs:
 
       uses: ./.github/workflows/ghcr-publish.yml
       secrets: 
-          GITHUB_TOKEN:: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
           image_name: 'qWorker'
           context: './server/worker'
