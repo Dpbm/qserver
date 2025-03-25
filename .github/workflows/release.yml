@@ -18,18 +18,184 @@ jobs:
               uses: ncipollo/release-action@v1
 
     
-    push_proxy:
-        permissions:
-            packages: write
-            contents: read
-            attestations: write
-            id-token: write
+    push_proxy_dockerhub:
+      permissions:
+          packages: write
+          contents: read
+          attestations: write
+          id-token: write
 
-        uses: ./.github/workflows/dockerhub-publish.yml
-        secrets: 
-            DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-            DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-            DOCKERHUB_NAMESPACE: ${{ secrets.DOCKERHUB_NAMESPACE }}
-        with:
-            image_name: 'qproxy'
-            context: './proxy'
+      uses: ./.github/workflows/dockerhub-publish.yml
+      secrets: 
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ secrets.DOCKERHUB_NAMESPACE }}
+      with:
+          image_name: 'qproxy'
+          context: './proxy'
+          file: './proxy/Dockerfile'
+
+    push_proxy_ghcr:
+      permissions:
+        contents: read
+        packages: write
+        attestations: write
+        id-token: write
+
+      uses: ./.github/workflows/ghcr-publish.yml
+      secrets: 
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          image_name: 'qproxy'
+          context: './proxy'
+          file: './proxy/Dockerfile'
+
+
+
+
+
+
+
+    push_database_dockerhub:
+      permissions:
+          packages: write
+          contents: read
+          attestations: write
+          id-token: write
+
+      uses: ./.github/workflows/dockerhub-publish.yml
+      secrets: 
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ secrets.DOCKERHUB_NAMESPACE }}
+      with:
+          image_name: 'qdb'
+          context: './server/database'
+          file: './server/database/Dockerfile'
+
+    push_database_ghcr:
+      permissions:
+        contents: read
+        packages: write
+        attestations: write
+        id-token: write
+
+      uses: ./.github/workflows/ghcr-publish.yml
+      secrets: 
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          image_name: 'qdb'
+          context: './server/database'
+          file: './server/database/Dockerfile'
+
+
+
+
+
+
+    push_jobs_server_dockerhub:
+      permissions:
+          packages: write
+          contents: read
+          attestations: write
+          id-token: write
+
+      uses: ./.github/workflows/dockerhub-publish.yml
+      secrets: 
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ secrets.DOCKERHUB_NAMESPACE }}
+      with:
+          image_name: 'qJobsServer'
+          context: './server'
+          file: './server/jobsServer.Dockerfile'
+
+    push_jobs_server_ghcr:
+      permissions:
+        contents: read
+        packages: write
+        attestations: write
+        id-token: write
+
+      uses: ./.github/workflows/ghcr-publish.yml
+      secrets: 
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          image_name: 'qJobsServer'
+          context: './server'
+          file: './server/jobsServer.Dockerfile'
+
+
+
+
+
+    push_api_dockerhub:
+      permissions:
+          packages: write
+          contents: read
+          attestations: write
+          id-token: write
+
+      uses: ./.github/workflows/dockerhub-publish.yml
+      secrets: 
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ secrets.DOCKERHUB_NAMESPACE }}
+      with:
+          image_name: 'qApi'
+          context: './server'
+          file: './server/restAPI.Dockerfile'
+
+    push_api_ghcr:
+      permissions:
+        contents: read
+        packages: write
+        attestations: write
+        id-token: write
+
+      uses: ./.github/workflows/ghcr-publish.yml
+      secrets: 
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          image_name: 'qApi'
+          context: './server'
+          file: './server/restAPI.Dockerfile'
+
+
+
+
+
+    push_worker_dockerhub:
+      permissions:
+          packages: write
+          contents: read
+          attestations: write
+          id-token: write
+
+      uses: ./.github/workflows/dockerhub-publish.yml
+      secrets: 
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ secrets.DOCKERHUB_NAMESPACE }}
+      with:
+          image_name: 'qWorker'
+          context: './server/worker'
+          file: './server/worker/Dockerfile'
+
+    push_worker_ghcr:
+      permissions:
+        contents: read
+        packages: write
+        attestations: write
+        id-token: write
+
+      uses: ./.github/workflows/ghcr-publish.yml
+      secrets: 
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          image_name: 'qWorker'
+          context: './server/worker'
+          file: './server/worker/Dockerfile'
+
+
+
