@@ -199,3 +199,29 @@ jobs:
 
 
 
+    
+    test-dockerhub-production-compose-file:
+        runs-on: ubuntu-24.04
+
+        needs: [push_api_dockerhub, push_database_dockerhub, push_jobs_server_dockerhub, push_proxy_dockerhub, push_worker_dockerhub]
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: run compose
+              run: docker compose up -d
+
+    test-ghcr-production-compose-file:
+        runs-on: ubuntu-24.04
+
+        needs: [push_api_ghcr, push_database_ghcr, push_jobs_server_ghcr, push_proxy_ghcr, push_worker_ghcr]
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: run compose
+              run: docker compose -f ./ghcr-prod-compose.yml up -d
+
+    
+
+    

@@ -273,7 +273,7 @@ run_test_12(){
 
 run_test_13(){
     echo -e "${BLUE}Starting workers...${ENDC}"
-    docker compose -f ../../../compose.yml up -d  --build workers
+    docker compose -f ../../../dev-compose.yml up -d  --build workers
 
     if [ $? != 0 ]; then
         echo -e "${RED}Failed on start up workers${ENDC}"
@@ -366,7 +366,7 @@ run_test_16(){
 
 run_test_17(){
     echo -e "${BLUE}Starting workers...${ENDC}"
-    docker compose -f ../../../compose.yml up -d  --build workers
+    docker compose -f ../../../dev-compose.yml up -d  --build workers
 
     if [ $? != 0 ]; then
         echo -e "${RED}Failed on start up workers${ENDC}"

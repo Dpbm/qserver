@@ -1,7 +1,9 @@
 services:
     proxy:
         container_name: proxy
-        image: dpbm32/qproxy
+        build:
+            context: ./proxy/
+            dockerfile: Dockerfile
         depends_on:
             - api
             - jobs-server
@@ -18,13 +20,16 @@ services:
     db:
         container_name: postgres-db
         hostname: postgresInstance
-        image: dpbm32/qdb
+        build:
+            context: ./server/database/
+            dockerfile: Dockerfile
         env_file:
             - ./db.env
             - ./postgres.env
         ports:
             - '5432:5432'
         volumes:
+            # https://stackoverflow.com/questions/41637505/how-to-persist-data-in-a-dockerized-postgres-database-using-volumes
             - data:/var/lib/postgresql/data
             - postgres:/var/run/postgresql
             - logs:/var/log
@@ -54,7 +59,9 @@ services:
     jobs-server:
         container_name: jobs-server
         hostname: jobsServerInstance
-        image: dpbm32/qjobsserver
+        build:
+            context: ./server/
+            dockerfile: jobsServer.Dockerfile
         ports:
             - '50051:50051'
         depends_on:
@@ -64,7 +71,7 @@ services:
             - ./db.env
             - ./queue.env
         environment:
-            HOST: 172.18.0.29
+            HOST: 0.0.0.0
             PORT: 50051
             QASM_PATH: /qasm
             LOG_FILE_PATH: /logs/jobs-server/logs.log
@@ -79,7 +86,9 @@ services:
     api:
         container_name: api
         hostname: apiInstance
-        image: dpbm32/qapi
+        build:
+            context: ./server/
+            dockerfile: restAPI.Dockerfile
         depends_on:
             - db
         ports:
@@ -87,10 +96,11 @@ services:
         env_file:
             - ./db.env
         environment:
-            GIN_MODE: release
+            GIN_MODE: debug
             PORT: 3000
             LOG_FILE_PATH: /logs/api/logs.log
-            TRUSTED_PROXY: 172.18.0.30 # only incoming requests from the proxy can be accepted
+            # uncomment this for deploy
+            # TRUSTED_PROXY: 172.18.0.30
         restart: always
         volumes:
             - logs:/logs
@@ -99,12 +109,14 @@ services:
                 ipv4_address: 172.18.0.28
 
     workers:
-        image: dpbm32/qworker
+        build:
+            context: ./server/worker/
+            dockerfile: Dockerfile
         depends_on:
             - jobs-server
         deploy:
             mode: replicated
-            replicas: 4 # you can add up to 25 replicas
+            replicas: 4
         env_file:
             - ./queue.env
             - ./db.env
@@ -130,6 +142,7 @@ volumes:
 networks:
     qnet:
         external: false
+        #https://stackoverflow.com/questions/27937185/assign-static-ip-to-docker-container
         ipam:
             driver: default
             config:

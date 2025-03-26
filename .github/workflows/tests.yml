@@ -10,7 +10,7 @@ jobs:
             - uses: actions/checkout@v4
 
             - name: Run proxy
-              run: docker compose up -d --build proxy
+              run: docker compose -f ./dev-compose.yml up -d --build proxy
 
             - name: Get Dev dependencies
               run: |
@@ -32,7 +32,7 @@ jobs:
             - uses: actions/checkout@v4
 
             - name: Run database
-              run: docker compose up -d --build db
+              run: docker compose -f ./dev-compose.yml up -d --build db
 
             - name: Test status
               timeout-minutes: 1
@@ -65,8 +65,8 @@ jobs:
 
             - name: Run services
               run: |
-                  docker compose up -d --build jobs-server && \
-                  docker compose up -d --build api
+                  docker compose -f ./dev-compose.yml up -d --build jobs-server && \
+                  docker compose -f ./dev-compose.yml up -d --build api
 
             - name: Get Dev dependencies
               run: |
@@ -132,8 +132,8 @@ jobs:
 
             - name: setup api usage tests
               run: |
-                  docker compose up -d --build jobs-server && \
-                  docker compose up -d --build api
+                  docker compose -f ./dev-compose.yml up -d --build jobs-server && \
+                  docker compose -f ./dev-compose.yml up -d --build api
 
             - name: Get Dev dependencies
               run: |
@@ -158,7 +158,7 @@ jobs:
                     - '3.10'
                 os:
                     - ubuntu-20.04
-
+    
         steps:
             - uses: actions/checkout@v4
 

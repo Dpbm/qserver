@@ -1,7 +1,7 @@
 services:
     proxy:
         container_name: proxy
-        image: dpbm32/qproxy
+        image: ghcr.io/dpbm/qproxy
         depends_on:
             - api
             - jobs-server
@@ -18,7 +18,7 @@ services:
     db:
         container_name: postgres-db
         hostname: postgresInstance
-        image: dpbm32/qdb
+        image: ghcr.io/dpbm/qdb
         env_file:
             - ./db.env
             - ./postgres.env
@@ -54,7 +54,7 @@ services:
     jobs-server:
         container_name: jobs-server
         hostname: jobsServerInstance
-        image: dpbm32/qjobsserver
+        image: ghcr.io/dpbm/qjobsserver
         ports:
             - '50051:50051'
         depends_on:
@@ -79,7 +79,7 @@ services:
     api:
         container_name: api
         hostname: apiInstance
-        image: dpbm32/qapi
+        image: ghcr.io/dpbm/qapi
         depends_on:
             - db
         ports:
@@ -99,7 +99,7 @@ services:
                 ipv4_address: 172.18.0.28
 
     workers:
-        image: dpbm32/qworker
+        image: ghcr.io/dpbm/qworker
         depends_on:
             - jobs-server
         deploy:
