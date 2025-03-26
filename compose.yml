@@ -19,11 +19,16 @@ services:
         container_name: postgres-db
         hostname: postgresInstance
         image: dpbm32/qdb
-        env_file:
-            - ./db.env
-            - ./postgres.env
         ports:
             - '5432:5432'
+        environment:
+            - DB_HOST=postgresInstance
+            - DB_PORT=5432
+            - DB_USERNAME=${DB_USERNAME}
+            - DB_PASSWORD=${DB_PASSWORD}
+            - DB_NAME=quantum
+            - POSTGRES_USER=${DB_ROOT_USER}
+            - POSTGRES_PASSWORD=${DB_ROOT_PASSWORD}
         volumes:
             - data:/var/lib/postgresql/data
             - postgres:/var/run/postgresql
@@ -42,8 +47,9 @@ services:
             interval: 5s
             timeout: 10s
             retries: 3
-        env_file:
-            - ./rabbitmq.env
+        environment:
+            - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+            - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
         restart: always
         ports:
             - '5672:5672'
@@ -60,14 +66,21 @@ services:
         depends_on:
             - db
             - queue-handler
-        env_file:
-            - ./db.env
-            - ./queue.env
         environment:
-            HOST: 172.18.0.29
-            PORT: 50051
-            QASM_PATH: /qasm
-            LOG_FILE_PATH: /logs/jobs-server/logs.log
+            - DB_HOST=postgresInstance
+            - DB_PORT=5432
+            - DB_USERNAME=${DB_USERNAME}
+            - DB_PASSWORD=${DB_PASSWORD}
+            - DB_NAME=quantum
+            - RABBITMQ_HOST=rabbitmqInstance
+            - RABBITMQ_PORT=5672
+            - RABBITMQ_QUEUE_NAME=qexec
+            - RABBITMQ_USER=${RABBITMQ_USER}
+            - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+            - HOST=172.18.0.29
+            - PORT=50051
+            - QASM_PATH=/qasm
+            - LOG_FILE_PATH=/logs/jobs-server/logs.log
         restart: always
         volumes:
             - qasm:/qasm
@@ -84,13 +97,16 @@ services:
             - db
         ports:
             - '3000:3000'
-        env_file:
-            - ./db.env
         environment:
-            GIN_MODE: release
-            PORT: 3000
-            LOG_FILE_PATH: /logs/api/logs.log
-            TRUSTED_PROXY: 172.18.0.30 # only incoming requests from the proxy can be accepted
+            - DB_HOST=postgresInstance
+            - DB_PORT=5432
+            - DB_USERNAME=${DB_USERNAME}
+            - DB_PASSWORD=${DB_PASSWORD}
+            - DB_NAME=quantum
+            - GIN_MODE=release
+            - PORT=3000
+            - LOG_FILE_PATH=/logs/api/logs.log
+            - TRUSTED_PROXY=172.18.0.30 # only incoming requests from the proxy can be accepted
         restart: always
         volumes:
             - logs:/logs
@@ -105,11 +121,18 @@ services:
         deploy:
             mode: replicated
             replicas: 4 # you can add up to 25 replicas
-        env_file:
-            - ./queue.env
-            - ./db.env
         environment:
-            LOGS_PATH: /logs/worker/
+            - DB_HOST=postgresInstance
+            - DB_PORT=5432
+            - DB_USERNAME=${DB_USERNAME}
+            - DB_PASSWORD=${DB_PASSWORD}
+            - DB_NAME=quantum
+            - RABBITMQ_HOST=rabbitmqInstance
+            - RABBITMQ_PORT=5672
+            - RABBITMQ_QUEUE_NAME=qexec
+            - RABBITMQ_USER=${RABBITMQ_USER}
+            - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+            - LOGS_PATH=/logs/worker/
         restart: always
         volumes:
             - qasm:/qasm
