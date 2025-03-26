@@ -8,20 +8,24 @@ source ./colors.sh
 for id in "postgres-db" "rabbitmq" "jobs-server" "api" "proxy"; do
 	echo -e "\n${BLUE}Stopping container $id ... ${ENDC}"
 	docker stop $id
+	echo -e "\n${GREEN}Cleaning container $id ... ${ENDC}"
+	docker rm -f $id
 done
 
 TOTAL_WORKERS=$(docker ps | grep local-quantum-server-workers | wc | awk '{print $1}')
 
-for worker_i in $(seq 1 $TOTAL_WORKERS); do
-	echo -e "\n${BLUE}Stopping worker $worker_i ... ${ENDC}"
-	docker stop "local-quantum-server-workers-$worker_i"
+for worker in $(docker ps | grep local-quantum-server-workers | awk '{printf("%s\n", $12)}'); do
+	echo -e "\n${BLUE}Stopping worker $worker ... ${ENDC}"
+	docker stop $worker
+	echo -e "\n${GREEN}Cleaning container $worker ... ${ENDC}"
+	docker rm -f $worker
 done
 
-echo -e "\n${BLUE}Cleaning containers ... ${ENDC}"
-yes | docker container prune
-echo -e "\n${BLUE}Cleaning images ... ${ENDC}"
-yes | docker image prune -a
-echo -e "\n${BLUE}Cleaning volumes ... ${ENDC}"
-yes | docker volume prune -a
-echo -e "\n${BLUE}Cleaning networks ... ${ENDC}"
-yes | docker network prune
+for volume in "data" "logs" "postgres" "qasm"; do
+	VOLUME_NAME="local-quantum-server_${volume}"
+	echo -e "\n${GREEN}Deleting volume $VOLUME_NAME ... ${ENDC}"
+	docker volume rm -f $VOLUME_NAME
+done
+
+echo -e "\n${GREEN}Cleaning network qnet ... ${ENDC}"
+docker network rm -f local-quantum-server_qnet
