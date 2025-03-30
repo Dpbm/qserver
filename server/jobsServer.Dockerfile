@@ -14,8 +14,10 @@ RUN mkdir -p /qasm
 RUN mkdir -p /bin-tmp
 
 WORKDIR /bin-tmp
-RUN wget https://github.com/fullstorydev/grpcurl/releases/download/v1.9.2/grpcurl_1.9.2_linux_x86_64.tar.gz && \
-    tar -xvf grpcurl_1.9.2_linux_x86_64.tar.gz
+RUN ARCH=$(uname -m) && \
+    if [ $ARCH = 'aarch64' ]; then ARCH='arm64'; fi && \
+    wget https://github.com/fullstorydev/grpcurl/releases/download/v1.9.2/grpcurl_1.9.2_linux_${ARCH}.tar.gz && \
+    tar -xvf grpcurl_1.9.2_linux_${ARCH}.tar.gz
 
 FROM scratch
 COPY --from=build /go/src/server/serverExec /server
