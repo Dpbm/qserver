@@ -1,7 +1,6 @@
 import os
 import sys
 import datetime
-import uuid
 import logging
 import pika
 from utils import DB, Plugin
@@ -124,7 +123,7 @@ if __name__ == "__main__":
     logs_path = os.getenv("LOGS_PATH")
     if logs_path:
         filename = os.path.join(
-            logs_path, f"{str(datetime.datetime.now())}-{str(uuid.uuid4())}.log"
+            logs_path, f"{str(datetime.datetime.now())}.log"
         )
         create_path(filename)
         logging.basicConfig(level=logging.DEBUG, filename=filename)
