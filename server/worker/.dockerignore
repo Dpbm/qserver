@@ -7,3 +7,6 @@
 .mypy_cache
 utils/__pycache__
 dev-requirements.txt
+tests/
+*_cache
+__pycache__/
