@@ -10,3 +10,4 @@ dev-requirements.txt
 tests/
 *_cache
 __pycache__/
+Makefile

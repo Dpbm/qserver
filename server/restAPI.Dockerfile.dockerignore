@@ -3,3 +3,4 @@ test/
 database/
 worker/
 jobsServer/
+restAPI/Makefile

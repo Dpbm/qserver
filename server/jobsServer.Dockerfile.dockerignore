@@ -2,6 +2,7 @@
 jobsServer/proto/jobs.proto
 jobsServer/probo/jobs_grpc.pb.go
 jobsServer/qasm/
+jobsServer/Makefile
 
 database/
 worker/
