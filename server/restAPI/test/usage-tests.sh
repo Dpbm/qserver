@@ -9,7 +9,7 @@ SERVER_URL="$HOST:3000"
 DEFAULT_PLUGIN="aer-plugin"
 DEFAULT_BACKEND="aer"
 GRPC_SERVER="0.0.0.0:50051"
-
+TOTAL_PER_PAGE=20
 
 get_job_status(){
     ID=$1
@@ -109,6 +109,16 @@ EOM
         return 1
     fi
 
+}
+
+cancel_job(){
+    ID=$1
+
+    curl --request PUT -f "$SERVER_URL/api/v1/job/cancel/$ID"
+    if [ $? != 0 ]; then
+        echo -e "${RED}Failed on cancel job: ${ID}${ENDC}"
+        return 1
+    fi
 }
 
 
@@ -319,7 +329,7 @@ run_test_13(){
 
 
 run_test_14(){
-    curl --request PUT -f "$SERVER_URL/api/v1/job/cancel/invalid-id"
+    cancel_job "invalid-id"
     if [ $? != 0 ]; then
         return 0
     else
@@ -328,7 +338,7 @@ run_test_14(){
 }
 
 run_test_15(){
-    curl --request PUT -f "$SERVER_URL/api/v1/job/cancel/f3f2e850-b5d4-11ef-ac7e-96584d5248b2"
+    cancel_job "f3f2e850-b5d4-11ef-ac7e-96584d5248b2"
     if [ $? != 0 ]; then
         return 0
     else
@@ -348,9 +358,8 @@ run_test_16(){
         return 1
     fi
 
-    curl --request PUT -f "$SERVER_URL/api/v1/job/cancel/$ID"
+    cancel_job $ID
     if [ $? != 0 ]; then
-        echo -e "${RED}Failed on cancel job${ENDC}"
         return 1
     fi
 
@@ -405,7 +414,7 @@ run_test_17(){
         return 1
     fi
 
-    curl --request PUT -f "$SERVER_URL/api/v1/job/cancel/$ID"
+    cancel_job $ID
 
     if [ $? != 0 ]; then
         return 0
@@ -443,7 +452,7 @@ run_test_20(){
 
     curl --request DELETE -f "$SERVER_URL/api/v1/job/$ID"
     if [ $? != 0 ]; then
-        echo -e "${RED}Failed on cancel job${ENDC}"
+        echo -e "${RED}Failed on delete job${ENDC}"
         return 1
     fi
 
@@ -546,9 +555,8 @@ run_test_25(){
         return 1
     fi
 
-    curl --request PUT -f "$SERVER_URL/api/v1/job/cancel/$ID"
+    cancel_job $ID
     if [ $? != 0 ]; then
-        echo -e "${RED}Failed on cancel job $ID${ENDC}"
         return 1
     fi
 
@@ -577,9 +585,8 @@ run_test_26(){
         return 1
     fi
 
-    curl --request PUT -f "$SERVER_URL/api/v1/job/cancel/$ID"
+    cancel_job $ID
     if [ $? != 0 ]; then
-        echo -e "${RED}Failed on cancel job $ID${ENDC}"
         return 1
     fi
 
@@ -598,6 +605,88 @@ run_test_26(){
 
 run_test_27(){
     curl -f "$SERVER_URL/api/v1/health"
+}
+
+run_test_28(){
+    add_plugin
+    if [ $? != 0 ]; then
+        return 1
+    fi
+    echo ""
+
+    TOTAL_JOBS=$(( $TOTAL_PER_PAGE + 2 ))
+
+    for i in $(seq 0 $TOTAL_JOBS); do
+        echo -e "${BLUE}Adding job ${i}...${ENDC}"
+        add_job
+        if [ $? != 0 ]; then
+            return 1
+        fi
+    done
+
+    TOTAL_JOBS_PAGE_1=$(curl -f "$SERVER_URL/api/v1/jobs/?cursor=0" | jq length)
+    echo "TOTAL FIRST PAGE: ${TOTAL_JOBS_PAGE_1}"
+    if [ $TOTAL_JOBS_PAGE_1 != 20 ]; then
+        echo -e "${RED}Wrong amount on first page${ENDC}"
+        return 1
+    fi
+
+    TOTAL_JOBS_PAGE_2=$(curl -f "$SERVER_URL/api/v1/jobs/?cursor=20" | jq length)
+    if [ $TOTAL_JOBS_PAGE_2 != 3 ]; then
+        echo -e "${RED}Wrong amount on second page${ENDC}"
+        return 1
+    fi
+
+    TOTAL_JOBS_PAGE_3=$(curl -f "$SERVER_URL/api/v1/jobs/?cursor=40" | jq length)
+    if [ $TOTAL_JOBS_PAGE_3 != 0 ]; then
+        echo -e "${RED}Wrong amount on third page${ENDC}"
+        return 1
+    fi
+
+}
+
+run_test_29(){
+    add_plugin
+    if [ $? != 0 ]; then
+        return 1
+    fi
+    echo ""
+
+    TOTAL_JOBS=$(( $TOTAL_PER_PAGE + 2 ))
+
+    for i in $(seq 0 $TOTAL_JOBS); do
+        echo -e "${BLUE}Adding job ${i}...${ENDC}"
+        ID=$( add_job ) 
+        if [ $? != 0 ]; then
+            return 1
+        fi
+
+        cancel_job $ID
+        if [ $? != 0 ]; then
+            return 1
+        fi
+    done
+
+
+    TOTAL_JOBS_PAGE_1=$(curl -f "$SERVER_URL/api/v1/history/?cursor=0" | jq length)
+    echo "TOTAL FIRST PAGE: ${TOTAL_JOBS_PAGE_1}"
+    if [ $TOTAL_JOBS_PAGE_1 != 20 ]; then
+        echo -e "${RED}Wrong amount on first page${ENDC}"
+        return 1
+    fi
+
+    TOTAL_JOBS_PAGE_2=$(curl -f "$SERVER_URL/api/v1/history/?cursor=20" | jq length)
+    if [ $TOTAL_JOBS_PAGE_2 != 8 ]; then
+        echo -e "${RED}Wrong amount on second page${ENDC}"
+        return 1
+    fi
+
+    TOTAL_JOBS_PAGE_3=$(curl -f "$SERVER_URL/api/v1/history/?cursor=40" | jq length)
+    if [ $TOTAL_JOBS_PAGE_3 != 0 ]; then
+        echo -e "${RED}Wrong amount on third page${ENDC}"
+        return 1
+    fi
+
 }
 
 
@@ -622,6 +711,10 @@ clean_external
 test_header 27 "Testing healthcheck"
 run_test_27
 has_passed
+
+
+
+# STARTING TESTS FROM THE BASE
 
 clean_external
 test_header 1 "Delete plugin with no job created with it"
@@ -708,7 +801,6 @@ test_header 17 "Failed on cancel job status is not pending"
 run_test_17
 has_passed
 
-
 clean_external
 test_header 18 "Delete Job Invalid ID"
 run_test_18
@@ -739,10 +831,12 @@ test_header 23 "Test Get jobs with a big cursor"
 run_test_23
 has_passed
 
+clean_external
+test_header 28 "Testing pagination with $TOTAL_PER_PAGE jobs per page with 2 pages"
+run_test_28
+has_passed
 
-
-
-# TODO: TEST ADDING 20 JOBS/BACKENDS/HISTORY AND GETTING THE NEXT PAGE
-# TEST HEALTHCHECK
-
-
+clean_external
+test_header 29 "Testing pagination with $TOTAL_PER_PAGE history jobs per page 2 pages"
+run_test_29
+has_passed

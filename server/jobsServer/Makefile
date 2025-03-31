@@ -5,6 +5,7 @@ GEN_PROTO_SCRIPT = ./generate-proto-code.sh
 
 
 test:
+	docker compose -f ../../dev-compose.yml up -d --build api
 	chmod +x $(TEST_SCRIPT) && $(TEST_SCRIPT)
 
 run:

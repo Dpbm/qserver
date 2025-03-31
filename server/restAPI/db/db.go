@@ -9,6 +9,7 @@ import (
 	dbDefinition "github.com/Dpbm/shared/db"
 	logger "github.com/Dpbm/shared/log"
 
+	"github.com/Dpbm/quantumRestAPI/constants"
 	"github.com/Dpbm/quantumRestAPI/types"
 )
 
@@ -30,6 +31,8 @@ func (db *DB) CloseConnection() {
 
 func (db *DB) DeletePlugin(pluginName string) error {
 	logger.LogAction(fmt.Sprintf("Deleting plugin data of name: %s", pluginName))
+
+	// TODO: check if there're any jobs running with any backends of this plugin
 
 	_, err := db.connection.Exec("DELETE FROM backends WHERE plugin = $1", pluginName)
 
@@ -56,9 +59,11 @@ func (db *DB) GetBackends(cursor uint64) ([]*types.BackendData, error) {
 	logger.LogAction(fmt.Sprintf("Getting backends from cursor: %d", cursor))
 
 	rows, err := db.connection.Query(`
-		SELECT backend_name, id, pointer, plugin FROM backends
-		WHERE pointer > $1 AND pointer <= $1 + 20;
-	`, cursor)
+		SELECT backend_name, id, pointer, plugin 
+		FROM backends
+		OFFSET $1
+		LIMIT $2
+	`, cursor, constants.PAGE_AMOUNT)
 
 	if err != nil {
 		return nil, err
@@ -198,7 +203,7 @@ func (db *DB) SaveBackends(backends *[]string, pluginName string) error {
 	logger.LogAction(fmt.Sprintf("Saving backends of: %s", pluginName))
 
 	for _, backend := range *backends {
-		_, err := db.connection.Exec(`
+		result, err := db.connection.Exec(`
 			INSERT INTO backends(backend_name, plugin)
 			VALUES($1, $2)
 		`, backend, pluginName)
@@ -206,6 +211,17 @@ func (db *DB) SaveBackends(backends *[]string, pluginName string) error {
 		if err != nil {
 			return err
 		}
+
+		rowsAffected, err := result.RowsAffected()
+
+		if err != nil {
+			return err
+		}
+
+		if rowsAffected < 1 {
+			return errors.New("no rows were affected during backend insertion")
+		}
+
 	}
 
 	return nil
@@ -213,6 +229,8 @@ func (db *DB) SaveBackends(backends *[]string, pluginName string) error {
 
 func (db *DB) DeleteJobData(jobId string) error {
 	logger.LogAction(fmt.Sprintf("Deleting job data of id: %s", jobId))
+
+	// TODO: check if the job is running
 
 	_, err := db.connection.Exec("DELETE FROM jobs WHERE id=$1", jobId)
 
@@ -252,9 +270,9 @@ func (db *DB) GetJobsData(cursor uint64) ([]*types.JobData, error) {
 			) AS results
 		FROM 
 			jobs AS j
-		WHERE
-			j.pointer > $1 AND j.pointer <= $1 + 20
-	`, cursor)
+		OFFSET $1
+		LIMIT $2
+	`, cursor, constants.PAGE_AMOUNT)
 
 	if err != nil {
 		return nil, err
@@ -312,9 +330,23 @@ func (db *DB) CancelJob(jobID string) error {
 		return errors.New("job is not pending")
 	}
 
-	_, err = db.connection.Exec(`
+	result, err := db.connection.Exec(`
 		UPDATE jobs SET status='canceled' WHERE id=$1
 	`, jobID)
+
+	if err != nil {
+		return nil
+	}
+
+	rowsAffected, err := result.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected < 1 {
+		return errors.New("no rows were affected during cancel job")
+	}
 
 	return err
 }
@@ -325,8 +357,9 @@ func (db *DB) GetHistoryData(cursor uint64) ([]*types.Historydata, error) {
 	rows, err := db.connection.Query(`
 		SELECT id, job_id, target_simulator, qasm, status, submission_date, start_time, finish_time, metadata, result_types, results
 		FROM history
-		WHERE id > $1 AND id <= $1 + 20
-	`, cursor)
+		OFFSET $1
+		LIMIT $2
+	`, cursor, constants.PAGE_AMOUNT)
 
 	if err != nil {
 		return nil, err

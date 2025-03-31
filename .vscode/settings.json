@@ -54,6 +54,7 @@
         "qjobsserver",
         "qnet",
         "qproxy",
+        "qserver",
         "qworker",
         "rabbitmq",
         "referer",
