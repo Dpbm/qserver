@@ -722,7 +722,7 @@ run_test_30(){
         fi
 
         COUNTER=$(( COUNTER + 1 ))
-        sleep 5
+        sleep 1
     done
 
     delete_job $ID
