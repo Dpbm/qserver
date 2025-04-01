@@ -57,6 +57,10 @@ func (db *DB) DeletePlugin(pluginName string) error {
 
 	result, err := db.connection.Exec("DELETE FROM backends WHERE plugin = $1", pluginName)
 
+	if err != nil {
+		return err
+	}
+
 	rows, err := result.RowsAffected()
 
 	if err != nil {
