@@ -1,0 +1,29 @@
+name: (Reusable Workflow) Test production docker compose files (DOCKERHUB)
+on:
+  workflow_call
+
+jobs:
+    test-dockerhub-production-compose-file:
+        name: Test production compose file (pull from dockerhub) on ${{ matrix.os }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os:
+                    - ubuntu-24.04
+                    - ubuntu-24.04-arm
+    
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: run compose
+              env: 
+                DB_USERNAME: test
+                DB_PASSWORD: test
+                DB_ROOT_USER: root
+                DB_ROOT_PASSWORD: toor
+                RABBITMQ_USER: test
+                RABBITMQ_PASSWORD: test
+              run: |
+                  docker compose up -d

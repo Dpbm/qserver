@@ -1,0 +1,27 @@
+name: (Reusable Workflow) Test production docker compose files (GHCR)
+on:
+  workflow_call
+
+jobs:
+    test-ghcr-production-compose-file:
+        name: Test production compose file (pull from GHCR) on ${{ matrix.os }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os:
+                    - ubuntu-24.04
+                    - ubuntu-24.04-arm
+    
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: run compose
+              env:
+                DB_USERNAME: test
+                DB_PASSWORD: test
+                DB_ROOT_USER: root
+                DB_ROOT_PASSWORD: toor
+                RABBITMQ_USER: test
+                RABBITMQ_PASSWORD: test
+              run: docker compose -f ./ghcr-prod-compose.yml up -d
