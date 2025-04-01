@@ -27,8 +27,6 @@ delete_plugin(){
     fi
 
     curl --request DELETE -f "$SERVER_URL/api/v1/plugin/$DEFAULT_PLUGIN"
-    echo ""
-
     if [ $? != 0 ]; then
         echo -e "${RED}Failed on delete plugin${ENDC}"
         return 1
@@ -38,10 +36,8 @@ delete_plugin(){
 delete_job(){
     JOB_ID=$1
     curl --request DELETE -f "$SERVER_URL/api/v1/job/$JOB_ID"
-    echo ""
-
     if [ $? != 0 ]; then
-        echo -e "${RED}Failed on delete job${ENDC}"
+        echo -e "${RED}Failed on delete job ${JOB_ID}${ENDC}"
         return 1
     fi
 }
