@@ -23,3 +23,6 @@ run:
 
 swagger:
 	chmod +x $(SWAGGER_SCRIPT) && $(SWAGGER_SCRIPT)
+
+lint:
+	golangci-lint run

@@ -32,11 +32,42 @@ func (db *DB) CloseConnection() {
 func (db *DB) DeletePlugin(pluginName string) error {
 	logger.LogAction(fmt.Sprintf("Deleting plugin data of name: %s", pluginName))
 
-	// TODO: check if there're any jobs running with any backends of this plugin
+	row := db.connection.QueryRow(`
+		SELECT COUNT(id)
+		FROM jobs
+		WHERE
+			status='running' AND
+			target_simulator IN (
+				SELECT backend_name 
+				FROM backends
+				WHERE plugin=$1
+			);
+	`, pluginName)
 
-	_, err := db.connection.Exec("DELETE FROM backends WHERE plugin = $1", pluginName)
+	var totalJobs uint64
+	err := row.Scan(&totalJobs)
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	if totalJobs > 0 {
+		return errors.New("you cannot delete a plugin while there're running jobs depending on it")
+	}
+
+	result, err := db.connection.Exec("DELETE FROM backends WHERE plugin = $1", pluginName)
+
+	rows, err := result.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if rows < 1 {
+		return errors.New("plugin not found to be deleted")
+	}
+
+	return nil
 
 }
 
@@ -230,11 +261,36 @@ func (db *DB) SaveBackends(backends *[]string, pluginName string) error {
 func (db *DB) DeleteJobData(jobId string) error {
 	logger.LogAction(fmt.Sprintf("Deleting job data of id: %s", jobId))
 
-	// TODO: check if the job is running
+	row := db.connection.QueryRow("SELECT status FROM jobs WHERE id=$1", jobId)
 
-	_, err := db.connection.Exec("DELETE FROM jobs WHERE id=$1", jobId)
+	var status string
+	err := row.Scan(&status)
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	if status == "running" {
+		return errors.New("you cannot delete a job while it's running")
+	}
+
+	result, err := db.connection.Exec("DELETE FROM jobs WHERE id=$1", jobId)
+
+	if err != nil {
+		return err
+	}
+
+	rows, err := result.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if rows < 1 {
+		return errors.New("no rows were affected during job deletion")
+	}
+
+	return nil
 
 }
 

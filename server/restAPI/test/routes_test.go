@@ -28,6 +28,10 @@ const dbPassword = ""
 const dbName = ""
 const proxy = ""
 
+// ADD A FAKE PLUGIN FOR THAT (use instead of aer)
+const plugin_name = "aer-plugin"
+const backend_name = "aer"
+
 // ------- ADD PLUGIN -------
 func TestAddPluginFailedNoPluginName(t *testing.T) {
 	dbInstance := db.DB{}
@@ -71,7 +75,7 @@ func TestAddPluginSuccess(t *testing.T) {
 		t.Fatal("Failed on parse mock")
 	}
 
-	mock.ExpectExec("INSERT INTO backends").WithArgs("aer", "aer-plugin").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("INSERT INTO backends").WithArgs(backend_name, plugin_name).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", fmt.Sprintf("/api/v1/plugin/%s", constants.TEST_PLUGIN), nil)
@@ -79,6 +83,28 @@ func TestAddPluginSuccess(t *testing.T) {
 	server.ServeHTTP(writer, req)
 
 	assert.Equal(t, 201, writer.Code)
+}
+
+func TestAddPluginNoRowsAffected(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance, proxy)
+
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	mock.ExpectExec("INSERT INTO backends").WithArgs(backend_name, plugin_name).WillReturnResult(sqlmock.NewResult(1, 0))
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/api/v1/plugin/%s", constants.TEST_PLUGIN), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 500, writer.Code)
 }
 
 // ------- DELETE PLUGIN -------
@@ -105,8 +131,18 @@ func TestDeletePluginFailedNotFoundInstalledPlugin(t *testing.T) {
 
 	server := server.SetupServer(&dbInstance, proxy)
 
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	const invalidName string = "doesnt-exits"
+	row := mock.NewRows([]string{"count"}).AddRow(0)
+	mock.ExpectQuery("SELECT COUNT").WithArgs(invalidName).WillReturnRows(row)
+	mock.ExpectExec("DELETE FROM backends").WithArgs(invalidName).WillReturnResult(sqlmock.NewResult(1, 0))
+
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("DELETE", "/api/v1/plugin/doesnt-exists", nil)
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/api/v1/plugin/%s", invalidName), nil)
 
 	server.ServeHTTP(writer, req)
 
@@ -125,14 +161,39 @@ func TestDeletePluginSuccess(t *testing.T) {
 		t.Fatal("Failed on parse mock")
 	}
 
-	mock.ExpectExec("DELETE FROM backends").WithArgs("aer-plugin").WillReturnResult(sqlmock.NewResult(1, 1))
+	row := mock.NewRows([]string{"count"}).AddRow(0)
+	mock.ExpectQuery("SELECT COUNT").WithArgs(plugin_name).WillReturnRows(row)
+	mock.ExpectExec("DELETE FROM backends").WithArgs(plugin_name).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("DELETE", "/api/v1/plugin/aer-plugin", nil)
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/api/v1/plugin/%s", plugin_name), nil)
 
 	server.ServeHTTP(writer, req)
 
 	assert.Equal(t, 200, writer.Code)
+}
+
+func TestDeletePluginFailedRunningJobs(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance, proxy)
+
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	row := mock.NewRows([]string{"count"}).AddRow(2)
+	mock.ExpectQuery("SELECT COUNT").WithArgs(plugin_name).WillReturnRows(row)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/api/v1/plugin/%s", plugin_name), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 500, writer.Code)
 }
 
 // ------- GET BACKEND -------
@@ -164,10 +225,11 @@ func TestGetBackendFailedNoBackendWithThisName(t *testing.T) {
 		t.Fatal("Failed on parse mock")
 	}
 
-	mock.ExpectQuery("FROM backends").WithArgs("invalid-backend").WillReturnError(sql.ErrNoRows)
+	const invalidName string = "invalid-backend"
+	mock.ExpectQuery("FROM backends").WithArgs(invalidName).WillReturnError(sql.ErrNoRows)
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/api/v1/backend/invalid-backend", nil)
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/v1/backend/%s", invalidName), nil)
 
 	server.ServeHTTP(writer, req)
 
@@ -242,7 +304,7 @@ func TestNoBackends(t *testing.T) {
 	assert.Equal(t, len(body), 0)
 }
 
-func TestOneBackends(t *testing.T) {
+func TestOneBackend(t *testing.T) {
 	dbInstance := db.DB{}
 	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
 	defer dbInstance.CloseConnection()
@@ -428,6 +490,12 @@ func TestGetJobResultIDNotFound(t *testing.T) {
 	defer dbInstance.CloseConnection()
 
 	server := server.SetupServer(&dbInstance, proxy)
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	mock.ExpectQuery("FROM results").WithArgs(constants.TEST_JOB_ID).WillReturnError(sql.ErrNoRows)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/v1/job/result/%s", constants.TEST_JOB_ID), nil)
@@ -517,6 +585,13 @@ func TestCancelJobIDNotFound(t *testing.T) {
 	defer dbInstance.CloseConnection()
 
 	server := server.SetupServer(&dbInstance, proxy)
+
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	mock.ExpectQuery("FROM jobs").WithArgs(constants.TEST_JOB_ID).WillReturnError(sql.ErrNoRows)
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("PUT", fmt.Sprintf("/api/v1/job/cancel/%s", constants.TEST_JOB_ID), nil)
@@ -633,6 +708,42 @@ func TestCancelErrorJobFinished(t *testing.T) {
 	assert.Equal(t, 500, writer.Code)
 }
 
+func TestCancelErrorNoRowsAffected(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance, proxy)
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	now := time.Now()
+	rows := mock.NewRows([]string{
+		"id",
+		"pointer",
+		"target_simulator",
+		"qasm",
+		"status",
+		"submission_date",
+		"start_time",
+		"finish_time",
+		"metadata",
+		"result_types",
+		"results",
+	}).AddRow(constants.TEST_JOB_ID, 1, constants.TEST_BACKEND, "nothing", "pending", now, now, now, "{}", "{}", "{}")
+	mock.ExpectQuery("FROM jobs").WithArgs(constants.TEST_JOB_ID).WillReturnRows(rows)
+	mock.ExpectExec("UPDATE jobs").WithArgs(constants.TEST_JOB_ID).WillReturnResult(sqlmock.NewResult(1, 0))
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("PUT", fmt.Sprintf("/api/v1/job/cancel/%s", constants.TEST_JOB_ID), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 500, writer.Code)
+}
+
 // ------- DELETE JOB -------
 
 func TestDeleteJobWithoutPassingJobID(t *testing.T) {
@@ -691,6 +802,8 @@ func TestDeleteSuccess(t *testing.T) {
 		t.Fatal("Failed on parse mock")
 	}
 
+	row := mock.NewRows([]string{"status"}).AddRow("finished")
+	mock.ExpectQuery("SELECT status").WithArgs(constants.TEST_JOB_ID).WillReturnRows(row)
 	mock.ExpectExec("DELETE FROM jobs").WithArgs(constants.TEST_JOB_ID).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	writer := httptest.NewRecorder()
@@ -699,6 +812,72 @@ func TestDeleteSuccess(t *testing.T) {
 	server.ServeHTTP(writer, req)
 
 	assert.Equal(t, 200, writer.Code)
+}
+
+func TestDeleteFailedJobRunning(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance, proxy)
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	row := mock.NewRows([]string{"status"}).AddRow("running")
+	mock.ExpectQuery("SELECT status FROM").WithArgs(constants.TEST_JOB_ID).WillReturnRows(row)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/api/v1/job/%s", constants.TEST_JOB_ID), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 500, writer.Code)
+}
+
+func TestDeleteNoReturnRowsOnGet(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance, proxy)
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	mock.ExpectQuery("SELECT status").WithArgs(constants.TEST_JOB_ID).WillReturnError(sql.ErrNoRows)
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/api/v1/job/%s", constants.TEST_JOB_ID), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 500, writer.Code)
+}
+
+func TestDeleteNoAffectedRows(t *testing.T) {
+	dbInstance := db.DB{}
+	dbInstance.Connect(&dbDefinition.Mock{}, dbHost, dbPort, dbUsername, dbPassword, dbName)
+	defer dbInstance.CloseConnection()
+
+	server := server.SetupServer(&dbInstance, proxy)
+	mock, ok := dbInstance.Extra.(sqlmock.Sqlmock)
+	if !ok {
+		t.Fatal("Failed on parse mock")
+	}
+
+	row := mock.NewRows([]string{"status"}).AddRow("finished")
+	mock.ExpectQuery("SELECT status").WithArgs(constants.TEST_JOB_ID).WillReturnRows(row)
+	mock.ExpectExec("DELETE FROM jobs").WithArgs(constants.TEST_JOB_ID).WillReturnResult(sqlmock.NewResult(1, 0))
+
+	writer := httptest.NewRecorder()
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/api/v1/job/%s", constants.TEST_JOB_ID), nil)
+
+	server.ServeHTTP(writer, req)
+
+	assert.Equal(t, 500, writer.Code)
 }
 
 // ------- GET JOBS -------
@@ -910,7 +1089,3 @@ func TestHealth(t *testing.T) {
 	assert.Equal(t, 200, writer.Code)
 
 }
-
-// TODO: TEST ADDING 20 JOBS/BACKENDS/HISTORY AND GETTING THE NEXT PAGE
-// ADD A FAKE PLUGIN FOR THAT (use instead of aer)
-// TEST AMOUNT OF ROWS AFFECTED
