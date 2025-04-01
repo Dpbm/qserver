@@ -201,12 +201,16 @@ jobs:
     
     test-dockerhub-production-compose-file:
         needs: [push_api_dockerhub, push_database_dockerhub, push_jobs_server_dockerhub, push_proxy_dockerhub, push_worker_dockerhub]
-        uses: ./.github/workflows/compose-test-dockerhub.yml
+        uses: ./.github/workflows/compose-test.yml
+        with:
+          file: './compose.yml'
 
 
     test-ghcr-production-compose-file:
         needs: [push_api_ghcr, push_database_ghcr, push_jobs_server_ghcr, push_proxy_ghcr, push_worker_ghcr]
-        uses: ./.github/workflows/compose-test-ghcr.yml
+        uses: ./.github/workflows/compose-test.yml
+        with:
+          file: './ghcr-prod-compose.yml'
 
 
     

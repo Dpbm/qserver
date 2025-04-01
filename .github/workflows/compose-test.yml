@@ -1,10 +1,15 @@
-name: (Reusable Workflow) Test production docker compose files (DOCKERHUB)
+name: (Reusable Workflow) Test production docker compose files
 on:
-  workflow_call
+  workflow_call:
+    inputs:
+      file:
+        description: "the compose file path"
+        required: true
+        type: string
 
 jobs:
-    test-dockerhub-production-compose-file:
-        name: Test production compose file (pull from dockerhub) on ${{ matrix.os }}
+    test-compose-file:
+        name: Test production compose file on ${{ matrix.os }}
         runs-on: ${{ matrix.os }}
         strategy:
             fail-fast: false
@@ -12,7 +17,6 @@ jobs:
                 os:
                     - ubuntu-24.04
                     - ubuntu-24.04-arm
-    
 
         steps:
             - uses: actions/checkout@v4
@@ -26,4 +30,4 @@ jobs:
                 RABBITMQ_USER: test
                 RABBITMQ_PASSWORD: test
               run: |
-                  docker compose up -d
+                  docker compose -f ${{ inputs.file }} up -d
