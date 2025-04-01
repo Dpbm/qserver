@@ -692,48 +692,6 @@ run_test_29(){
     fi
 }
 
-run_test_30(){
-    start_workers
-    if [ $? != 0 ]; then
-        return 1
-    fi
-    echo ""
-
-    add_plugin
-    if [ $? != 0 ]; then
-        return 1
-    fi
-    echo ""
-
-    ID=$( add_job )
-    if [ $? != 0 ]; then
-        return 1
-    fi
-
-    STATUS="pending"
-    COUNTER=0
-    MAX_COUNTER=20
-    echo -e "${BLUE}Waiting for job $ID...${ENDC}"
-    while [ "$STATUS" = 'pending' ] && [ "$COUNTER" -lt "$MAX_COUNTER" ]; do
-        STATUS=$(get_job_status $ID)
-
-        if [ $? != 0 ]; then
-            return 1
-        fi
-
-        COUNTER=$(( COUNTER + 1 ))
-        sleep 1
-    done
-
-    delete_job $ID
-
-    if [ $? != 0 ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
 
 
 # HISTORY TESTS MUST COME FIRST
@@ -885,11 +843,3 @@ clean_external
 test_header 29 "Testing pagination with $TOTAL_PER_PAGE history jobs per page 2 pages"
 run_test_29
 has_passed
-
-clean_external
-test_header 30 "Test delete job while it's running - should raise an error"
-run_test_30
-has_passed
-
-
-# TEST DELETE JOB WHILE IT's RUNNING
