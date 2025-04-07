@@ -210,3 +210,5 @@ go.work
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
 
 jobs_grpc.pb.go
+
+*.pem

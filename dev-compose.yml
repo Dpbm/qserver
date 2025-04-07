@@ -9,14 +9,18 @@ services:
             - jobs-server
         ports:
             - '8080:8080'
+            - '80:8080'
             - '443:443'
+        environment:
+            - DOMAIN=${DOMAIN}
         volumes:
             - logs:/logs
+            - /etc/letsencrypt/archive/:/letsencrypt/
         restart: always
         networks:
             qnet:
                 ipv4_address: 172.18.0.30
-
+    
     db:
         container_name: postgres-db
         hostname: postgresInstance
@@ -99,8 +103,6 @@ services:
             GIN_MODE: debug
             PORT: 3000
             LOG_FILE_PATH: /logs/api/logs.log
-            # uncomment this for deploy
-            # TRUSTED_PROXY: 172.18.0.30
         restart: always
         volumes:
             - logs:/logs
@@ -116,7 +118,7 @@ services:
             - jobs-server
         deploy:
             mode: replicated
-            replicas: 4
+            replicas: 1
         env_file:
             - ./queue.env
             - ./db.env
@@ -138,6 +140,7 @@ volumes:
         external: false
     logs:
         external: false
+
 
 networks:
     qnet:

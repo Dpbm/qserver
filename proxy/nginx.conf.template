@@ -12,26 +12,18 @@ http{
     error_log /logs/nginx/alerts.log alert;
     access_log /logs/nginx/access.log access;
 
+
     server {
         http2 on; # GRPC needs it
         gzip on;
+
         listen 8080; # HTTP
+        listen 443 ssl;
 
-        # change it to your server name
-        server_name jobsServer;
+        server_name ${DOMAIN};
 
-
-        # FOR HTTPS
-        # listen              443 ssl;
-        # ssl_certificate     www.example.com.crt;
-        # ssl_certificate_key www.example.com.key;
-        # ssl_protocols       TLSv1.2 TLSv1.3;
-        # ssl_ciphers         HIGH:!aNULL:!MD5;
-
-        # see https://nginx.org/en/docs/http/configuring_https_servers.html
-        #     https://letsencrypt.org/getting-started/
-        # for more details
-        
+        ssl_certificate     /letsencrypt/${DOMAIN}/fullchain1.pem;
+        ssl_certificate_key /letsencrypt/${DOMAIN}/privkey1.pem;
 
         resolver 127.0.0.11 ipv6=off valid=10s; #https://stackoverflow.com/questions/67439712/nginx-does-not-re-resolve-dns-names-in-docker
         proxy_pass_request_headers on;
@@ -51,7 +43,7 @@ http{
         location / {
             if ($http_content_type !~ "application/grpc"){
                 # to avoid falling in this route
-                # if a invalid path is used 
+                # if an invalid path is used 
                 return 404 'Not Found';
             }
 
@@ -60,6 +52,10 @@ http{
 
         location /healthcheck/ {
             return 200 'All Working';
+        }
+
+        location /.well-known/acme-challenge/ { # for certbot production env
+            root /var/www/certbot;
         }
 
     }

@@ -57,22 +57,54 @@ EOM
 
 }
 
+send_grpc_tls(){
+    SERVER=$1
+
+    DATA=$(cat <<EOM
+{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"aer", "metadata":"{}"}}
+{"qasmChunk":"AAAA"}
+EOM
+)
+    grpcurl -d "$DATA" $SERVER Jobs/AddJob
+
+}
+
 SERVER_STRING="$SERVER_IP:$SERVER_PORT"
-BASE_URL="http://$SERVER_STRING"
+HTTP_VERSION="http://$SERVER_STRING"
+
+HTTPS_VERSION="https://dpbmdev.com"
+GRPC_TLS="dpbmdev.com:443"
 
 echo -e "${BLUE}--Test API Access--${ENDC}"
-test_status "$BASE_URL/api/v1/jobs/" 200
-test_status "$BASE_URL/api/not-exists/" 404
+test_status "$HTTP_VERSION/api/v1/jobs/" 200
+test_status "$HTTP_VERSION/api/not-exists/" 404
 
 echo -e "${BLUE}--Test Swagger--${ENDC}"
-test_status "$BASE_URL/swagger/" 200
-test_status "$BASE_URL/swagger/index.html" 200
-test_status "$BASE_URL/swagger/anything" 200
+test_status "$HTTP_VERSION/swagger/" 200
+test_status "$HTTP_VERSION/swagger/index.html" 200
+test_status "$HTTP_VERSION/swagger/anything" 200
 
 echo -e "${BLUE}--Test NGINX--${ENDC}"
-test_status "$BASE_URL/not-a-nginx-route/" 404
-test_status "$BASE_URL/healthcheck/" 200
+test_status "$HTTP_VERSION/not-a-nginx-route/" 404
+test_status "$HTTP_VERSION/healthcheck/" 200
 
 echo -e "${BLUE}--Test GRPC--${ENDC}"
-add_plugin $BASE_URL
+add_plugin $HTTP_VERSION
 send_grpc $SERVER_STRING
+
+echo -e "${BLUE}--Test API Access (HTTPS)--${ENDC}"
+test_status "$HTTPS_VERSION/api/v1/jobs/" 200
+test_status "$HTTPS_VERSION/api/not-exists/" 404
+
+echo -e "${BLUE}--Test Swagger (HTTPS)--${ENDC}"
+test_status "$HTTPS_VERSION/swagger/" 200
+test_status "$HTTPS_VERSION/swagger/index.html" 200
+test_status "$HTTPS_VERSION/swagger/anything" 200
+
+echo -e "${BLUE}--Test NGINX (HTTPS)--${ENDC}"
+test_status "$HTTPS_VERSION/not-a-nginx-route/" 404
+test_status "$HTTPS_VERSION/healthcheck/" 200
+
+echo -e "${BLUE}--Test GRPC (HTTPS)--${ENDC}"
+add_plugin $HTTPS_VERSION
+send_grpc_tls $GRPC_TLS
