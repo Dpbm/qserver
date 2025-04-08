@@ -85,7 +85,9 @@ send_grpc_tls(){
 {"qasmChunk":"AAAA"}
 EOM
 )
-    grpcurl -d "$DATA" $SERVER Jobs/AddJob
+
+    GRPCURL=$(which grpcurl)
+    sudo $GRPCURL -cacert=/etc/letsencrypt/archive/$DOMAIN/fullchain1.pem  -d "$DATA" $SERVER Jobs/AddJob
 
 }
 
@@ -129,3 +131,4 @@ test_status "$HTTPS_VERSION/healthcheck/" 200
 echo -e "${BLUE}--Test GRPC (HTTPS)--${ENDC}"
 add_plugin $HTTPS_VERSION
 send_grpc_tls $GRPC_TLS
+remove_plugin $HTTPS_VERSION
