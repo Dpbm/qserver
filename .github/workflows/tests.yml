@@ -9,14 +9,6 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
-            - name: Run proxy
-              run: docker compose -f ./dev-compose.yml up -d --build proxy
-
-            - name: Get Dev dependencies
-              run: |
-                  chmod +x install-system-dev-dependencies.sh && \
-                  ./install-system-dev-dependencies.sh
-
             - name: add domain to /etc/hosts
               run: |
                   sudo echo "127.0.0.1 ${{ secrets.DOMAIN }}" | sudo tee -a /etc/hosts
@@ -25,6 +17,15 @@ jobs:
               working-directory: ./certs
               run: |
                 chmod +x generate-ci-certs.sh && DOMAIN=${{ secrets.DOMAIN }} ./generate-ci-certs.sh
+
+            - name: Run proxy
+              run: docker compose -f ./dev-compose.yml up -d --build proxy
+
+            - name: Get Dev dependencies
+              run: |
+                  chmod +x install-system-dev-dependencies.sh && \
+                  ./install-system-dev-dependencies.sh
+
               
             - name: Run tests
               uses: nick-fields/retry@v3
