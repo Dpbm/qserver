@@ -5,6 +5,9 @@ set -e
 SERVER_IP=172.18.0.30
 SERVER_PORT=8080
 
+DEFAULT_PLUGIN="aer-plugin"
+
+
 source ../colors.sh
 
 echo -e "${BLUE}Testing NGINX Routes...${ENDC}"
@@ -14,7 +17,7 @@ test_status(){
     URL=$1
     DESIRED_STATUS_CODE=$2
 
-    DATA=$(curl -v -w ' %{response_code}' $URL)
+    DATA=$(curl -k -v -w ' %{response_code}' $URL)
     echo -e "${BLUE}Response: $DATA${ENDC}"
     STATUS_CODE=$(echo $DATA | awk '{print $NF}')
 
@@ -28,19 +31,36 @@ test_status(){
 
 add_plugin(){
     BASE_URL=$1
-    DEFAULT_PLUGIN="aer-plugin"
 
     until docker exec postgres-db pg_isready -U postgres; do
         echo -e "${BLUE}Waiting for Postgres...${ENDC}"
         sleep 2
     done
 
-    DATA=$(curl --request POST -v -w ' %{response_code}' "$BASE_URL/api/v1/plugin/$DEFAULT_PLUGIN")
+    DATA=$(curl --request POST -k -v -w ' %{response_code}' "$BASE_URL/api/v1/plugin/$DEFAULT_PLUGIN")
     echo -e "${BLUE}Response: $DATA${ENDC}"
     STATUS_CODE=$(echo $DATA | awk '{print $NF}')
 
     if [ $STATUS_CODE != 201 ]; then
         echo -e "${RED}Failed on add plugin!${ENDC}"
+        exit 1
+    fi
+}
+
+remove_plugin(){
+    BASE_URL=$1
+
+    until docker exec postgres-db pg_isready -U postgres; do
+        echo -e "${BLUE}Waiting for Postgres...${ENDC}"
+        sleep 2
+    done
+
+    DATA=$(curl --request DELETE -k -v -w ' %{response_code}' "$BASE_URL/api/v1/plugin/$DEFAULT_PLUGIN")
+    echo -e "${BLUE}Response: $DATA${ENDC}"
+    STATUS_CODE=$(echo $DATA | awk '{print $NF}')
+
+    if [ $STATUS_CODE != 200 ]; then
+        echo -e "${RED}Failed on delete plugin!${ENDC}"
         exit 1
     fi
 }
@@ -91,6 +111,7 @@ test_status "$HTTP_VERSION/healthcheck/" 200
 echo -e "${BLUE}--Test GRPC--${ENDC}"
 add_plugin $HTTP_VERSION
 send_grpc $SERVER_STRING
+remove_plugin $HTTP_VERSION
 
 echo -e "${BLUE}--Test API Access (HTTPS)--${ENDC}"
 test_status "$HTTPS_VERSION/api/v1/jobs/" 200
