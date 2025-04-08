@@ -17,13 +17,22 @@ jobs:
                   chmod +x install-system-dev-dependencies.sh && \
                   ./install-system-dev-dependencies.sh
 
+            - name: add domain to /etc/hosts
+              run: |
+                  sudo echo "127.0.0.1 ${{ secrets.DOMAIN }}" | sudo tee -a /etc/hosts
+            
+            - name: setup certs
+              working-directory: ./certs
+              run: |
+                chmod +x generate-ci-certs.sh && DOMAIN=${{ secrets.DOMAIN }} ./generate-ci-certs.sh
+              
             - name: Run tests
               uses: nick-fields/retry@v3
               with:
                   timeout_seconds: 40
                   retry_wait_seconds: 30
                   max_attempts: 3
-                  command: cd ./proxy && chmod +x test.sh && PATH=$HOME/go-binaries/bin:$PATH ./test.sh
+                  command: cd ./proxy && chmod +x test.sh && DOMAIN=${{ secrets.DOMAIN }} PATH=$HOME/go-binaries/bin:$PATH ./test.sh
 
     database:
         runs-on: ubuntu-24.04

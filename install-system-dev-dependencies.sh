@@ -4,7 +4,7 @@ set -e
 
 source ./colors.sh
 
-sudo apt update
+sudo apt update && sudo apt install libssl-dev openssl build-essential
 
 if [ ! $GOBIN ]; then
     GOBIN_PATH="$HOME/go-binaries/bin"
@@ -72,4 +72,10 @@ if [ ! $(which protoc) &>/dev/null ]; then
 
 	echo -e "${GREEN}Moving binary into /usr/local/bin...${ENDC}"
 	sudo mv "$TARGET_PATH/bin/protoc" /usr/local/bin
+fi
+
+if [ ! $(which certbot) &>/dev/null ]; then
+	echo -e "${GREEN}Installing certbot...${ENDC}"
+    sudo apt update && sudo apt install python3 python3-venv libaugeas0
+    sudo pip install certbot
 fi

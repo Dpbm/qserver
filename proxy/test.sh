@@ -72,8 +72,8 @@ EOM
 SERVER_STRING="$SERVER_IP:$SERVER_PORT"
 HTTP_VERSION="http://$SERVER_STRING"
 
-HTTPS_VERSION="https://dpbmdev.com"
-GRPC_TLS="dpbmdev.com:443"
+HTTPS_VERSION="https://$DOMAIN"
+GRPC_TLS="$DOMAIN:443"
 
 echo -e "${BLUE}--Test API Access--${ENDC}"
 test_status "$HTTP_VERSION/api/v1/jobs/" 200
