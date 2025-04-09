@@ -55,23 +55,9 @@ func (db *DB) DeletePlugin(pluginName string) error {
 		return errors.New("you cannot delete a plugin while there're running jobs depending on it")
 	}
 
-	result, err := db.connection.Exec("DELETE FROM backends WHERE plugin = $1", pluginName)
+	_, err = db.connection.Exec("DELETE FROM backends WHERE plugin = $1", pluginName)
 
-	if err != nil {
-		return err
-	}
-
-	rows, err := result.RowsAffected()
-
-	if err != nil {
-		return err
-	}
-
-	if rows < 1 {
-		return errors.New("plugin not found to be deleted")
-	}
-
-	return nil
+	return err
 
 }
 
@@ -278,23 +264,9 @@ func (db *DB) DeleteJobData(jobId string) error {
 		return errors.New("you cannot delete a job while it's running")
 	}
 
-	result, err := db.connection.Exec("DELETE FROM jobs WHERE id=$1", jobId)
+	_, err = db.connection.Exec("DELETE FROM jobs WHERE id=$1", jobId)
 
-	if err != nil {
-		return err
-	}
-
-	rows, err := result.RowsAffected()
-
-	if err != nil {
-		return err
-	}
-
-	if rows < 1 {
-		return errors.New("no rows were affected during job deletion")
-	}
-
-	return nil
+	return err
 
 }
 

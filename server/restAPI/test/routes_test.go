@@ -146,7 +146,7 @@ func TestDeletePluginFailedNotFoundInstalledPlugin(t *testing.T) {
 
 	server.ServeHTTP(writer, req)
 
-	assert.Equal(t, 500, writer.Code)
+	assert.Equal(t, 200, writer.Code)
 }
 
 func TestDeletePluginSuccess(t *testing.T) {
@@ -877,7 +877,7 @@ func TestDeleteNoAffectedRows(t *testing.T) {
 
 	server.ServeHTTP(writer, req)
 
-	assert.Equal(t, 500, writer.Code)
+	assert.Equal(t, 200, writer.Code)
 }
 
 // ------- GET JOBS -------
