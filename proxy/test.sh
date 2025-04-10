@@ -2,11 +2,10 @@
 
 set -e
 
-SERVER_IP=172.18.0.30
-SERVER_PORT=8080
+HTTP_PORT=8080
+HTTPS_PORT=443
 
 DEFAULT_PLUGIN="aer-plugin"
-
 
 source ../colors.sh
 
@@ -91,11 +90,11 @@ EOM
 
 }
 
-SERVER_STRING="$SERVER_IP:$SERVER_PORT"
-HTTP_VERSION="http://$SERVER_STRING"
+HTTP_VERSION="http://$DOMAIN:$HTTP_PORT"
+GRPC="$DOMAIN:$HTTP_PORT"
 
 HTTPS_VERSION="https://$DOMAIN"
-GRPC_TLS="$DOMAIN:443"
+GRPC_TLS="$DOMAIN:$HTTPS_PORT"
 
 echo -e "${BLUE}--Test API Access--${ENDC}"
 test_status "$HTTP_VERSION/api/v1/jobs/" 200
@@ -112,7 +111,7 @@ test_status "$HTTP_VERSION/healthcheck/" 200
 
 echo -e "${BLUE}--Test GRPC--${ENDC}"
 add_plugin $HTTP_VERSION
-send_grpc $SERVER_STRING
+send_grpc $GRPC
 remove_plugin $HTTP_VERSION
 
 echo -e "${BLUE}--Test API Access (HTTPS)--${ENDC}"
