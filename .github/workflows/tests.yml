@@ -11,7 +11,7 @@ jobs:
 
             - name: add domain to /etc/hosts
               run: |
-                  sudo echo "127.0.0.1 ${{ secrets.DOMAIN }}" | sudo tee -a /etc/hosts
+                  sudo echo "172.18.0.30 ${{ secrets.DOMAIN }}" | sudo tee -a /etc/hosts
             
             - name: setup certs
               working-directory: ./certs
