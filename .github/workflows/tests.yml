@@ -19,7 +19,7 @@ jobs:
                 chmod +x generate-ci-certs.sh && ./generate-ci-certs.sh ${{ secrets.DOMAIN }}
 
             - name: Run proxy
-              run: DOMAIN=${{ secrets.DOMAIN }} docker compose -f ./dev-compose.yml up -d --build proxy
+              run: DOMAIN=${{ secrets.DOMAIN }} docker compose -f ./dev-compose.yml up -d --build
 
             - name: Get Dev dependencies
               run: |
