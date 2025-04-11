@@ -6,8 +6,8 @@ source ../../colors.sh
 source ../../test-utils.sh
 
 SERVER="$HOST:50051"
-DEFAULT_PLUGIN="aer-plugin"
-PLUGINS_SERVER="http://0.0.0.0:3000"
+DEFAULT_PLUGIN="fake-plugin"
+PLUGINS_SERVER="http://$HOST:3000"
 
 run_test_1(){
     grpcurl -plaintext -d "" $SERVER Jobs/AddJob
@@ -28,7 +28,7 @@ run_test_2(){
 }
 
 run_test_3(){
-    grpcurl -plaintext -d '{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":false, "resultTypeExpVal":false, "targetSimulator":"aer"}}' $SERVER Jobs/AddJob
+    grpcurl -plaintext -d '{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":false, "resultTypeExpVal":false, "targetSimulator":"fake1"}}' $SERVER Jobs/AddJob
     if [ $? != 0 ]; then
         return 0
     else 
@@ -47,7 +47,7 @@ run_test_4(){
 }
 
 run_test_5(){
-    grpcurl -plaintext -d '{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"aer", "metadata":""}}' $SERVER Jobs/AddJob
+    grpcurl -plaintext -d '{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"fake1", "metadata":""}}' $SERVER Jobs/AddJob
     if [ $? != 0 ]; then
         return 0
     else 
@@ -57,7 +57,7 @@ run_test_5(){
 
 run_test_6(){
         DATA=$(cat <<EOM
-{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"aer", "metadata":"{}"}}
+{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"fake1", "metadata":"{}"}}
 {"qasmChunk":""}
 EOM
 )
@@ -80,7 +80,7 @@ run_test_7(){
     fi
 
     DATA=$(cat <<EOM
-{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"aer", "metadata":"{}"}}
+{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"fake1", "metadata":"{}"}}
 {"qasmChunk":"AAAA"}
 EOM
 )
