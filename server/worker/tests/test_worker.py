@@ -4,8 +4,8 @@ from utils.types import Statuses, Results, ResultType
 
 # pylint: disable=fixme
 # TODO: It must be changed to a fake backend in the future
-FAKE_BACKEND_PLUGIN = "aer-plugin"
-FAKE_BACKEND = "aer"
+FAKE_BACKEND_PLUGIN = "fake-plugin"
+FAKE_BACKEND = "fake1"
 
 PluginRow = Dict[str, str]
 
