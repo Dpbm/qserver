@@ -6,6 +6,7 @@ HTTP_PORT=8080
 HTTPS_PORT=443
 
 DEFAULT_PLUGIN="fake-plugin"
+DEFAULT_BACKEND="fake1"
 
 source ../colors.sh
 
@@ -89,7 +90,7 @@ send_grpc(){
     SERVER=$1
 
     DATA=$(cat <<EOM
-{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"fake1", "metadata":"{}"}}
+{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"$DEFAULT_BACKEND", "metadata":"{}"}}
 {"qasmChunk":"AAAA"}
 EOM
 )
@@ -101,7 +102,7 @@ send_grpc_tls(){
     SERVER=$1
 
     DATA=$(cat <<EOM
-{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"fake1", "metadata":"{}"}}
+{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"$DEFAULT_BACKEND", "metadata":"{}"}}
 {"qasmChunk":"AAAA"}
 EOM
 )

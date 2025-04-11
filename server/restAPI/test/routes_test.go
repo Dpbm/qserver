@@ -28,10 +28,6 @@ const dbPassword = ""
 const dbName = ""
 const proxy = ""
 
-// ADD A FAKE PLUGIN FOR THAT (use instead of aer)
-const plugin_name = "aer-plugin"
-const backend_name = "aer"
-
 // ------- ADD PLUGIN -------
 func TestAddPluginFailedNoPluginName(t *testing.T) {
 	dbInstance := db.DB{}
@@ -75,7 +71,9 @@ func TestAddPluginSuccess(t *testing.T) {
 		t.Fatal("Failed on parse mock")
 	}
 
-	mock.ExpectExec("INSERT INTO backends").WithArgs(backend_name, plugin_name).WillReturnResult(sqlmock.NewResult(1, 1))
+	for i := range constants.TEST_PLUGIN_TOTAL_BACKENDS {
+		mock.ExpectExec("INSERT INTO backends").WithArgs(fmt.Sprintf("%s%d", constants.TEST_BACKEND_BASE_NAME, i+1), constants.TEST_PLUGIN).WillReturnResult(sqlmock.NewResult(1, 1))
+	}
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", fmt.Sprintf("/api/v1/plugin/%s", constants.TEST_PLUGIN), nil)
@@ -97,7 +95,7 @@ func TestAddPluginNoRowsAffected(t *testing.T) {
 		t.Fatal("Failed on parse mock")
 	}
 
-	mock.ExpectExec("INSERT INTO backends").WithArgs(backend_name, plugin_name).WillReturnResult(sqlmock.NewResult(1, 0))
+	mock.ExpectExec("INSERT INTO backends").WithArgs(constants.TEST_BACKEND, constants.TEST_PLUGIN).WillReturnResult(sqlmock.NewResult(1, 0))
 
 	writer := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", fmt.Sprintf("/api/v1/plugin/%s", constants.TEST_PLUGIN), nil)
@@ -162,11 +160,11 @@ func TestDeletePluginSuccess(t *testing.T) {
 	}
 
 	row := mock.NewRows([]string{"count"}).AddRow(0)
-	mock.ExpectQuery("SELECT COUNT").WithArgs(plugin_name).WillReturnRows(row)
-	mock.ExpectExec("DELETE FROM backends").WithArgs(plugin_name).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectQuery("SELECT COUNT").WithArgs(constants.TEST_PLUGIN).WillReturnRows(row)
+	mock.ExpectExec("DELETE FROM backends").WithArgs(constants.TEST_PLUGIN).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/api/v1/plugin/%s", plugin_name), nil)
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/api/v1/plugin/%s", constants.TEST_PLUGIN), nil)
 
 	server.ServeHTTP(writer, req)
 
@@ -186,10 +184,10 @@ func TestDeletePluginFailedRunningJobs(t *testing.T) {
 	}
 
 	row := mock.NewRows([]string{"count"}).AddRow(2)
-	mock.ExpectQuery("SELECT COUNT").WithArgs(plugin_name).WillReturnRows(row)
+	mock.ExpectQuery("SELECT COUNT").WithArgs(constants.TEST_PLUGIN).WillReturnRows(row)
 
 	writer := httptest.NewRecorder()
-	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/api/v1/plugin/%s", plugin_name), nil)
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/api/v1/plugin/%s", constants.TEST_PLUGIN), nil)
 
 	server.ServeHTTP(writer, req)
 

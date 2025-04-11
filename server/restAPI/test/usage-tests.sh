@@ -6,10 +6,11 @@ source ../../../colors.sh
 source ../../../test-utils.sh
 
 SERVER_URL="$HOST:3000"
-DEFAULT_PLUGIN="aer-plugin"
-DEFAULT_BACKEND="aer"
-GRPC_SERVER="0.0.0.0:50051"
+DEFAULT_PLUGIN="fake-plugin"
+DEFAULT_BACKEND="fake1"
+GRPC_SERVER="$HOST:50051"
 TOTAL_PER_PAGE=20
+TOTAL_FAKE_BACKENDS=23
 
 get_job_status(){
     ID=$1
@@ -94,7 +95,7 @@ add_plugin(){
 
 add_job(){
         DATA=$(cat <<EOM
-{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"aer", "metadata":"{}"}}
+{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"$DEFAULT_BACKEND", "metadata":"{}"}}
 {"qasmChunk":"OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[1];\ncreg c[1];\nx q[0];\nmeasure q -> c;"}
 EOM
 )
@@ -193,7 +194,7 @@ run_test_6(){
     echo ""
 
     TOTAL_BACKENDS=$(curl -f "$SERVER_URL/api/v1/backends/" | jq length)
-    if [ $TOTAL_BACKENDS != 1 ]; then
+    if [ $TOTAL_BACKENDS != $TOTAL_PER_PAGE ]; then
         return 1
     else
         return 0
@@ -630,18 +631,18 @@ run_test_28(){
 
     TOTAL_JOBS_PAGE_1=$(curl -f "$SERVER_URL/api/v1/jobs/?cursor=0" | jq length)
     echo "TOTAL FIRST PAGE: ${TOTAL_JOBS_PAGE_1}"
-    if [ $TOTAL_JOBS_PAGE_1 != 20 ]; then
+    if [ $TOTAL_JOBS_PAGE_1 != $TOTAL_PER_PAGE ]; then
         echo -e "${RED}Wrong amount on first page${ENDC}"
         return 1
     fi
 
-    TOTAL_JOBS_PAGE_2=$(curl -f "$SERVER_URL/api/v1/jobs/?cursor=20" | jq length)
+    TOTAL_JOBS_PAGE_2=$(curl -f "$SERVER_URL/api/v1/jobs/?cursor=$TOTAL_PER_PAGE" | jq length)
     if [ $TOTAL_JOBS_PAGE_2 != 3 ]; then
         echo -e "${RED}Wrong amount on second page${ENDC}"
         return 1
     fi
 
-    TOTAL_JOBS_PAGE_3=$(curl -f "$SERVER_URL/api/v1/jobs/?cursor=40" | jq length)
+    TOTAL_JOBS_PAGE_3=$(curl -f "$SERVER_URL/api/v1/jobs/?cursor=$(( $TOTAL_PER_PAGE * 2 ))" | jq length)
     if [ $TOTAL_JOBS_PAGE_3 != 0 ]; then
         echo -e "${RED}Wrong amount on third page${ENDC}"
         return 1
@@ -674,18 +675,46 @@ run_test_29(){
 
     TOTAL_JOBS_PAGE_1=$(curl -f "$SERVER_URL/api/v1/history/?cursor=0" | jq length)
     echo "TOTAL FIRST PAGE: ${TOTAL_JOBS_PAGE_1}"
-    if [ $TOTAL_JOBS_PAGE_1 != 20 ]; then
+    if [ $TOTAL_JOBS_PAGE_1 != $TOTAL_PER_PAGE ]; then
         echo -e "${RED}Wrong amount on first page${ENDC}"
         return 1
     fi
 
-    TOTAL_JOBS_PAGE_2=$(curl -f "$SERVER_URL/api/v1/history/?cursor=20" | jq length)
+    TOTAL_JOBS_PAGE_2=$(curl -f "$SERVER_URL/api/v1/history/?cursor=$TOTAL_PER_PAGE" | jq length)
     if [ $TOTAL_JOBS_PAGE_2 != 8 ]; then
         echo -e "${RED}Wrong amount on second page${ENDC}"
         return 1
     fi
 
-    TOTAL_JOBS_PAGE_3=$(curl -f "$SERVER_URL/api/v1/history/?cursor=40" | jq length)
+    TOTAL_JOBS_PAGE_3=$(curl -f "$SERVER_URL/api/v1/history/?cursor=$(( $TOTAL_PER_PAGE * 2 ))" | jq length)
+    if [ $TOTAL_JOBS_PAGE_3 != 0 ]; then
+        echo -e "${RED}Wrong amount on third page${ENDC}"
+        return 1
+    fi
+}
+
+run_test_30(){
+    add_plugin
+    if [ $? != 0 ]; then
+        return 1
+    fi
+    echo ""
+
+
+    TOTAL_BACKENDS_PAGE_1=$(curl -f "$SERVER_URL/api/v1/backends/?cursor=0" | jq length)
+    echo "TOTAL FIRST PAGE: ${TOTAL_BACKENDS_PAGE_1}"
+    if [ $TOTAL_BACKENDS_PAGE_1 != $TOTAL_PER_PAGE ]; then
+        echo -e "${RED}Wrong amount on first page${ENDC}"
+        return 1
+    fi
+
+    TOTAL_BACKENDS_PAGE_2=$(curl -f "$SERVER_URL/api/v1/backends/?cursor=$TOTAL_PER_PAGE" | jq length)
+    if [ $TOTAL_BACKENDS_PAGE_2 != 3 ]; then
+        echo -e "${RED}Wrong amount on second page${ENDC}"
+        return 1
+    fi
+
+    TOTAL_BACKENDS_PAGE_3=$(curl -f "$SERVER_URL/api/v1/history/?cursor=$(( $TOTAL_PER_PAGE * 2 ))" | jq length)
     if [ $TOTAL_JOBS_PAGE_3 != 0 ]; then
         echo -e "${RED}Wrong amount on third page${ENDC}"
         return 1
@@ -844,5 +873,8 @@ test_header 29 "Testing pagination with $TOTAL_PER_PAGE history jobs per page 2 
 run_test_29
 has_passed
 
+clean_external
+test_header 30 "Testing pagination with $TOTAL_PER_PAGE backends per page 2 pages"
+run_test_30
+has_passed
 
-# test pagination for backends

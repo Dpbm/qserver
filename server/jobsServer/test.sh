@@ -7,6 +7,7 @@ source ../../test-utils.sh
 
 SERVER="$HOST:50051"
 DEFAULT_PLUGIN="fake-plugin"
+DEFAULT_BACKEND="fake1"
 PLUGINS_SERVER="http://$HOST:3000"
 
 run_test_1(){
@@ -28,7 +29,7 @@ run_test_2(){
 }
 
 run_test_3(){
-    grpcurl -plaintext -d '{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":false, "resultTypeExpVal":false, "targetSimulator":"fake1"}}' $SERVER Jobs/AddJob
+    grpcurl -plaintext -d '{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":false, "resultTypeExpVal":false, "targetSimulator":"$DEFAULT_BACKEND"}}' $SERVER Jobs/AddJob
     if [ $? != 0 ]; then
         return 0
     else 
@@ -47,7 +48,7 @@ run_test_4(){
 }
 
 run_test_5(){
-    grpcurl -plaintext -d '{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"fake1", "metadata":""}}' $SERVER Jobs/AddJob
+    grpcurl -plaintext -d '{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"$DEFAULT_BACKEND", "metadata":""}}' $SERVER Jobs/AddJob
     if [ $? != 0 ]; then
         return 0
     else 
@@ -57,7 +58,7 @@ run_test_5(){
 
 run_test_6(){
         DATA=$(cat <<EOM
-{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"fake1", "metadata":"{}"}}
+{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"$DEFAULT_BACKEND", "metadata":"{}"}}
 {"qasmChunk":""}
 EOM
 )
@@ -80,7 +81,7 @@ run_test_7(){
     fi
 
     DATA=$(cat <<EOM
-{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"fake1", "metadata":"{}"}}
+{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"$DEFAULT_BACKEND", "metadata":"{}"}}
 {"qasmChunk":"AAAA"}
 EOM
 )
