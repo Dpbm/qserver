@@ -36,14 +36,6 @@ http{
             proxy_pass http://apiInstance:3000;
         }
 
-        location /swagger/ {
-            proxy_pass http://apiInstance:3000/swagger/index.html;
-        }
-
-        location /swagger/* {
-            proxy_pass http://apiInstance:3000/swagger/;
-        }
-
         location / {
             if ($http_content_type !~ "application/grpc"){
                 # to avoid falling in this route

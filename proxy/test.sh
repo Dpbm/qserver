@@ -5,7 +5,7 @@ set -e
 HTTP_PORT=8080
 HTTPS_PORT=443
 
-DEFAULT_PLUGIN="aer-plugin"
+DEFAULT_PLUGIN="fake-plugin"
 
 source ../colors.sh
 
@@ -16,7 +16,7 @@ test_status(){
     URL=$1
     DESIRED_STATUS_CODE=$2
 
-    DATA=$(curl -k -v -w ' %{response_code}' $URL)
+    DATA=$(curl -k -L -v -w ' %{response_code}' $URL)
     echo -e "${BLUE}Response: $DATA${ENDC}"
     STATUS_CODE=$(echo $DATA | awk '{print $NF}')
 
@@ -54,6 +54,27 @@ remove_plugin(){
         sleep 2
     done
 
+    while true; do
+        JOBS=$(curl -k -L "$BASE_URL/api/v1/jobs" | jq -c '.[]')
+        TOTAL_UNFINISHED=0
+
+        for job in $JOBS; do
+            STATUS=$(echo $job | jq '.status'|  sed 's/\"//g')
+
+            if [ $STATUS != 'finished' ]; then
+                TOTAL_UNFINISHED=$(( $TOTAL_UNFINISHED + 1 ))
+            fi
+
+        done
+
+        if [ $TOTAL_UNFINISHED == 0 ]; then
+            break;
+        fi
+
+        sleep 2
+
+    done
+
     DATA=$(curl --request DELETE -k -v -w ' %{response_code}' "$BASE_URL/api/v1/plugin/$DEFAULT_PLUGIN")
     echo -e "${BLUE}Response: $DATA${ENDC}"
     STATUS_CODE=$(echo $DATA | awk '{print $NF}')
@@ -68,7 +89,7 @@ send_grpc(){
     SERVER=$1
 
     DATA=$(cat <<EOM
-{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"aer", "metadata":"{}"}}
+{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"fake1", "metadata":"{}"}}
 {"qasmChunk":"AAAA"}
 EOM
 )
@@ -80,7 +101,7 @@ send_grpc_tls(){
     SERVER=$1
 
     DATA=$(cat <<EOM
-{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"aer", "metadata":"{}"}}
+{"properties":{"resultTypeCounts":false, "resultTypeQuasiDist":true, "resultTypeExpVal":false, "targetSimulator":"fake1", "metadata":"{}"}}
 {"qasmChunk":"AAAA"}
 EOM
 )
@@ -101,9 +122,9 @@ test_status "$HTTP_VERSION/api/v1/jobs/" 200
 test_status "$HTTP_VERSION/api/not-exists/" 404
 
 echo -e "${BLUE}--Test Swagger--${ENDC}"
-test_status "$HTTP_VERSION/swagger/" 200
+test_status "$HTTP_VERSION/swagger" 404
 test_status "$HTTP_VERSION/swagger/index.html" 200
-test_status "$HTTP_VERSION/swagger/anything" 200
+test_status "$HTTP_VERSION/swagger/anything" 404
 
 echo -e "${BLUE}--Test NGINX--${ENDC}"
 test_status "$HTTP_VERSION/not-a-nginx-route/" 404
@@ -119,9 +140,9 @@ test_status "$HTTPS_VERSION/api/v1/jobs/" 200
 test_status "$HTTPS_VERSION/api/not-exists/" 404
 
 echo -e "${BLUE}--Test Swagger (HTTPS)--${ENDC}"
-test_status "$HTTPS_VERSION/swagger/" 200
+test_status "$HTTPS_VERSION/swagger" 404
 test_status "$HTTPS_VERSION/swagger/index.html" 200
-test_status "$HTTPS_VERSION/swagger/anything" 200
+test_status "$HTTPS_VERSION/swagger/anything" 404
 
 echo -e "${BLUE}--Test NGINX (HTTPS)--${ENDC}"
 test_status "$HTTPS_VERSION/not-a-nginx-route/" 404
