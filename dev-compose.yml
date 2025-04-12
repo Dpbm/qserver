@@ -136,9 +136,10 @@ services:
             context: ./janitor
             dockerfile: Dockerfile
         environment:
-            - LOGS_PATH=/data/logs
-            - QASM_PATH=/data/qasm
-            - TIME_TO_DELETE=5 # in days
+            LOGS_PATH: /data/logs
+            QASM_PATH: /data/qasm
+            TIME_TO_DELETE: 5 # in days
+        restart: always
         volumes:
             - qasm:/data/qasm
             - logs:/data/logs

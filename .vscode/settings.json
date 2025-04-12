@@ -65,6 +65,7 @@
         "qasm",
         "qexec",
         "qiskit",
+        "qjanitor",
         "qjobsserver",
         "qnet",
         "qproxy",

@@ -143,6 +143,18 @@ services:
         networks:
             - qnet
 
+    janitor:
+        container_name: janitor
+        image: ghcr.io/dpbm/qjanitor
+        environment:
+            - LOGS_PATH=/data/logs
+            - QASM_PATH=/data/qasm
+            - TIME_TO_DELETE=5 # in days
+        restart: always
+        volumes:
+            - qasm:/data/qasm
+            - logs:/data/logs
+
 volumes:
     data:
         external: false
