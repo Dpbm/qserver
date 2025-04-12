@@ -3,15 +3,10 @@ import sys
 from typing import List
 from datetime import datetime
 import os
-import logging
-
-logger = logging.getLogger(__name__)
-
 
 class Time:
     """
-    Helper class to handle time usage.
-    """
+    Helper class to handle time usage.  """
 
     @staticmethod
     def diff_in_days(modifcation_date: float) -> int:
@@ -34,13 +29,13 @@ def delete_file(file_path: str, days_passed: int, delete_after_days: int):
     if days_passed < delete_after_days:
         return
 
-    logger.info("Deleting file: %s", file_path)
+    print(f"Deleting file: {file_path}")
     try:
         os.remove(file_path)
     except FileNotFoundError:
-        logger.error("The file wasnt found, check it out")
+        print("The file wasnt found, check it out")
     except OSError:
-        logger.error("It should be a file not a directory")
+        print("It should be a file not a directory")
 
 
 def get_file_modification_diff(file: str) -> int:
@@ -82,24 +77,24 @@ def clear_logs(logs_path: str, time_to_delete: int):
 
 
 if __name__ == "__main__":
-    QASM_PATH = os.environ.get("ASM_PATH")
+    QASM_PATH = os.environ.get("QASM_PATH")
     LOGS_PATH = os.environ.get("LOGS_PATH")
     TIME_CRITERIA = os.environ.get("TIME_TO_DELETE")
 
     if None in (QASM_PATH, LOGS_PATH, TIME_CRITERIA):
-        logger.error("You must provide all env variables")
+        print("You must provide all env variables")
         sys.exit(1)
 
     try:
         TIME_CRITERIA = int(TIME_CRITERIA)  # type: ignore
     except ValueError:
-        logger.error(
+        print(
             "It wasn't possible to convert the env variable TIME_TO_DELETE to int"
         )
         sys.exit(1)
 
-    logger.info("Checking qasm files")
+    print("Checking qasm files")
     clear_qasm(QASM_PATH, TIME_CRITERIA)  # type: ignore
 
-    logger.info("Checking log files")
+    print("Checking log files")
     clear_qasm(LOGS_PATH, TIME_CRITERIA)  # type: ignore

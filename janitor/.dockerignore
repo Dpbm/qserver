@@ -1,0 +1,9 @@
+__pycache__
+.mypy_cache
+.tox
+tests
+.pylintrc
+*.yml
+tox.toml
+mypy.ini
+*.txt

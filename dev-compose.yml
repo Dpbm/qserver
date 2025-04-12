@@ -19,7 +19,7 @@ services:
         networks:
             qnet:
                 ipv4_address: 172.18.0.30
-    
+
     db:
         container_name: postgres-db
         hostname: postgresInstance
@@ -130,6 +130,18 @@ services:
         networks:
             - qnet
 
+    janitor:
+        container_name: janitor
+        build:
+            context: ./janitor
+            dockerfile: Dockerfile
+        environment:
+            - LOGS_PATH=/data/logs
+            - QASM_PATH=/data/qasm
+            - TIME_TO_DELETE=5 # in days
+        volumes:
+            - qasm:/data/qasm
+            - logs:/data/logs
 volumes:
     data:
         external: false
@@ -139,7 +151,6 @@ volumes:
         external: false
     logs:
         external: false
-
 
 networks:
     qnet:

@@ -187,7 +187,7 @@ jobs:
               run: tox
 
     janitor:
-        name: Run worker tests python-${{ matrix.version }} ${{ matrix.os }}
+        name: Run janitor tests python-${{ matrix.version }} ${{ matrix.os }}
         runs-on: ${{ matrix.os }}
         strategy:
             fail-fast: false
