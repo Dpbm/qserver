@@ -1,0 +1,13 @@
+
+[MAIN]
+
+ignore = 
+        __pycache__,
+        .tox
+
+[MESSAGES CONTROL]
+
+disable = 
+        missing-module-docstring,
+        too-few-public-methods,
+        import-error

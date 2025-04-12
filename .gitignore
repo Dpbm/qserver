@@ -212,3 +212,5 @@ go.work
 jobs_grpc.pb.go
 
 *.pem
+
+janitor/tests/files

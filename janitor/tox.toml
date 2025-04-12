@@ -1,0 +1,20 @@
+requires = ["tox>=4"]
+env_list = ["lint", "types", "tests", "py3.12", "py3.11", "py3.10"]
+
+[env.lint]
+description = "lint code"
+skip_install = false
+deps = ["black", "pylint"]
+commands = [["black", { replace = "posargs", default = ["."], extend = true} ], ["pylint",  { replace = "posargs", default = ["."], extend = true}]]
+
+[env.types]
+description = "check types"
+skip_install = false
+deps = ["mypy"]
+commands = [["mypy", { replace = "posargs", default = ["."], extend = true} ]]
+
+[env.tests]
+description = "run tests"
+skip_install = false
+deps = ["pytest"]
+commands = [["python", "-m", "pytest", "-vv", "-s"]]

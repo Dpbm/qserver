@@ -1,0 +1,12 @@
+name: janitor
+channels:
+    - conda-forge
+dependencies:
+    - pip
+    - python=3.12
+    - pip:
+          - tox
+          - black
+          - pylint
+          - mypy
+          - pytest
