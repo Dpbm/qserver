@@ -10,7 +10,7 @@ commands = [["black", { replace = "posargs", default = ["."], extend = true} ], 
 [env.types]
 description = "check types"
 skip_install = false
-deps = ["mypy"]
+deps = ["mypy", "pytest"]
 commands = [["mypy", { replace = "posargs", default = ["."], extend = true} ]]
 
 [env.tests]

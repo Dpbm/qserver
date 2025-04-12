@@ -4,9 +4,10 @@ from typing import List
 from datetime import datetime
 import os
 
+
 class Time:
     """
-    Helper class to handle time usage.  """
+    Helper class to handle time usage."""
 
     @staticmethod
     def diff_in_days(modifcation_date: float) -> int:
@@ -88,9 +89,7 @@ if __name__ == "__main__":
     try:
         TIME_CRITERIA = int(TIME_CRITERIA)  # type: ignore
     except ValueError:
-        print(
-            "It wasn't possible to convert the env variable TIME_TO_DELETE to int"
-        )
+        print("It wasn't possible to convert the env variable TIME_TO_DELETE to int")
         sys.exit(1)
 
     print("Checking qasm files")

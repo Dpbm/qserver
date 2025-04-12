@@ -37,14 +37,14 @@ class TestDeleteFile:
         delete_files(files_path, [files[0]], 0)
         assert len(os.listdir(files_path)) == amount_of_files - 1
 
-    def test_delete_all_files(self, files_path, files, amount_of_files):
+    def test_delete_all_files(self, files_path, files):
         """should delete all files"""
         delete_files(files_path, files, 0)
         assert len(os.listdir(files_path)) == 0
 
     # ------ CLEAR QASM -----
 
-    def test_clear_qasm_files(self, files_path, amount_of_files):
+    def test_clear_qasm_files(self, files_path):
         """should delete all files"""
         clear_qasm(files_path, 0)
         assert len(os.listdir(files_path)) == 0
@@ -56,9 +56,8 @@ class TestDeleteFile:
         with pytest.raises(Exception):
             clear_logs(files_path, 0)
 
-    def test_delete_logs(
-        self, files_path, amount_of_files, logs_path, logs_subdir, amount_of_log_files
-    ):
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
+    def test_delete_logs(self, files_path, amount_of_files, logs_path, logs_subdir):
         """should delete all log files"""
         clear_logs(logs_path, 0)
         assert len(os.listdir(files_path)) == amount_of_files

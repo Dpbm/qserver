@@ -2,6 +2,8 @@ import os
 from typing import List
 import pytest
 
+# pylint: disable=redefined-outer-name
+
 
 @pytest.fixture
 def files_path() -> str:
