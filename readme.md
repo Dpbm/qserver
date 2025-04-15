@@ -165,6 +165,12 @@ After some minutes, the server is ready to be used. You can check its API endpoi
 
 Beside these routes, the GRPC service run at the root path `/`. So, to add jobs this path must be used.
 
+---
+
+A more easy way to interact with your server is using the python client library we built. You can find the details about it [here](https://github.com/Dpbm/qserver-connect).
+
+With it, you can submit and retrieve jobs in your current python project, without handling http/grpc requests by hand.
+
 ## Dev Usage
 
 For devs, there's a bunch of different tools you may have installed to run each part isolated here are some of the main tools you need:
