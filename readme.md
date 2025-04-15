@@ -189,7 +189,11 @@ chmod +x install-system-dev-dependencies.sh
 
 It doesn't install docker and python, go, conda and docker, so make sure to install it yourself.
 
+---
 
+When you need to run something with the dev-compose config, the env values are set using majorly .env files. In the repo there're some examples you can use.
+
+In case you need something different, update the .env files or the dev-compose as you need.
 
 ### Janitor as Dev
 
