@@ -119,6 +119,8 @@ Also, if you want to add https, you need to setup the `DOMAIN` variable:
 export DOMAIN="your domain"
 ```
 
+`Note: Remember to not use hard set env variables in production. Use your cloud provider secure alternative`
+
 It's not mandatory, but we recommend you doing that. In case you're going to setup HTTPS, there's a script to setup your certs using `certbot`. Doing that is, sometimes, very trick, so I'm letting here the setup I did in my environment, but remember to check [let's encrypt documentation](https://letsencrypt.org/docs/) and [certbot's](https://certbot.eff.org/) as well.
 
 In my case, I bought a real domain that can be reach outside on the internet and them used certbot to generate the certificates. 
@@ -160,3 +162,238 @@ docker compose -f ./ghcr-prod-compose.yml up -d
 After some minutes, the server is ready to be used. You can check its API endpoints at: `http://your-domain:8080/swagger/index.html`, `https://your-domain/swagger/index.html` or even `http://172.18.0.30:8080/swagger/index.html` (remember this IP may change depending on where you're running it).
 
 ![swagger](./assets/swagger.png)
+
+Beside these routes, the GRPC service run at the root path `/`. So, to add jobs this path must be used.
+
+## Dev Usage
+
+For devs, there's a bunch of different tools you may have installed to run each part isolated here are some of the main tools you need:
+
+* make
+* python >= 3.12
+* go
+* curl
+* grpcurl
+* mamba/conda-lock/conda
+* pip/pip3
+* bash/sh
+* docker/docker compose
+* openssl
+
+If you're using Ubuntu based distros, there's a script to install some dependencies easily.
+
+```bash
+chmod +x install-system-dev-dependencies.sh
+./install-system-dev-dependencies.sh
+```
+
+It doesn't install docker and python, go, conda and docker, so make sure to install it yourself.
+
+
+
+### Janitor as Dev
+
+Janitor is a small script to delete logs and qasm files after some predetermined time using cron jobs.
+
+To run the tests first create a python environment:
+
+```bash
+cd ./janitor
+
+# example with mamba
+mamba env create -f environment.yml
+mamba activate janitor
+
+# conda-lock example
+conda-lock install -n janitor conda-lock.yml
+mamba activate janitor
+
+# pip installation
+pip install -r dev-requirements.txt
+```
+
+Then run: 
+```bash
+tox
+```
+
+
+### Proxy as DEV
+
+To test the proxy instance, you first need to run the proxy itself. You can use the dev-compose file to set it up, but first, remember to set up your domain certs.
+
+```bash
+cd ./certs
+
+export DOMAIN="your domain"
+chmod +x generate-certs.sh
+./generate-certs.sh "$DOMAIN"
+```
+
+then:
+
+```bash
+cd ..
+# remember that the DOMAIN env variable must be set
+docker compose -f ./dev-compose.yml up -d --build proxy
+```
+
+After some instants running, you'll be able to run the proxy tests with:
+
+```bash
+cd ./proxy
+chmod +x test.sh
+# remember that the DOMAIN env variable must be set
+./test.sh
+```
+
+### GRPC server as DEV
+
+First of all, install the go dependencies:
+
+```bash
+cd ./server/jobsServer
+make install
+```
+
+Then, to test your GRPC server, first you need to make it run. You can do that using it locally on your machine, or inside docker.
+
+The former can be done running:
+
+```bash
+docker compose -f ./dev-compose.yml up -d --build queue-handler db
+cd ./server/jobsServer/
+make run
+```
+
+and the latter:
+
+```bash
+docker compose -f ./dev-compose.yml up -d --build jobs-server
+```
+
+Finally, you can run the script to execute the tests
+
+```bash
+cd ./server/jobsServer/
+
+# for local running instance
+make test-local 
+
+# for docker running instance
+make test-docker
+```
+
+---
+
+If you need to update the protobuf definition, also run:
+
+```bash
+make proto
+```
+
+to generate the new grpc go definition files.
+
+---
+
+Remember to lint the code as well:
+
+```bash
+make lint
+```
+
+### API as DEV
+
+The rest api has the same logic as the GRPC server:
+
+
+```bash
+# install dependencies
+cd ./server/restAPI
+make install
+
+--------------------------------------------------
+
+# run locally
+docker compose -f ./dev-compose.yml up -d --build db
+cd ./server/restAPI/
+make run
+
+# run with docker
+docker compose -f ./dev-compose.yml up -d --build api
+
+--------------------------------------------------
+
+
+# tests for local instance
+make test-local
+
+# test for docker instance
+make test-docker
+
+--------------------------------------------------
+
+# linting
+make lint
+```
+
+however, in the case you updated some routes, you'll likely want to update swagger definitions. For that, run:
+
+```bash
+make swagger
+```
+
+
+### Worker as DEV
+
+The Worker, is a python script, so to run that the dependencies:
+
+
+```bash
+cd ./server/worker
+
+# example with mamba
+mamba env create -f environment.yml
+mamba activate worker
+
+# conda-lock example
+conda-lock install -n janitor conda-lock.yml
+mamba activate worker
+
+# pip installation
+pip install -r dev-requirements.txt
+```
+
+Start the worker instance:
+
+```bash
+# locally
+docker compose -f ./dev-compose.yml up -d --build queue-handler db
+cd ./server/worker
+make run
+
+# with docker
+docker compose -f ./dev-compose.yml up -d --build workers
+# notice that you can change the amount of workers running by changing the
+# number of replicas in the compose file
+```
+
+---
+
+To test your worker, you don't necessarily needs it running. You just need your python environment and then run:
+
+```bash
+cd ./server/worker
+tox
+```
+
+
+
+### Other stuff
+
+There're some other things you can check and may help me improve, like the database setup which can be found [here](./server/database/) and the shared library used for both http and grpc servers, being found [here](./server/shared/).
+
+
+## Contribute
+
+Feel free to open an Issue or even open a pull request to help this project evolve.

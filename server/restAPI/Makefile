@@ -3,6 +3,9 @@ USAGE_TESTS = ./usage-tests.sh
 RUN_SCRIPT = ./run-server-locally-for-tests.sh
 SWAGGER_SCRIPT = ./generate-swagger.sh
 
+install:
+	go mod download 
+
 clear-docker:
 	docker compose -f ../../dev-compose.yml down -v
 

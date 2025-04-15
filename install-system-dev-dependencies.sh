@@ -79,3 +79,8 @@ if [ ! $(which certbot) &>/dev/null ]; then
     sudo apt update && sudo apt install python3 python3-venv libaugeas0
     sudo pip install certbot
 fi
+
+if [ ! $(which golangci-lint) &>/dev/null ]; then
+	echo -e "${GREEN}Installing golang CI lint...${ENDC}"
+    go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.2
+fi
