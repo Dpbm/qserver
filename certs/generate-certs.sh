@@ -2,7 +2,8 @@
 
 set -e
 
-source ../colors.sh
+GREEN='\033[0;32m'
+ENDC='\033[0m'
 
 DOMAIN=$1
 CERTBOT=$(which certbot)

@@ -6,7 +6,7 @@
 
 An entire setup to run your quantum circuits in a separated machine.
 
-# Why?
+## Why?
 
 The main reason for this project was a problem I had during my first scientific research.
 
@@ -33,7 +33,7 @@ I'm not saying that using these cloud providers are bad, but there's always some
 
 Also, for experiments aiming to test hardware and quantum algorithms in real scenarios, submitting to a real hardware is always the best idea.
 
-# QServer is for who?
+## QServer is for who?
 
 Saying the reasons I've built qserver, here's a list of who can be  beneficiated by using this:
 
@@ -43,7 +43,7 @@ Saying the reasons I've built qserver, here's a list of who can be  beneficiated
 - Quantum computing enthusiasts 
 
 
-# How does it work?
+## How does it work?
 
 This project is developed as multiple services orchestrated via docker compose.
 
@@ -89,3 +89,74 @@ Doing that, the data is saved on a Postgres DB.
 You can see the Structure below:
 
 ![database diagram](./assets/database.jpg)
+
+## How to use?
+
+To run all that, you must install docker along with docker compose. Then get the compose file you want:
+
+```bash
+wget https://raw.githubusercontent.com/Dpbm/qserver/refs/heads/main/compose.yml
+
+# or
+
+wget  https://raw.githubusercontent.com/Dpbm/qserver/refs/heads/main/ghcr-prod-compose.yml
+```
+
+Then, you must set some env variables to configure the services access:
+
+```bash
+export DB_USERNAME="your user for db"
+export DB_PASSWORD="you db user password"
+export DB_ROOT_USER="root username"
+export DB_ROOT_PASSWORD="root db user password"
+export RABBITMQ_USER="rabbitmq username"
+export RABBITMQ_PASSWORD="rabbitmq password"
+```
+
+Also, if you want to add https, you need to setup the `DOMAIN` variable:
+
+```bash
+export DOMAIN="your domain"
+```
+
+It's not mandatory, but we recommend you doing that. In case you're going to setup HTTPS, there's a script to setup your certs using `certbot`. Doing that is, sometimes, very trick, so I'm letting here the setup I did in my environment, but remember to check [let's encrypt documentation](https://letsencrypt.org/docs/) and [certbot's](https://certbot.eff.org/) as well.
+
+In my case, I bought a real domain that can be reach outside on the internet and them used certbot to generate the certificates. 
+
+```bash
+# install certbot (check: https://certbot.eff.org/instructions?ws=nginx&os=pip)
+sudo apt update && sudo apt install python3 python3-venv libaugeas0
+sudo pip install certbot 
+
+# get and run the script
+cd /tmp
+wget https://raw.githubusercontent.com/Dpbm/qserver/refs/heads/main/certs/generate-certs.sh
+chmod +x ./generate-certs.sh && ./generate-certs.sh your-domain
+```
+
+Doing that, certbot will request you to add some information and then adding a acme challenge via DNS. Check your provider's documentation to see how to add that.
+By the end of this process, certbot will generate the `.pem` files and will store that at `/etc/letsencrypt/archive/{your-domain}/`. This location is going to be mounted inside docker when running, so you don't need to do anything else.
+
+Once we are running on a local network, it's not possible to access the domain right away. So to run:
+
+```bash
+sudo echo "172.18.0.30 your-domain" | sudo tee -a /etc/hosts
+```
+
+It's not required for cloud providers, by for local running it's a good option.
+
+If you have this server running in the same network, but on a different machine, make the mapping using the other computer's IP.
+
+Setting this up, we can run the docker compose file as:
+
+```bash
+# for dockerhub images
+docker compose up -d 
+
+# for ghcr images
+docker compose -f ./ghcr-prod-compose.yml up -d
+```
+
+After some minutes, the server is ready to be used. You can check its API endpoints at: `http://your-domain:8080/swagger/index.html`, `https://your-domain/swagger/index.html` or even `http://172.18.0.30:8080/swagger/index.html` (remember this IP may change depending on where you're running it).
+
+![swagger](./assets/swagger.png)
