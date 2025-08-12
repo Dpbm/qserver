@@ -21,6 +21,7 @@ jobs:
             - name: Run proxy
               uses: nick-fields/retry@v3
               with:
+                  timeout_minutes: 30
                   retry_wait_seconds: 30
                   max_attempts: 3
                   command: DOMAIN=${{ secrets.DOMAIN }} docker compose -f ./dev-compose.yml up -d --build
