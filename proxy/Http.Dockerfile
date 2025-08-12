@@ -9,7 +9,7 @@ COPY setup-logs.sh /docker-entrypoint.d/
 RUN chmod +x /docker-entrypoint.d/setup-logs.sh
 
 ENV NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
-RUN mv nginx.conf.template /etc/nginx/templates
+COPY nginx.conf.template /etc/nginx/templates
 
 EXPOSE 8080
 
