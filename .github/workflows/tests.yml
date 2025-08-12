@@ -22,9 +22,11 @@ jobs:
               uses: nick-fields/retry@v3
               with:
                   timeout_minutes: 30
-                  retry_wait_seconds: 30
+                  retry_wait_seconds: 120
                   max_attempts: 3
                   command: DOMAIN=${{ secrets.DOMAIN }} docker compose -f ./dev-compose.yml up -d --build
+                  on_retry_command: yes | docker system prune -a
+
 
             - name: Get Dev dependencies
               run: |
@@ -36,7 +38,7 @@ jobs:
               uses: nick-fields/retry@v3
               with:
                   timeout_seconds: 40
-                  retry_wait_seconds: 120
+                  retry_wait_seconds: 30
                   max_attempts: 3
                   command: cd ./proxy && chmod +x test.sh && DOMAIN=${{ secrets.DOMAIN }} PATH=$HOME/go-binaries/bin:$PATH ./test.sh
             

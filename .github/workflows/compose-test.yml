@@ -28,3 +28,4 @@ jobs:
                   retry_wait_seconds: 120
                   max_attempts: 3
                   command: DB_USERNAME=test DB_PASSWORD=test DB_ROOT_USER=root DB_ROOT_PASSWORD=toor RABBITMQ_USER=test RABBITMQ_PASSWORD=test DOMAIN=test.com docker compose -f ${{ inputs.file }} up -d
+                  on_retry_command: yes | docker system prune -a
