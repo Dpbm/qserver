@@ -220,18 +220,6 @@ jobs:
               run: tox
 
     dev-compose:
-        name: Run dev compose tests - ${{ matrix.os }}
-        runs-on: ${{ matrix.os }}
-        strategy:
-            fail-fast: false
-            matrix:
-                os:
-                    - ubuntu-22.04
-                    - ubuntu-22.04-arm
-    
-        steps:
-            - uses: actions/checkout@v4
-
-            - uses: ./.github/workflows/compose-test.yml
-              with:
-                file: './dev-compose.yml'
+        uses: ./.github/workflows/compose-test.yml
+        with:
+          file: './dev-compose.yml'
