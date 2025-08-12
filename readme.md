@@ -156,10 +156,10 @@ Setting this up, we can run the docker compose file as:
 
 ```bash
 # for dockerhub images
-docker compose up -d 
+docker compose -f ./compose-https.yml up -d 
 
 # for ghcr images
-docker compose -f ./ghcr-prod-compose.yml up -d
+docker compose -f ./ghcr-prod-compose-https.yml up -d
 ```
 
 After some minutes, the server is ready to be used. You can check its API endpoints at: `http://your-domain:8080/swagger/index.html`, `https://your-domain/swagger/index.html` or even `http://172.18.0.30:8080/swagger/index.html` (remember this IP may change depending on where you're running it).
