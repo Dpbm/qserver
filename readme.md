@@ -95,11 +95,18 @@ You can see the Structure below:
 To run all that, you must install docker along with docker compose. Then get the compose file you want:
 
 ```bash
+
+# http version
 wget https://raw.githubusercontent.com/Dpbm/qserver/refs/heads/main/compose.yml
+# https version
+wget https://raw.githubusercontent.com/Dpbm/qserver/refs/heads/main/compose-https.yml
 
 # or
 
+# http version
 wget  https://raw.githubusercontent.com/Dpbm/qserver/refs/heads/main/ghcr-prod-compose.yml
+# https version
+wget  https://raw.githubusercontent.com/Dpbm/qserver/refs/heads/main/ghcr-prod-compose-https.yml
 ```
 
 Then, you must set some env variables to configure the services access:
@@ -111,17 +118,13 @@ export DB_ROOT_USER="root username"
 export DB_ROOT_PASSWORD="root db user password"
 export RABBITMQ_USER="rabbitmq username"
 export RABBITMQ_PASSWORD="rabbitmq password"
-```
-
-Also, if you want to add https, you need to setup the `DOMAIN` variable:
-
-```bash
-export DOMAIN="your domain"
+export DOMAIN="your domain" # it can be arbitrary if not using HTTPS or running in local environments
 ```
 
 `Note: Remember to not use hard set env variables in production. Use your cloud provider secure alternative`
 
-It's not mandatory, but we recommend you doing that. In case you're going to setup HTTPS, there's a script to setup your certs using `certbot`. Doing that is, sometimes, very trick, so I'm letting here the setup I did in my environment, but remember to check [let's encrypt documentation](https://letsencrypt.org/docs/) and [certbot's](https://certbot.eff.org/) as well.
+
+Using HTTPS is not mandatory, but we recommend you doing that. In case you're going to setup HTTPS, there's a script to setup your certs using `certbot`. Doing that is, sometimes, very trick, so I'm letting here the setup I did in my environment, but remember to check [let's encrypt documentation](https://letsencrypt.org/docs/) and [certbot's](https://certbot.eff.org/) as well.
 
 In my case, I bought a real domain that can be reach outside on the internet and them used certbot to generate the certificates. 
 
@@ -256,6 +259,8 @@ chmod +x test.sh
 # remember that the DOMAIN env variable must be set
 ./test.sh
 ```
+
+You can also change it to run the http version, just update the `dev-compose.yml` file.
 
 ### GRPC server as DEV
 
