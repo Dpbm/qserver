@@ -1,16 +1,18 @@
 services:
     proxy:
         container_name: proxy
-        image: dpbm32/qproxy
+        image: ghcr.io/dpbm/qproxy-https
         depends_on:
             - api
             - jobs-server
         ports:
             - '8080:8080'
+            - '443:443'
         environment:
             - DOMAIN=${DOMAIN}
         volumes:
             - logs:/logs
+            - /etc/letsencrypt/archive/:/letsencrypt/
         restart: always
         networks:
             qnet:
@@ -19,7 +21,7 @@ services:
     db:
         container_name: postgres-db
         hostname: postgresInstance
-        image: dpbm32/qdb
+        image: ghcr.io/dpbm/qdb
         ports:
             - '5432:5432'
         environment:
@@ -61,7 +63,7 @@ services:
     jobs-server:
         container_name: jobs-server
         hostname: jobsServerInstance
-        image: dpbm32/qjobsserver
+        image: ghcr.io/dpbm/qjobsserver
         ports:
             - '50051:50051'
         depends_on:
@@ -93,7 +95,7 @@ services:
     api:
         container_name: api
         hostname: apiInstance
-        image: dpbm32/qapi
+        image: ghcr.io/dpbm/qapi
         depends_on:
             - db
         ports:
@@ -116,7 +118,7 @@ services:
                 ipv4_address: 172.18.0.28
 
     workers:
-        image: dpbm32/qworker
+        image: ghcr.io/dpbm/qworker
         depends_on:
             - jobs-server
         deploy:
@@ -140,10 +142,10 @@ services:
             - logs:/logs
         networks:
             - qnet
-    
+
     janitor:
         container_name: janitor
-        image: dpbm32/qjanitor
+        image: ghcr.io/dpbm/qjanitor
         environment:
             - LOGS_PATH=/data/logs
             - QASM_PATH=/data/qasm

@@ -26,7 +26,6 @@ jobs:
                   chmod +x install-system-dev-dependencies.sh && \
                   ./install-system-dev-dependencies.sh
 
-              
             - name: Run tests
               uses: nick-fields/retry@v3
               with:
@@ -34,6 +33,10 @@ jobs:
                   retry_wait_seconds: 30
                   max_attempts: 3
                   command: cd ./proxy && chmod +x test.sh && DOMAIN=${{ secrets.DOMAIN }} PATH=$HOME/go-binaries/bin:$PATH ./test.sh
+            
+            - name: Run docker compilation tests
+              working-directory: ./proxy
+              run: chmod +x docker-compile-test.sh && ./docker-compile-test.sh
 
     database:
         runs-on: ubuntu-24.04
@@ -215,3 +218,20 @@ jobs:
             - name: Run tox checks
               working-directory: ./janitor
               run: tox
+
+    dev-compose:
+        name: Run dev compose tests - ${{ matrix.os }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os:
+                    - ubuntu-22.04
+                    - ubuntu-22.04-arm
+    
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: ./.github/workflows/compose-test.yml
+              with:
+                file: './dev-compose.yml'

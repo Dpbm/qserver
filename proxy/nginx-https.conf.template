@@ -18,8 +18,12 @@ http{
         gzip on;
 
         listen 8080; # HTTP
+        listen 443 ssl;
 
         server_name ${DOMAIN};
+
+        ssl_certificate     /letsencrypt/${DOMAIN}/fullchain1.pem;
+        ssl_certificate_key /letsencrypt/${DOMAIN}/privkey1.pem;
 
         resolver 127.0.0.11 ipv6=off valid=10s; #https://stackoverflow.com/questions/67439712/nginx-does-not-re-resolve-dns-names-in-docker
         proxy_pass_request_headers on;

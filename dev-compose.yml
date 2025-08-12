@@ -3,7 +3,7 @@ services:
         container_name: proxy
         build:
             context: ./proxy/
-            dockerfile: Dockerfile
+            dockerfile: Https.Dockerfile
         depends_on:
             - api
             - jobs-server
@@ -19,6 +19,26 @@ services:
         networks:
             qnet:
                 ipv4_address: 172.18.0.30
+    
+    # FOR HTTP 
+    # proxy:
+    #     container_name: proxy
+    #     build:
+    #         context: ./proxy/
+    #         dockerfile: Http.Dockerfile
+    #     depends_on:
+    #         - api
+    #         - jobs-server
+    #     ports:
+    #         - '8080:8080'
+    #     environment:
+    #         - DOMAIN=${DOMAIN}
+    #     volumes:
+    #         - logs:/logs
+    #     restart: always
+    #     networks:
+    #         qnet:
+    #             ipv4_address: 172.18.0.30
 
     db:
         container_name: postgres-db

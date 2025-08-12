@@ -5,7 +5,7 @@ on:
       - 'testing-actions'
 
 jobs:
-    push_proxy_dockerhub:
+    push_proxy_http_dockerhub:
       permissions:
           packages: write
           contents: read
@@ -20,9 +20,9 @@ jobs:
       with:
           image_name: 'qproxy'
           context: './proxy'
-          file: './proxy/Dockerfile'
+          file: './proxy/Http.Dockerfile'
 
-    push_proxy_ghcr:
+    push_proxy_http_ghcr:
       permissions:
         contents: read
         packages: write
@@ -35,10 +35,42 @@ jobs:
       with:
           image_name: 'qproxy'
           context: './proxy'
-          file: './proxy/Dockerfile'
+          file: './proxy/Http.Dockerfile'
+    
+    
+    
+    
+    push_proxy_https_dockerhub:
+      permissions:
+          packages: write
+          contents: read
+          attestations: write
+          id-token: write
 
+      uses: ./.github/workflows/dockerhub-publish.yml
+      secrets: 
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKERHUB_NAMESPACE: ${{ secrets.DOCKERHUB_NAMESPACE }}
+      with:
+          image_name: 'qproxy-https'
+          context: './proxy'
+          file: './proxy/Https.Dockerfile'
 
+    push_proxy_https_ghcr:
+      permissions:
+        contents: read
+        packages: write
+        attestations: write
+        id-token: write
 
+      uses: ./.github/workflows/ghcr-publish.yml
+      secrets: 
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          image_name: 'qproxy-https'
+          context: './proxy'
+          file: './proxy/Https.Dockerfile'
 
 
 
@@ -185,17 +217,28 @@ jobs:
           file: './server/worker/Dockerfile'
           
 
-    test-dockerhub-production-compose-file:
-        needs: [push_api_dockerhub, push_database_dockerhub, push_jobs_server_dockerhub, push_proxy_dockerhub, push_worker_dockerhub]
+    test-dockerhub-production-compose-file-http:
+        needs: [push_api_dockerhub, push_database_dockerhub, push_jobs_server_dockerhub,   push_worker_dockerhub, push_proxy_http_dockerhub ]
         uses: ./.github/workflows/compose-test.yml
         with:
           file: './compose.yml'
+    
+    test-dockerhub-production-compose-file-https:
+        needs: [push_api_dockerhub, push_database_dockerhub, push_jobs_server_dockerhub,   push_worker_dockerhub, push_proxy_https_dockerhub ]
+        uses: ./.github/workflows/compose-test.yml
+        with:
+          file: './compose-https.yml'
 
 
-    test-ghcr-production-compose-file:
-        needs: [push_api_ghcr, push_database_ghcr, push_jobs_server_ghcr, push_proxy_ghcr, push_worker_ghcr]
+    test-ghcr-production-compose-file-http:
+        needs: [push_api_ghcr, push_database_ghcr, push_jobs_server_ghcr, push_worker_ghcr, push_proxy_http_ghcr]
         uses: ./.github/workflows/compose-test.yml
         with:
           file: './ghcr-prod-compose.yml'
 
+    test-ghcr-production-compose-file-https:
+        needs: [push_api_ghcr, push_database_ghcr, push_jobs_server_ghcr, push_worker_ghcr, push_proxy_https_ghcr]
+        uses: ./.github/workflows/compose-test.yml
+        with:
+          file: './ghcr-prod-compose-https.yml'
   

@@ -29,5 +29,6 @@ jobs:
                 DB_ROOT_PASSWORD: toor
                 RABBITMQ_USER: test
                 RABBITMQ_PASSWORD: test
+                DOMAIN: test.com
               run: |
                   docker compose -f ${{ inputs.file }} up -d

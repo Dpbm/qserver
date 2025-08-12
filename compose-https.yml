@@ -7,10 +7,12 @@ services:
             - jobs-server
         ports:
             - '8080:8080'
+            - '443:443'
         environment:
             - DOMAIN=${DOMAIN}
         volumes:
             - logs:/logs
+            - /etc/letsencrypt/archive/:/letsencrypt/
         restart: always
         networks:
             qnet:
