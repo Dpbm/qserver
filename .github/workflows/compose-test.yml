@@ -22,13 +22,9 @@ jobs:
             - uses: actions/checkout@v4
 
             - name: run compose
-              env: 
-                DB_USERNAME: test
-                DB_PASSWORD: test
-                DB_ROOT_USER: root
-                DB_ROOT_PASSWORD: toor
-                RABBITMQ_USER: test
-                RABBITMQ_PASSWORD: test
-                DOMAIN: test.com
-              run: |
-                  docker compose -f ${{ inputs.file }} up -d
+              uses: nick-fields/retry@v3
+              with:
+                  timeout_minutes: 30
+                  retry_wait_seconds: 30
+                  max_attempts: 3
+                  command: DB_USERNAME=test DB_PASSWORD=test DB_ROOT_USER=root DB_ROOT_PASSWORD=toor RABBITMQ_USER=test RABBITMQ_PASSWORD=test DOMAIN=test.com docker compose -f ${{ inputs.file }} up -d

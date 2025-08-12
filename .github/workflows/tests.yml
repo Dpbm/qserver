@@ -88,6 +88,7 @@ jobs:
 
             - name: Get Dev dependencies
               run: |
+                  apt remove python3-cryptography -y && \
                   chmod +x install-system-dev-dependencies.sh && \
                   ./install-system-dev-dependencies.sh
 
@@ -155,6 +156,7 @@ jobs:
 
             - name: Get Dev dependencies
               run: |
+                  apt remove python3-cryptography -y && \
                   chmod +x install-system-dev-dependencies.sh && \
                   ./install-system-dev-dependencies.sh
 
