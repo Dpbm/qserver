@@ -14,5 +14,5 @@ COPY nginx-https.conf.template /etc/nginx/templates/nginx.conf.template
 EXPOSE 8080
 EXPOSE 443
 
-HEALTHCHECK --interval=1m --timeout=10s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=1m --timeout=10s --start-period=5s \
     CMD wget --spider -q http://localhost:8080/healthcheck/ || exit 1
